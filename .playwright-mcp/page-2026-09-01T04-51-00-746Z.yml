@@ -1,0 +1,39 @@
+- generic [ref=f5e2]:
+  - generic [ref=f5e3]:
+    - banner [ref=f5e4]:
+      - generic [ref=f5e5]:
+        - link "Contest Admin" [ref=f5e6] [cursor=pointer]:
+          - /url: /
+        - button "Toggle light/dark theme" [ref=f5e13] [cursor=pointer]
+    - main [ref=f5e14]:
+      - generic [ref=f5e15]:
+        - generic [ref=f5e16]:
+          - generic [ref=f5e17]:
+            - heading "Demo Contest" [level=1] [ref=f5e18]
+            - paragraph [ref=f5e19]: Seeded demo contest for local testing.
+            - paragraph [ref=f5e20]: 9/1/2026, 9:48:42 AM → 9/1/2026, 11:53:42 AM
+          - generic [ref=f5e21]:
+            - link "Edit" [ref=f5e22] [cursor=pointer]:
+              - /url: /contests/6a96534ef934e532212b6355/edit
+            - link "Results" [ref=f5e23] [cursor=pointer]:
+              - /url: /contests/6a96534ef934e532212b6355/results
+        - generic [ref=f5e24]:
+          - generic [ref=f5e25]:
+            - heading "Problems" [level=3] [ref=f5e26]
+            - button "Add Problem" [ref=f5e27] [cursor=pointer]
+          - generic [ref=f5e28]:
+            - generic [ref=f5e29]:
+              - generic [ref=f5e30]:
+                - generic [ref=f5e36]: Sum of Two Numbers
+                - generic [ref=f5e37]: Easy
+              - generic [ref=f5e38]:
+                - button [ref=f5e39] [cursor=pointer]
+                - button [ref=f5e40] [cursor=pointer]
+            - generic [ref=f5e41]:
+              - generic [ref=f5e42]:
+                - generic [ref=f5e48]: Reverse a String
+                - generic [ref=f5e49]: Easy
+              - generic [ref=f5e50]:
+                - button [ref=f5e51] [cursor=pointer]
+                - button [ref=f5e52] [cursor=pointer]
+  - region "Notifications alt+T"

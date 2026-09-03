@@ -1,0 +1,22 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - link "Contest Admin" [ref=f1e6] [cursor=pointer]:
+        - /url: /
+    - main [ref=f1e13]:
+      - generic [ref=f1e14]:
+        - generic [ref=f1e15]:
+          - generic [ref=f1e16]: 0 devices connected
+          - button "Sync" [ref=f1e21] [cursor=pointer]
+        - generic [ref=f1e22]:
+          - heading "Contests" [level=1] [ref=f1e23]
+          - link "New Contest" [ref=f1e24] [cursor=pointer]:
+            - /url: /contests/new
+        - link "Demo Contest Live 9/1/2026, 9:39:59 AM → 9/1/2026, 11:44:59 AM" [ref=f1e26] [cursor=pointer]:
+          - /url: /contests/6a965143a0a3f26375f49970
+          - generic [ref=f1e27]:
+            - generic [ref=f1e28]:
+              - heading "Demo Contest" [level=3] [ref=f1e29]
+              - generic [ref=f1e36]: Live
+            - generic [ref=f1e37]: 9/1/2026, 9:39:59 AM → 9/1/2026, 11:44:59 AM
+  - region "Notifications alt+T"

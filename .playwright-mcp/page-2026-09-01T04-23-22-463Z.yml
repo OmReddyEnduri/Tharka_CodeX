@@ -1,0 +1,14 @@
+- generic [ref=f8e2]:
+  - generic [ref=f8e3]:
+    - banner [ref=f8e4]:
+      - link "Contest Platform" [ref=f8e5] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f8e6]:
+        - generic [ref=f8e7]: Alice Test (R100)
+        - link "switch" [ref=f8e8] [cursor=pointer]:
+          - /url: /contest/6a965143a0a3f26375f49970/join
+    - main [ref=f8e9]:
+      - generic [ref=f8e11]:
+        - heading "Leaderboard" [level=3] [ref=f8e13]
+        - paragraph [ref=f8e15]: Loading...
+  - region "Notifications alt+T"

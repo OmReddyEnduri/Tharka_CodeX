@@ -1,0 +1,25 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e3]:
+    - banner [ref=f2e4]:
+      - link "Contest Admin" [ref=f2e6] [cursor=pointer]:
+        - /url: /
+    - main [ref=f2e13]:
+      - generic [ref=f2e14]:
+        - generic [ref=f2e15]:
+          - generic [ref=f2e16]: 0 devices connected
+          - button "Sync" [ref=f2e24] [cursor=pointer]
+        - generic [ref=f2e25]:
+          - heading "Contests" [level=1] [ref=f2e26]
+          - link "New Contest" [ref=f2e27] [cursor=pointer]:
+            - /url: /contests/new
+        - link "Demo Contest Live 9/1/2026, 9:39:59 AM → 9/1/2026, 11:44:59 AM" [ref=f2e34] [cursor=pointer]:
+          - /url: /contests/6a965143a0a3f26375f49970
+          - generic [ref=f2e35]:
+            - generic [ref=f2e36]:
+              - heading "Demo Contest" [level=3] [ref=f2e37]
+              - generic [ref=f2e44]: Live
+            - generic [ref=f2e45]: 9/1/2026, 9:39:59 AM → 9/1/2026, 11:44:59 AM
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=f2e46]:
+        - generic [ref=f2e50]: Synced v5 — pushed to 1 device(s)

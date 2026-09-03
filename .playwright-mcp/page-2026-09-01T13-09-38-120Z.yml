@@ -1,0 +1,95 @@
+- generic:
+  - generic:
+    - generic [aria-hidden]:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Tharka Codex Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Playwright Test Contest A
+              - paragraph: Created by automated test
+              - paragraph: 9/5/2026, 10:00:00 AM → 9/5/2026, 1:00:00 PM
+            - generic:
+              - link:
+                - /url: /contests/6a96ce7acc68598c5620a2bf/edit
+                - text: Edit
+              - link:
+                - /url: /contests/6a96ce7acc68598c5620a2bf/results
+                - text: Results
+              - button: Delete Contest
+          - generic:
+            - generic:
+              - heading [level=3]: Problems
+              - generic:
+                - button: Bulk Add
+                - button: Add Problem
+            - generic:
+              - generic:
+                - generic:
+                  - generic: PW Two Sum
+                  - generic: Easy
+                - generic:
+                  - button
+                  - button
+              - generic:
+                - generic:
+                  - generic: PW No Testcases Yet
+                  - generic: Medium
+                - generic:
+                  - button
+                  - button
+    - region "Notifications alt+T"
+  - dialog [ref=f2e65]:
+    - generic "Drag to resize" [ref=f2e66]
+    - generic [ref=f2e67]:
+      - heading "Edit Contest Problem" [level=2] [ref=f2e68]
+      - paragraph [ref=f2e69]: Configure the problem statement and constraints.
+    - generic [ref=f2e70]:
+      - generic [ref=f2e71]:
+        - tablist [ref=f2e72]:
+          - tab "Details" [active] [selected] [ref=f2e73] [cursor=pointer]
+          - tab "Test Cases" [ref=f2e74] [cursor=pointer]
+        - tabpanel "Details" [ref=f2e75]:
+          - generic [ref=f2e76]:
+            - text: Problem ID
+            - spinbutton [disabled] [ref=f2e77]: "927254"
+          - generic [ref=f2e78]:
+            - text: Title
+            - textbox "Two Sum" [ref=f2e79]: PW Two Sum
+          - generic [ref=f2e80]:
+            - text: Description (Markdown supported)
+            - textbox "Given an array of integers..." [ref=f2e81]: Given two numbers, print their sum.
+          - generic [ref=f2e82]:
+            - text: Category
+            - textbox "e.g. Arrays, DP, Graphs" [ref=f2e83]: General
+          - generic [ref=f2e84]:
+            - generic [ref=f2e85]:
+              - text: Input Format
+              - textbox [ref=f2e86]: Standard Input
+            - generic [ref=f2e87]:
+              - text: Output Format
+              - textbox [ref=f2e88]: Standard Output
+          - generic [ref=f2e89]:
+            - generic [ref=f2e90]:
+              - text: Difficulty
+              - combobox [ref=f2e91]:
+                - option "Easy" [selected]
+                - option "Medium"
+                - option "Hard"
+            - generic [ref=f2e92]:
+              - text: Time Limit (ms)
+              - spinbutton [ref=f2e93]: "1000"
+            - generic [ref=f2e94]:
+              - text: Memory Limit (MB)
+              - spinbutton [ref=f2e95]: "256"
+          - generic [ref=f2e96]:
+            - text: Constraints
+            - textbox "-10^9 <= target <= 10^9" [ref=f2e97]
+      - button "Update Problem" [ref=f2e99] [cursor=pointer]
+    - button "Close" [ref=f2e100] [cursor=pointer]

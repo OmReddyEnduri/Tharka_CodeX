@@ -1,0 +1,223 @@
+/* Self-hosted (via @fontsource) instead of a live fonts.googleapis.com
+   @import. A remote @import is render-blocking - on a lab laptop with no
+   network the whole app sat waiting on that DNS lookup before anything
+   (including the compiler) became responsive. Bundling the font files
+   removes the app's last runtime dependency on internet access. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+@import '@fontsource/inter/900.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 220 60% 28%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 220 60% 28%;
+
+    --radius: 0.75rem;
+  }
+
+  /* "Dark" - softened from the original near-black (background was 8%
+     lightness, felt too harsh) up to a mid-charcoal. */
+  [data-theme="dark"] {
+    --background: 222 25% 15%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 22% 19%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 22% 19%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 205 75% 58%;
+    --primary-foreground: 222 30% 12%;
+
+    --secondary: 217 20% 24%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 217 20% 24%;
+    --muted-foreground: 215 20% 68%;
+
+    --accent: 25 90% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 20% 26%;
+    --input: 217 20% 26%;
+    --ring: 205 75% 58%;
+  }
+
+  /* "Dim" - a softer, lower-contrast dark (GitHub-dimmed-style), for long
+     sessions in low light without full "Dark" theme's contrast. */
+  [data-theme="dim"] {
+    --background: 220 13% 20%;
+    --foreground: 210 15% 82%;
+
+    --card: 220 13% 24%;
+    --card-foreground: 210 15% 82%;
+
+    --popover: 220 13% 24%;
+    --popover-foreground: 210 15% 82%;
+
+    --primary: 210 55% 62%;
+    --primary-foreground: 220 20% 14%;
+
+    --secondary: 220 12% 30%;
+    --secondary-foreground: 210 15% 82%;
+
+    --muted: 220 12% 30%;
+    --muted-foreground: 215 12% 62%;
+
+    --accent: 32 70% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 45% 48%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 12% 32%;
+    --input: 220 12% 32%;
+    --ring: 210 55% 62%;
+  }
+
+  /* "Midnight" - a blue-tinted deep dark with a brighter accent, for those
+     who do want the punchier original look. */
+  [data-theme="midnight"] {
+    --background: 224 45% 10%;
+    --foreground: 210 40% 96%;
+
+    --card: 224 40% 14%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 224 40% 14%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 217 91% 65%;
+    --primary-foreground: 224 45% 10%;
+
+    --secondary: 222 33% 20%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 222 33% 20%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 271 76% 68%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 33% 22%;
+    --input: 222 33% 22%;
+    --ring: 217 91% 65%;
+  }
+
+  /* "Solarized" - a warm, paper-toned light theme. */
+  [data-theme="solarized"] {
+    --background: 44 40% 94%;
+    --foreground: 194 30% 22%;
+
+    --card: 44 45% 97%;
+    --card-foreground: 194 30% 22%;
+
+    --popover: 44 45% 97%;
+    --popover-foreground: 194 30% 22%;
+
+    --primary: 205 70% 40%;
+    --primary-foreground: 44 45% 97%;
+
+    --secondary: 44 30% 88%;
+    --secondary-foreground: 194 30% 22%;
+
+    --muted: 44 30% 88%;
+    --muted-foreground: 194 15% 42%;
+
+    --accent: 35 85% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 5 65% 48%;
+    --destructive-foreground: 44 45% 97%;
+
+    --border: 44 25% 82%;
+    --input: 44 25% 82%;
+    --ring: 205 70% 40%;
+  }
+
+  /* "High Contrast" - max contrast, for accessibility / harsh lab lighting. */
+  [data-theme="highContrast"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 220 100% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 20%;
+
+    --accent: 25 100% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 220 100% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}

@@ -1,0 +1,56 @@
+- generic:
+  - generic:
+    - generic [aria-hidden]:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Tharka Codex Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Playwright Test Contest A
+              - paragraph: Created by automated test
+              - paragraph: 9/5/2026, 10:00:00 AM → 9/5/2026, 1:00:00 PM
+            - generic:
+              - link:
+                - /url: /contests/6a96ce7acc68598c5620a2bf/edit
+                - text: Edit
+              - link:
+                - /url: /contests/6a96ce7acc68598c5620a2bf/results
+                - text: Results
+              - button: Delete Contest
+          - generic:
+            - generic:
+              - heading [level=3]: Problems
+              - generic:
+                - button: Bulk Add
+                - button: Add Problem
+            - generic:
+              - generic:
+                - generic:
+                  - generic: PW Two Sum
+                  - generic: Easy
+                - generic:
+                  - button
+                  - button
+              - generic:
+                - generic:
+                  - generic: PW No Testcases Yet
+                  - generic: Medium
+                - generic:
+                  - button
+                  - button
+    - region "Notifications alt+T"
+  - dialog [ref=f2e171]:
+    - generic [ref=f2e172]:
+      - heading "Bulk Add Problems" [level=2] [ref=f2e173]
+      - paragraph [ref=f2e174]: Upload a JSON file describing one or more problems to add to this contest. Each problem can optionally include its own sample/hidden test cases. Full format in HOWTOUSE.md.
+    - button "Choose File" [active] [ref=f2e177]
+    - generic [ref=f2e178]:
+      - button "Cancel" [ref=f2e179] [cursor=pointer]
+      - button "Import" [disabled]
+    - button "Close" [ref=f2e180] [cursor=pointer]

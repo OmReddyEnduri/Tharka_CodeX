@@ -1,0 +1,32 @@
+- generic [ref=f11e2]:
+  - generic [ref=f11e3]:
+    - generic [ref=f11e4]:
+      - generic [ref=f11e5]:
+        - link "Home" [ref=f11e6] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f11e10]: C++
+      - generic [ref=f11e15]:
+        - button "Run" [ref=f11e16] [cursor=pointer]
+        - combobox "Theme" [ref=f11e25]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - generic [ref=f11e27]:
+      - generic [ref=f11e29]:
+        - generic [ref=f11e30]:
+          - generic [ref=f11e31]: Main.cpp
+          - generic [ref=f11e32]:
+            - img [ref=f11e33] [cursor=pointer]
+            - img [ref=f11e36] [cursor=pointer]
+        - generic [ref=f11e41]: Loading...
+      - separator [ref=f11e44]
+      - generic [ref=f11e54]:
+        - tablist [ref=f11e56]:
+          - tab "Console" [selected] [ref=f11e57] [cursor=pointer]
+          - tab "I/O" [ref=f11e58] [cursor=pointer]
+        - tabpanel "Console" [ref=f11e59]:
+          - paragraph [ref=f11e62]: Click Run to start a live terminal session.
+  - region "Notifications alt+T"

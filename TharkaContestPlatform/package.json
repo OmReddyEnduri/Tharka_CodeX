@@ -1,0 +1,19 @@
+{
+  "name": "tharka-contest-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "server": "npm run dev --workspace=server",
+    "admin": "npm run dev --workspace=admin-web",
+    "client": "npm run dev --workspace=client-web",
+    "seed": "npm run seed --workspace=server"
+  },
+  "allowScripts": {
+    "@swc/core@1.16.1": true,
+    "esbuild@0.21.5": true,
+    "electron@32.3.3": true
+  }
+}

@@ -1,0 +1,164 @@
+2026-09-01 12:06:15 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 12:06:15 - Started 15808
+2026-09-01 14:28:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 14:28:16 - Started 6024
+2026-09-01 14:29:09 - Stopping tharkacontestserver.exe
+2026-09-01 14:29:09 - ProcessKill 6024
+2026-09-01 14:29:09 - Shutdown exception
+Message:Class not registered
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-01 14:29:31 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 14:29:31 - Started 5804
+2026-09-01 14:51:39 - Stopping tharkacontestserver.exe
+2026-09-01 14:51:39 - ProcessKill 5804
+2026-09-01 14:51:39 - Shutdown exception
+Message:Class not registered
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-01 14:52:05 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 14:52:05 - Started 5660
+2026-09-01 15:09:15 - Stopping tharkacontestserver.exe
+2026-09-01 15:09:15 - ProcessKill 5660
+2026-09-01 15:09:15 - Found child process: 5676 Name: conhost.exe
+2026-09-01 15:09:15 - Found child process: 668 Name: node.exe
+2026-09-01 15:09:15 - Stopping process 5676
+2026-09-01 15:09:15 - Send SIGINT 5676
+2026-09-01 15:09:15 - SIGINT to 5676 failed - Killing as fallback
+2026-09-01 15:09:15 - Stopping process 668
+2026-09-01 15:09:15 - Send SIGINT 668
+2026-09-01 15:09:15 - SIGINT to 668 failed - Killing as fallback
+2026-09-01 15:09:15 - Stopping process 5660
+2026-09-01 15:09:15 - Send SIGINT 5660
+2026-09-01 15:09:15 - SIGINT to 5660 failed - Killing as fallback
+2026-09-01 15:09:15 - Finished tharkacontestserver.exe
+2026-09-01 15:09:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 15:09:16 - Started 6992
+2026-09-01 16:14:09 - Stopping tharkacontestserver.exe
+2026-09-01 16:14:09 - ProcessKill 6992
+2026-09-01 16:14:09 - Shutdown exception
+Message:Class not registered
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-01 16:14:35 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 16:14:35 - Started 5820
+2026-09-01 18:34:55 - Stopping tharkacontestserver.exe
+2026-09-01 18:34:55 - ProcessKill 5820
+2026-09-01 18:34:55 - Found child process: 5840 Name: conhost.exe
+2026-09-01 18:34:55 - Found child process: 7156 Name: node.exe
+2026-09-01 18:34:55 - Stopping process 5840
+2026-09-01 18:34:55 - Send SIGINT 5840
+2026-09-01 18:34:55 - SIGINT to 5840 failed - Killing as fallback
+2026-09-01 18:34:55 - Stopping process 7156
+2026-09-01 18:34:55 - Send SIGINT 7156
+2026-09-01 18:34:55 - SIGINT to 7156 failed - Killing as fallback
+2026-09-01 18:34:55 - Stopping process 5820
+2026-09-01 18:34:55 - Send SIGINT 5820
+2026-09-01 18:34:55 - SIGINT to 5820 failed - Killing as fallback
+2026-09-01 18:34:55 - Finished tharkacontestserver.exe
+2026-09-01 18:34:55 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 18:34:55 - Started 7864
+2026-09-01 18:44:14 - Stopping tharkacontestserver.exe
+2026-09-01 18:44:14 - ProcessKill 7864
+2026-09-01 18:44:14 - Found child process: 9052 Name: conhost.exe
+2026-09-01 18:44:14 - Found child process: 1348 Name: node.exe
+2026-09-01 18:44:14 - Stopping process 9052
+2026-09-01 18:44:14 - Send SIGINT 9052
+2026-09-01 18:44:14 - SIGINT to 9052 failed - Killing as fallback
+2026-09-01 18:44:14 - Stopping process 1348
+2026-09-01 18:44:14 - Send SIGINT 1348
+2026-09-01 18:44:14 - SIGINT to 1348 failed - Killing as fallback
+2026-09-01 18:44:14 - Stopping process 7864
+2026-09-01 18:44:14 - Send SIGINT 7864
+2026-09-01 18:44:14 - SIGINT to 7864 failed - Killing as fallback
+2026-09-01 18:44:14 - Finished tharkacontestserver.exe
+2026-09-01 18:44:15 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 18:44:15 - Started 6276
+2026-09-01 19:25:07 - Stopping tharkacontestserver.exe
+2026-09-01 19:25:07 - ProcessKill 6276
+2026-09-01 19:25:07 - Found child process: 5604 Name: conhost.exe
+2026-09-01 19:25:07 - Found child process: 2056 Name: node.exe
+2026-09-01 19:25:07 - Stopping process 5604
+2026-09-01 19:25:07 - Send SIGINT 5604
+2026-09-01 19:25:07 - SIGINT to 5604 failed - Killing as fallback
+2026-09-01 19:25:07 - Stopping process 2056
+2026-09-01 19:25:07 - Send SIGINT 2056
+2026-09-01 19:25:07 - SIGINT to 2056 failed - Killing as fallback
+2026-09-01 19:25:07 - Stopping process 6276
+2026-09-01 19:25:07 - Send SIGINT 6276
+2026-09-01 19:25:07 - SIGINT to 6276 failed - Killing as fallback
+2026-09-01 19:25:07 - Finished tharkacontestserver.exe
+2026-09-01 19:25:07 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 19:25:07 - Started 10148
+2026-09-01 19:48:21 - Stopping tharkacontestserver.exe
+2026-09-01 19:48:21 - ProcessKill 10148
+2026-09-01 19:48:22 - Shutdown exception
+Message:Class not registered
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-01 19:48:48 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-01 19:48:48 - Started 5796
+2026-09-02 09:30:52 - Stopping tharkacontestserver.exe
+2026-09-02 09:30:52 - ProcessKill 5796
+2026-09-02 09:30:52 - Shutdown exception
+Message:A system shutdown is in progress.
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-02 09:31:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-02 09:31:16 - Started 5820
+2026-09-02 12:32:55 - Stopping tharkacontestserver.exe
+2026-09-02 12:32:55 - ProcessKill 5820
+2026-09-02 12:32:55 - Found child process: 5836 Name: conhost.exe
+2026-09-02 12:32:55 - Found child process: 5536 Name: node.exe
+2026-09-02 12:32:55 - Stopping process 5836
+2026-09-02 12:32:55 - Send SIGINT 5836
+2026-09-02 12:32:55 - SIGINT to 5836 failed - Killing as fallback
+2026-09-02 12:32:55 - Stopping process 5536
+2026-09-02 12:32:55 - Send SIGINT 5536
+2026-09-02 12:32:55 - SIGINT to 5536 failed - Killing as fallback
+2026-09-02 12:32:55 - Stopping process 5820
+2026-09-02 12:32:55 - Send SIGINT 5820
+2026-09-02 12:32:55 - SIGINT to 5820 failed - Killing as fallback
+2026-09-02 12:32:55 - Finished tharkacontestserver.exe
+2026-09-02 12:32:55 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-02 12:32:56 - Started 14900

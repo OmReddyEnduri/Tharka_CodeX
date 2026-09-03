@@ -1,0 +1,1 @@
+CreateObject("Wscript.Shell").Run "cmd.exe /c cd /d C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\admin-web && C:\Users\Administrator\AppData\Roaming\npm\npx.cmd vite --host", 0, True

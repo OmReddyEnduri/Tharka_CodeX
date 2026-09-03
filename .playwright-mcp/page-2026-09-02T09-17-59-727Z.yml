@@ -1,0 +1,32 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e3]:
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "Tharka Codex" [ref=f2e6] [cursor=pointer]:
+          - /url: /
+        - link "Compiler" [ref=f2e7] [cursor=pointer]:
+          - /url: /compiler
+      - generic [ref=f2e8]:
+        - combobox "Theme" [ref=f2e16]:
+          - option "Light" [selected]
+          - option "Dark"
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+        - link "Settings" [ref=f2e17] [cursor=pointer]:
+          - /url: /settings
+    - main [ref=f2e21]:
+      - generic [ref=f2e23]:
+        - generic [ref=f2e24]:
+          - heading "Join Contest" [level=3] [ref=f2e25]
+          - paragraph [ref=f2e26]: Enter your name and roll number to continue.
+        - generic [ref=f2e28]:
+          - generic [ref=f2e29]:
+            - text: Name
+            - textbox "Name" [ref=f2e30]
+          - generic [ref=f2e31]:
+            - text: Roll Number
+            - textbox "Roll Number" [ref=f2e32]
+          - button "Continue" [ref=f2e33] [cursor=pointer]
+  - region "Notifications alt+T"

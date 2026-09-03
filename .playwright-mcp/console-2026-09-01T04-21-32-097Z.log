@@ -1,0 +1,10 @@
+[     993ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[  333673ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://i.ytimg.com/vi/AjoD5GqosTk/mqdefault.jpg?sqp=-oaymwEFCJQBEFM&rs=AMzJL3kYiLEFILzPbRhxoJ8fGs1UQ7mtTw:0
+[  334242ms] [WARNING] A speculation rule set was inserted into the document but will be ignored. This might happen, for example, if it was previously inserted into another document, or if it was created using the innerHTML setter. @ https://www.google.com/search?q=i+take+claude+subscription&rlz=1C1GCEA_enRO1062IN1220&oq=i+took+claue+subs&gs_lcrp=EgZjaHJvbWUqCggBEAAYChgWGB4yBggAEEUYOTIKCAEQABgKGBYYHjINCAIQABiGAxiABBiKBTINCAMQABiGAxiABBiKBdIBCDgyNzZqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8&sei=GFSWaufaB8achvcPpKLE2Qc:34
+[  334546ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[  334818ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=GFSWareNGqGchvcPtJfAgAs:0
+[  336378ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[  337395ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[  360202ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[  361658ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=M1SWatrSJYWdhvcP_t_lqQ8:0
+[  362682ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0

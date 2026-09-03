@@ -1,0 +1,18 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e3]:
+    - banner [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - link "Contest Admin" [ref=f4e6] [cursor=pointer]:
+          - /url: /
+        - button "Toggle light/dark theme" [ref=f4e13] [cursor=pointer]
+    - main [ref=f4e14]:
+      - generic [ref=f4e15]:
+        - generic [ref=f4e16]:
+          - generic [ref=f4e17]: 0 devices connected
+          - button "Sync" [ref=f4e25] [cursor=pointer]
+        - generic [ref=f4e26]:
+          - heading "Contests" [level=1] [ref=f4e27]
+          - link "New Contest" [ref=f4e28] [cursor=pointer]:
+            - /url: /contests/new
+        - paragraph [ref=f4e29]: Loading...
+  - region "Notifications alt+T"

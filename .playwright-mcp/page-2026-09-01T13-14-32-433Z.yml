@@ -1,0 +1,65 @@
+- generic:
+  - generic:
+    - generic [aria-hidden]:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Tharka Codex Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - heading [level=3]: Live Results
+          - generic:
+            - generic:
+              - table:
+                - rowgroup:
+                  - row:
+                    - columnheader: Rank
+                    - columnheader: Student
+                    - columnheader: Roll No.
+                    - columnheader: Add Two Numbers
+                    - columnheader: Array Sum
+                    - columnheader: Find the Maximum
+                    - columnheader: Even or Odd
+                    - columnheader: Palindrome Check
+                    - columnheader: Count Numbers in Range
+                    - columnheader: Reverse an Array
+                    - columnheader: Prime Number Check
+                    - columnheader: Linear Search
+                    - columnheader: Sort the Array
+                    - columnheader: Score
+                    - columnheader: Action
+                - rowgroup:
+                  - row:
+                    - cell: "1"
+                    - cell:
+                      - generic: tu
+                    - cell: "4"
+                    - cell:
+                      - button: AC
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "-"
+                    - cell: "100"
+                    - cell:
+                      - button: Disqualify
+    - region "Notifications alt+T"
+  - dialog [ref=f4e67]:
+    - generic [ref=f4e68]:
+      - heading "tu — Add Two Numbers" [level=2] [ref=f4e69]
+      - paragraph [ref=f4e70]: Roll No. 4. Most recent attempt first.
+    - generic [ref=f4e72]:
+      - generic [ref=f4e73]:
+        - generic [ref=f4e74]: Accepted (10/10 tests, 68ms)
+        - generic [ref=f4e75]: 9/1/2026, 6:38:54 PM
+      - generic [ref=f4e76]: "#include <iostream> using namespace std; int main() { int x,y; cin>>x>>y; cout<<x+y; }"
+    - button "Close" [active] [ref=f4e77] [cursor=pointer]

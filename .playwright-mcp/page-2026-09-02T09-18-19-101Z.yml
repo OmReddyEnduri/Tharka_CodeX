@@ -1,0 +1,85 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e109]:
+      - generic [ref=f2e110]:
+        - generic [ref=f2e111]:
+          - link "Back to Contest" [ref=f2e112] [cursor=pointer]:
+            - /url: /contest/6a97c469a9f1980f1a1c04ee
+          - generic [ref=f2e116]:
+            - heading "Sync Repro Problem" [level=1] [ref=f2e117]
+            - generic [ref=f2e118]: Medium
+        - generic [ref=f2e119]:
+          - button "Run" [ref=f2e120] [cursor=pointer]
+          - button "Submit" [ref=f2e121] [cursor=pointer]
+          - combobox "Theme" [ref=f2e130]:
+            - option "Light"
+            - option "Dark" [selected]
+            - option "Dim"
+            - option "Midnight"
+            - option "Solarized"
+            - option "High Contrast"
+      - generic [ref=f2e132]:
+        - generic [ref=f2e135]:
+          - tablist [ref=f2e137]:
+            - tab "Description" [selected] [ref=f2e138] [cursor=pointer]
+            - tab "Submissions" [ref=f2e142] [cursor=pointer]
+          - tabpanel "Description" [ref=f2e148]:
+            - generic [ref=f2e149]:
+              - heading "Sync Repro Problem" [level=2] [ref=f2e150]
+              - generic [ref=f2e151]: A brand new problem added live to test the sync/offline fix.
+            - generic [ref=f2e152]:
+              - generic [ref=f2e153]:
+                - heading "Input Format" [level=3] [ref=f2e154]
+                - paragraph [ref=f2e155]: Standard Input
+              - generic [ref=f2e156]:
+                - heading "Output Format" [level=3] [ref=f2e157]
+                - paragraph [ref=f2e158]: Standard Output
+            - generic [ref=f2e159]:
+              - heading "Examples" [level=3] [ref=f2e160]
+              - generic [ref=f2e161]:
+                - generic [ref=f2e162]: Example 1
+                - generic [ref=f2e164]:
+                  - generic [ref=f2e165]:
+                    - generic [ref=f2e166]:
+                      - generic [ref=f2e167]: Input
+                      - button "Copy to clipboard" [ref=f2e168] [cursor=pointer]
+                    - generic [ref=f2e172]: 5 3
+                  - generic [ref=f2e173]:
+                    - generic [ref=f2e174]:
+                      - generic [ref=f2e175]: Output
+                      - button "Copy to clipboard" [ref=f2e176] [cursor=pointer]
+                    - generic [ref=f2e180]: "8"
+        - separator [ref=f2e181]
+        - generic [ref=f2e191]:
+          - generic [ref=f2e192]:
+            - generic [ref=f2e193]:
+              - generic [ref=f2e194]: C++
+              - generic [ref=f2e200]:
+                - img [ref=f2e201] [cursor=pointer]
+                - img [ref=f2e204] [cursor=pointer]
+            - code [ref=f2e212]:
+              - generic [ref=f2e213]:
+                - textbox "Editor content"
+                - textbox [aria-hidden] [ref=f2e214]
+                - generic [aria-hidden] [ref=f2e216]:
+                  - generic [ref=f2e217]: "1"
+                  - generic [ref=f2e220]: "2"
+                  - generic [ref=f2e222]: "3"
+                  - generic [ref=f2e224]:
+                    - generic [ref=f2e225] [cursor=pointer]: 
+                    - generic [ref=f2e226]: "4"
+                  - generic [ref=f2e227]: "5"
+                  - generic [ref=f2e229]: "6"
+                  - generic [ref=f2e231]: "7"
+                - generic [aria-hidden] [ref=f2e244]:
+                  - generic [ref=f2e245]: "#include <iostream>"
+                  - generic [ref=f2e247]: using namespace std;
+                  - generic [ref=f2e250]: "int main() {"
+                  - generic [ref=f2e252]: // Write your code here
+                  - generic [ref=f2e254]: return 0;
+                  - generic [ref=f2e256]: "}"
+          - generic [ref=f2e259]: Console
+    - region "Notifications alt+T"
+  - generic [ref=f2e265]:
+    - alert
+    - alert

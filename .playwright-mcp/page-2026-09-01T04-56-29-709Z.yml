@@ -1,0 +1,76 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - link:
+            - /url: /
+            - text: Home
+          - generic: C++
+        - generic:
+          - button: Run
+          - generic:
+            - combobox
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic: Main.cpp
+              - generic:
+                - generic:
+                  - generic:
+                    - code:
+                      - generic:
+                        - textbox
+                        - generic:
+                          - generic:
+                            - generic: "1"
+                            - generic: "2"
+                            - generic: "3"
+                            - generic:
+                              - generic: 
+                              - generic: "4"
+                            - generic: "5"
+                            - generic: "6"
+                            - generic: "7"
+                        - generic:
+                          - generic:
+                            - generic: "#include <iostream>"
+                            - generic: using namespace std;
+                            - generic: "int main() {"
+                            - generic: // Write your code here
+                            - generic: return 0;
+                            - generic: "}"
+          - separator
+          - generic:
+            - generic:
+              - generic:
+                - tablist:
+                  - tab [selected]: Console
+                  - tab: I/O
+              - tabpanel:
+                - generic:
+                  - paragraph: Click Run to start a live terminal session.
+                - generic:
+                  - textbox [disabled]:
+                    - /placeholder: Run the program to start typing input
+              - tabpanel
+    - region "Notifications alt+T"
+  - dialog [ref=f9e158]:
+    - generic [ref=f9e159]:
+      - heading "Editor Settings" [level=2] [ref=f9e160]
+      - paragraph [ref=f9e161]: Customize your coding environment.
+    - generic [ref=f9e162]:
+      - generic [ref=f9e163]:
+        - generic [ref=f9e164]: Theme
+        - combobox "Theme" [active] [ref=f9e165] [cursor=pointer]:
+          - generic: VS Dark
+      - generic [ref=f9e168]:
+        - generic [ref=f9e169]: Font Size
+        - combobox "Font Size" [ref=f9e170] [cursor=pointer]:
+          - generic: "14"
+      - generic [ref=f9e173]:
+        - generic [ref=f9e174]: Keybinding
+        - combobox "Keybinding" [ref=f9e175] [cursor=pointer]:
+          - generic: Default
+    - button "Close" [ref=f9e178] [cursor=pointer]

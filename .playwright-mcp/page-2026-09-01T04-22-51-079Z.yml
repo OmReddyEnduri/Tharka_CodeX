@@ -1,0 +1,119 @@
+- generic [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - generic [ref=f7e6]:
+        - generic [ref=f7e7]:
+          - link "Back to Contest" [ref=f7e8] [cursor=pointer]:
+            - /url: /contest/6a965143a0a3f26375f49970
+          - generic [ref=f7e12]:
+            - heading "Sum of Two Numbers" [level=1] [ref=f7e13]
+            - generic [ref=f7e14]: Easy
+        - generic [ref=f7e15]:
+          - button "Run" [ref=f7e16] [cursor=pointer]
+          - button "Submit" [ref=f7e17] [cursor=pointer]
+      - generic [ref=f7e19]:
+        - generic [ref=f7e22]:
+          - tablist [ref=f7e24]:
+            - tab "Description" [ref=f7e25] [cursor=pointer]
+            - tab "Submissions" [selected] [ref=f7e29] [cursor=pointer]
+          - tabpanel "Submissions" [ref=f7e165]:
+            - generic [ref=f7e167]:
+              - generic [ref=f7e168]:
+                - generic [ref=f7e169]: Accepted
+                - generic [ref=f7e170]: 9/1/2026, 9:52:25 AM
+              - generic [ref=f7e171]:
+                - generic [ref=f7e172]: 86ms
+                - button [ref=f7e173] [cursor=pointer]
+        - separator [ref=f7e71]
+        - generic [ref=f7e81]:
+          - generic [ref=f7e82]:
+            - generic [ref=f7e83]:
+              - generic [ref=f7e84]: C++
+              - generic [ref=f7e90]:
+                - img [ref=f7e91] [cursor=pointer]
+                - img [ref=f7e94] [cursor=pointer]
+            - code [ref=f7e102]:
+              - generic [ref=f7e103]:
+                - textbox "Editor content"
+                - textbox [active] [ref=f7e104]
+                - generic [ref=f7e106]:
+                  - generic [ref=f7e107]: "1"
+                  - generic [ref=f7e109]: "2"
+                  - generic [ref=f7e111]: "3"
+                  - generic [ref=f7e113]:
+                    - generic [ref=f7e114] [cursor=pointer]: 
+                    - generic [ref=f7e115]: "4"
+                  - generic [ref=f7e116]: "5"
+                  - generic [ref=f7e174]: "9"
+                  - generic [ref=f7e176]: "6"
+                  - generic [ref=f7e178]: "7"
+                  - generic [ref=f7e180]: "8"
+                  - generic [ref=f7e183]: "10"
+                - generic [ref=f7e140]:
+                  - generic [ref=f7e141]: "#include <iostream>"
+                  - generic [ref=f7e143]: using namespace std;
+                  - generic [ref=f7e146]: "int main() {"
+                  - generic [ref=f7e148]: // Write your code here
+                  - generic [ref=f7e150]: return 0;
+                  - generic [ref=f7e196]: int x,y;
+                  - generic [ref=f7e198]: cin>>x>>y;
+                  - generic [ref=f7e200]: cout<<x+y<<endl;
+                  - generic [ref=f7e202]: "}"
+          - generic [ref=f7e158]:
+            - generic [ref=f7e160] [cursor=pointer]:
+              - generic [ref=f7e161]: Console
+              - generic [ref=f7e204]:
+                - button "Testcase" [ref=f7e205]
+                - button "Result" [ref=f7e209]
+            - generic [ref=f7e216]:
+              - generic [ref=f7e217]: Accepted
+              - generic [ref=f7e218]:
+                - generic [ref=f7e219]:
+                  - generic [ref=f7e220]:
+                    - generic [ref=f7e221]: Case 1
+                    - generic [ref=f7e222]: Passed
+                  - generic [ref=f7e223]:
+                    - generic [ref=f7e224]:
+                      - generic [ref=f7e225]: Input
+                      - code [ref=f7e226]: 2 3
+                    - generic [ref=f7e227]:
+                      - generic [ref=f7e228]:
+                        - generic [ref=f7e229]: Your Output
+                        - code [ref=f7e230]: "5"
+                      - generic [ref=f7e231]:
+                        - generic [ref=f7e232]: Expected
+                        - code [ref=f7e233]: "5"
+                - generic [ref=f7e234]:
+                  - generic [ref=f7e235]:
+                    - generic [ref=f7e236]: Case 2
+                    - generic [ref=f7e237]: Passed
+                  - generic [ref=f7e238]:
+                    - generic [ref=f7e239]:
+                      - generic [ref=f7e240]: Input
+                      - code [ref=f7e241]: "-5 5"
+                    - generic [ref=f7e242]:
+                      - generic [ref=f7e243]:
+                        - generic [ref=f7e244]: Your Output
+                        - code [ref=f7e245]: "0"
+                      - generic [ref=f7e246]:
+                        - generic [ref=f7e247]: Expected
+                        - code [ref=f7e248]: "0"
+                - generic [ref=f7e249]:
+                  - generic [ref=f7e250]:
+                    - generic [ref=f7e251]: Case 3
+                    - generic [ref=f7e252]: Passed
+                  - generic [ref=f7e253]:
+                    - generic [ref=f7e254]:
+                      - generic [ref=f7e255]: Input
+                      - code [ref=f7e256]: 1000000000 1000000000
+                    - generic [ref=f7e257]:
+                      - generic [ref=f7e258]:
+                        - generic [ref=f7e259]: Your Output
+                        - code [ref=f7e260]: "2000000000"
+                      - generic [ref=f7e261]:
+                        - generic [ref=f7e262]: Expected
+                        - code [ref=f7e263]: "2000000000"
+    - region "Notifications alt+T"
+  - generic [ref=f7e164]:
+    - alert
+    - alert

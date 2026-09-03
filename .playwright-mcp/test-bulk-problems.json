@@ -1,0 +1,13 @@
+[
+  {
+    "title": "PW Bulk Problem 1",
+    "description": "Print reverse of a string.",
+    "difficulty": "Easy",
+    "sampleTestCases": [{ "input": "abc", "output": "cba" }]
+  },
+  {
+    "title": "PW Bulk Problem 2 (no testcases)",
+    "description": "Statement pending.",
+    "difficulty": "Hard"
+  }
+]

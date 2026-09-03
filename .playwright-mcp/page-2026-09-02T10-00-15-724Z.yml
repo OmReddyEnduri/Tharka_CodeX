@@ -1,0 +1,33 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e3]:
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "Tharka Codex" [ref=f2e6] [cursor=pointer]:
+          - /url: /
+        - link "Compiler" [ref=f2e7] [cursor=pointer]:
+          - /url: /compiler
+      - generic [ref=f2e8]:
+        - 'generic "Local data last synced: 03:30 PM" [ref=f2e9]': Synced 03:30 PM
+        - combobox "Theme" [ref=f2e20]:
+          - option "Light" [selected]
+          - option "Dark"
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+        - link "Settings" [ref=f2e21] [cursor=pointer]:
+          - /url: /settings
+    - main [ref=f2e25]:
+      - generic [ref=f2e27]:
+        - generic [ref=f2e28]:
+          - heading "Join Contest" [level=3] [ref=f2e29]
+          - paragraph [ref=f2e30]: Enter your name and roll number to continue.
+        - generic [ref=f2e32]:
+          - generic [ref=f2e33]:
+            - text: Name
+            - textbox "Name" [ref=f2e34]
+          - generic [ref=f2e35]:
+            - text: Roll Number
+            - textbox "Roll Number" [ref=f2e36]
+          - button "Continue" [ref=f2e37] [cursor=pointer]
+  - region "Notifications alt+T"

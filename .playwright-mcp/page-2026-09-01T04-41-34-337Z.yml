@@ -1,0 +1,48 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "Home" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e10]: C++
+        - button "Run" [ref=e16] [cursor=pointer]
+      - generic [ref=e18]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Main.cpp
+            - generic [ref=e23]:
+              - img [ref=e24] [cursor=pointer]
+              - img [ref=e27] [cursor=pointer]
+          - code [ref=e35]:
+            - generic [ref=e36]:
+              - textbox "Editor content"
+              - textbox [ref=e37]
+              - generic [ref=e39]:
+                - generic [ref=e40]: "1"
+                - generic [ref=e43]: "2"
+                - generic [ref=e45]: "3"
+                - generic [ref=e47]: "4"
+                - generic [ref=e49]: "5"
+                - generic [ref=e51]: "6"
+                - generic [ref=e53]: "7"
+              - generic [ref=e66]:
+                - generic [ref=e67]: "#include <iostream>"
+                - generic [ref=e69]: using namespace std;
+                - generic [ref=e72]: "int main() {"
+                - generic [ref=e74]: // Write your code here
+                - generic [ref=e76]: return 0;
+                - generic [ref=e78]: "}"
+        - separator [ref=e81]
+        - generic [ref=e91]:
+          - tablist [ref=e93]:
+            - tab "Console" [selected] [ref=e94] [cursor=pointer]
+            - tab "I/O" [ref=e95] [cursor=pointer]
+          - tabpanel "Console" [ref=e96]:
+            - paragraph [ref=e98]: Click Run to start a live terminal session.
+            - textbox "Run the program to start typing input" [disabled] [ref=e100]
+          - tabpanel "I/O" [ref=e101]
+    - region "Notifications alt+T"
+  - generic [ref=e102]:
+    - alert
+    - alert

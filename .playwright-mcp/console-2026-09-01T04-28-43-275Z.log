@@ -1,0 +1,9 @@
+[     465ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[    9859ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[   10254ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=hFSWatfwCPmTseMP2diF4AY:0
+[   11652ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[   12735ms] [WARNING] A speculation rule set was inserted into the document but will be ignored. This might happen, for example, if it was previously inserted into another document, or if it was created using the innerHTML setter. @ https://www.google.com/search?q=in+cluade+how+to+how+much+percentage+is+left+of+usage&rlz=1C1GCEA_enRO1062IN1220&oq=in+cluade+how+to+how+much+percentage+is+left+of+usage&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCDgxNzRqMGo3qAIAsAIA&sourceid=chrome&source=chrome.ob&ie=UTF-8:34
+[   12746ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[   30898ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[   31585ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=mVSWarrODuusseMPso_Q8Ag:0
+[   33414ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://encrypted-tbn2.gstatic.com/faviconV2?url=https://usagebar.com&client=AIM&size=128&type=FAVICON&fallback_opts=TYPE,SIZE,URL:0

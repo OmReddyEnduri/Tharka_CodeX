@@ -1,0 +1,92 @@
+- generic:
+  - generic:
+    - generic:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Contest Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Demo Contest
+              - paragraph: Seeded demo contest for local testing.
+              - paragraph: 9/1/2026, 11:03:58 AM → 9/1/2026, 1:08:58 PM
+            - generic:
+              - link:
+                - /url: /contests/6a9664f2d36b15c21e0b9ebb/edit
+                - text: Edit
+              - link:
+                - /url: /contests/6a9664f2d36b15c21e0b9ebb/results
+                - text: Results
+          - generic:
+            - generic:
+              - heading [level=3]: Problems
+              - button: Add Problem
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Sum of Two Numbers
+                  - generic: Easy
+                - generic:
+                  - button
+                  - button
+              - generic:
+                - generic:
+                  - generic: Reverse a String
+                  - generic: Easy
+                - generic:
+                  - button
+                  - button
+    - region "Notifications alt+T"
+  - dialog [ref=f18e61]:
+    - generic "Drag to resize" [ref=f18e62]
+    - generic [ref=f18e63]:
+      - heading "Add New Contest Problem" [level=2] [ref=f18e64]
+      - paragraph [ref=f18e65]: Configure the problem statement and constraints.
+    - generic [ref=f18e66]:
+      - generic [ref=f18e67]:
+        - tablist [ref=f18e68]:
+          - tab "Details" [active] [selected] [ref=f18e69] [cursor=pointer]
+          - tab "Test Cases" [ref=f18e70] [cursor=pointer]
+        - tabpanel "Details" [ref=f18e71]:
+          - generic [ref=f18e72]:
+            - text: Problem ID
+            - spinbutton [ref=f18e73]: "1416"
+          - generic [ref=f18e74]:
+            - text: Title
+            - textbox "Two Sum" [ref=f18e75]
+          - generic [ref=f18e76]:
+            - text: Description (Markdown supported)
+            - textbox "Given an array of integers..." [ref=f18e77]
+          - generic [ref=f18e78]:
+            - text: Category
+            - textbox "e.g. Arrays, DP, Graphs" [ref=f18e79]: General
+          - generic [ref=f18e80]:
+            - generic [ref=f18e81]:
+              - text: Input Format
+              - textbox [ref=f18e82]: Standard Input
+            - generic [ref=f18e83]:
+              - text: Output Format
+              - textbox [ref=f18e84]: Standard Output
+          - generic [ref=f18e85]:
+            - generic [ref=f18e86]:
+              - text: Difficulty
+              - combobox [ref=f18e87]:
+                - option "Easy"
+                - option "Medium" [selected]
+                - option "Hard"
+            - generic [ref=f18e88]:
+              - text: Time Limit (ms)
+              - spinbutton [ref=f18e89]: "1000"
+            - generic [ref=f18e90]:
+              - text: Memory Limit (MB)
+              - spinbutton [ref=f18e91]: "256"
+          - generic [ref=f18e92]:
+            - text: Constraints
+            - textbox "-10^9 <= target <= 10^9" [ref=f18e93]
+      - button "Add Problem" [ref=f18e95] [cursor=pointer]
+    - button "Close" [ref=f18e96] [cursor=pointer]

@@ -1,0 +1,15 @@
+[     423ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[   32037ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[   32231ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=jlmWasraE-ncseMP4P-EsAM:0
+[   33427ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0
+[   33429ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0
+[   33479ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[   34494ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[   36090ms] [WARNING] A speculation rule set was inserted into the document but will be ignored. This might happen, for example, if it was previously inserted into another document, or if it was created using the innerHTML setter. @ https://www.google.com/search?q=can+we+make+an+project+of+website+all+in+a+index.html+file+very+it+will+become+but+can+we+make+such+thing&rlz=1C1GCEA_enRO1062IN1220&oq=can+we+make+an+project+of+website+all+in+a+index.html+file+very+it+will+become+but+can+we+make+such+thing&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCTMwNzI2ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8:33
+[ 2093858ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[ 2094668ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=nGGWasfcDNWuwcsPitHh0AI:0
+[ 2094866ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[ 2095942ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://www.youtube.com/iframe_api?version=3:0
+[ 2104851ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData:0
+[ 2105664ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=oos&tv=2528&st=cr_env&sjk=p2GWatf9IqyTseMP8v_jUQ:0
+[ 2124042ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0

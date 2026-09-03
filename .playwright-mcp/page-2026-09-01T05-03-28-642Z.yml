@@ -1,0 +1,64 @@
+- generic [ref=f10e1]:
+  - generic [ref=f10e2]:
+    - generic [ref=f10e3]:
+      - generic [ref=f10e4]:
+        - generic [ref=f10e5]:
+          - link "Home" [ref=f10e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f10e10]: C++
+        - generic [ref=f10e15]:
+          - button "Run" [ref=f10e16] [cursor=pointer]
+          - combobox "Theme" [ref=f10e25]:
+            - option "Light"
+            - option "Dark" [selected]
+            - option "Dim"
+            - option "Midnight"
+            - option "Solarized"
+            - option "High Contrast"
+      - generic [ref=f10e27]:
+        - generic [ref=f10e29]:
+          - generic [ref=f10e30]:
+            - generic [ref=f10e31]: Main.cpp
+            - generic [ref=f10e32]:
+              - img [ref=f10e33] [cursor=pointer]
+              - img [ref=f10e36] [cursor=pointer]
+          - code [ref=f10e63]:
+            - generic [ref=f10e64]:
+              - textbox "Editor content"
+              - textbox [ref=f10e65]
+              - generic [ref=f10e67]:
+                - generic [ref=f10e68]: "1"
+                - generic [ref=f10e71]: "2"
+                - generic [ref=f10e73]: "3"
+                - generic [ref=f10e75]:
+                  - generic [ref=f10e76] [cursor=pointer]: 
+                  - generic [ref=f10e77]: "4"
+                - generic [ref=f10e78]: "5"
+                - generic [ref=f10e80]: "6"
+                - generic [ref=f10e82]: "7"
+              - generic [ref=f10e95]:
+                - generic [ref=f10e96]: "#include <iostream>"
+                - generic [ref=f10e98]: using namespace std;
+                - generic [ref=f10e101]: "int main() {"
+                - generic [ref=f10e103]: // Write your code here
+                - generic [ref=f10e105]: return 0;
+                - generic [ref=f10e107]: "}"
+        - separator [ref=f10e44]
+        - generic [ref=f10e54]:
+          - tablist [ref=f10e56]:
+            - tab "Console" [ref=f10e57] [cursor=pointer]
+            - tab "I/O" [active] [selected] [ref=f10e58] [cursor=pointer]
+          - tabpanel "Console" [ref=f10e59]
+          - tabpanel "I/O" [ref=f10e111]:
+            - generic [ref=f10e112]:
+              - generic [ref=f10e114]:
+                - generic [ref=f10e115]: Input (stdin)
+                - textbox "Type the input your program should read from stdin..." [ref=f10e117]
+              - separator [ref=f10e118]
+              - generic [ref=f10e128]:
+                - generic [ref=f10e129]: Output
+                - paragraph [ref=f10e132]: Run to see output here.
+    - region "Notifications alt+T"
+  - generic [ref=f10e110]:
+    - alert
+    - alert
