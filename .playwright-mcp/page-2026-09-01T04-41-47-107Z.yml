@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "Home" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e10]: C++
+        - generic [ref=e15]:
+          - button "Stop" [ref=e144] [cursor=pointer]
+          - button "Run" [disabled]
+      - generic [ref=e18]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Main.cpp
+            - generic [ref=e23]:
+              - img [ref=e24] [cursor=pointer]
+              - img [ref=e27] [cursor=pointer]
+          - code [ref=e35]:
+            - generic [ref=e36]:
+              - textbox "Editor content"
+              - textbox [ref=e37]
+              - generic [ref=e39]:
+                - generic [ref=e103]: "1"
+                - generic [ref=e106]: "2"
+                - generic [ref=e108]:
+                  - generic [ref=e109] [cursor=pointer]: 
+                  - generic [ref=e110]: "3"
+                - generic [ref=e111]: "4"
+                - generic [ref=e113]: "5"
+                - generic [ref=e115]: "6"
+                - generic [ref=e117]: "7"
+              - generic [ref=e66]:
+                - generic [ref=e130]: "#include <iostream>"
+                - generic [ref=e132]: using namespace std;
+                - generic [ref=e134]: "int main() {"
+                - generic [ref=e136]: cout << "starting infinite loop" << endl;
+                - generic [ref=e138]: "while(true) {}"
+                - generic [ref=e140]: return 0;
+                - generic [ref=e142]: "}"
+        - separator [ref=e81]
+        - generic [ref=e91]:
+          - tablist [ref=e93]:
+            - tab "Console" [selected] [ref=e94] [cursor=pointer]
+            - tab "I/O" [ref=e95] [cursor=pointer]
+          - tabpanel "Console" [ref=e96]:
+            - generic [ref=e97]: Running...
+            - textbox "Type input and press Enter..." [ref=e146]
+          - tabpanel "I/O" [ref=e101]
+    - region "Notifications alt+T"
+  - generic [ref=e102]:
+    - alert
+    - alert

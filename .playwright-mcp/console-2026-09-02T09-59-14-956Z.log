@@ -1,0 +1,52 @@
+[   11613ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:21550
+[   11879ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4416
+[   11879ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4416
+[   11925ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/favicon.ico:0
+[   12835ms] TypeError: Cannot read properties of null (reading 'name')
+    at Contest (http://localhost:5183/src/pages/Contest.tsx:113:63)
+    at renderWithHooks (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:11548:26)
+    at updateFunctionComponent (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:14582:28)
+    at beginWork (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:3699:24)
+    at invokeGuardedCallback (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:3733:39)
+    at beginWork$1 (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19765:15)
+    at performUnitOfWork (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19198:20)
+    at workLoopSync (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19137:13)
+[   12835ms] TypeError: Cannot read properties of null (reading 'name')
+    at Contest (http://localhost:5183/src/pages/Contest.tsx:113:63)
+    at renderWithHooks (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:11548:26)
+    at updateFunctionComponent (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:14582:28)
+    at beginWork (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:15924:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:3674:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:3699:24)
+    at invokeGuardedCallback (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:3733:39)
+    at beginWork$1 (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19765:15)
+    at performUnitOfWork (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19198:20)
+    at workLoopSync (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19137:13)
+[   12834ms] [ERROR] The above error occurred in the <Contest> component:
+
+    at Contest (http://localhost:5183/src/pages/Contest.tsx:36:27)
+    at RenderedRoute (http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4112:5)
+    at Routes (http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4582:5)
+    at App (http://localhost:5183/src/App.tsx:34:25)
+    at Router (http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4525:15)
+    at BrowserRouter (http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:5263:5)
+    at QueryClientProvider (http://localhost:5183/node_modules/.vite/deps/@tanstack_react-query.js?v=047513dc:26:30)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:14031
+[   12836ms] TypeError: Cannot read properties of null (reading 'name')
+    at Contest (http://localhost:5183/src/pages/Contest.tsx:113:63)
+    at renderWithHooks (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:11548:26)
+    at updateFunctionComponent (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:14582:28)
+    at beginWork (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:15924:22)
+    at beginWork$1 (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19753:22)
+    at performUnitOfWork (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19198:20)
+    at workLoopSync (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19137:13)
+    at renderRootSync (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:19116:15)
+    at recoverFromConcurrentError (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:18736:28)
+    at performSyncWorkOnRoot (http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:18879:28)
+[   52735ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5183/node_modules/.vite/deps/chunk-OIBIRD2N.js?v=047513dc:21550
+[   52793ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4416
+[   52793ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5183/node_modules/.vite/deps/react-router-dom.js?v=047513dc:4416

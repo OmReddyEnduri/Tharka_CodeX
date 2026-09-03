@@ -1,0 +1,103 @@
+- generic:
+  - generic:
+    - generic:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Contest Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Demo Contest
+              - paragraph: Seeded demo contest for local testing.
+              - paragraph: 9/1/2026, 11:03:58 AM → 9/1/2026, 1:08:58 PM
+            - generic:
+              - link:
+                - /url: /contests/6a9664f2d36b15c21e0b9ebb/edit
+                - text: Edit
+              - link:
+                - /url: /contests/6a9664f2d36b15c21e0b9ebb/results
+                - text: Results
+          - generic:
+            - generic:
+              - heading [level=3]: Problems
+              - button: Add Problem
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Sum of Two Numbers
+                  - generic: Easy
+                - generic:
+                  - button
+                  - button
+              - generic:
+                - generic:
+                  - generic: Reverse a String
+                  - generic: Easy
+                - generic:
+                  - button
+                  - button
+    - region "Notifications alt+T"
+  - dialog [ref=f18e61]:
+    - generic "Drag to resize" [ref=f18e62]
+    - generic [ref=f18e63]:
+      - heading "Add New Contest Problem" [level=2] [ref=f18e64]
+      - paragraph [ref=f18e65]: Configure the problem statement and constraints.
+    - generic [ref=f18e66]:
+      - generic [ref=f18e67]:
+        - tablist [ref=f18e68]:
+          - tab "Details" [ref=f18e69] [cursor=pointer]
+          - tab "Test Cases" [selected] [ref=f18e70] [cursor=pointer]
+        - tabpanel "Test Cases" [ref=f18e101]:
+          - generic [ref=f18e102]:
+            - generic [ref=f18e103]:
+              - generic [ref=f18e104]: Sample Test Cases
+              - button "Add" [ref=f18e105] [cursor=pointer]
+            - generic [ref=f18e106]:
+              - generic [ref=f18e107]:
+                - generic [ref=f18e108]: Input files (.txt)
+                - button "Choose File" [ref=f18e109]
+              - generic [ref=f18e110]:
+                - generic [ref=f18e111]: Output files (.txt)
+                - button "Choose File" [ref=f18e112]
+              - button "Load Pairs" [ref=f18e113] [cursor=pointer]
+              - paragraph [ref=f18e114]:
+                - text: Files are paired by sorted filename order (e.g. 1.txt with 1.txt). Each file can hold one test case, or several separated by a line containing exactly
+                - code [ref=f18e115]: ===TESTCASE===
+                - text: — full rules in HOWTOUSE.md. Loaded pairs are appended below.
+            - generic [ref=f18e117]:
+              - button [ref=f18e118] [cursor=pointer]
+              - generic [ref=f18e119]:
+                - generic [ref=f18e120]: Input
+                - textbox [ref=f18e121]
+                - generic [ref=f18e122]: Output
+                - textbox [ref=f18e123]
+          - generic [ref=f18e124]:
+            - generic [ref=f18e125]:
+              - generic [ref=f18e126]: Hidden Test Cases (For Evaluation)
+              - button "Add" [ref=f18e127] [cursor=pointer]
+            - generic [ref=f18e128]:
+              - generic [ref=f18e129]:
+                - generic [ref=f18e130]: Input files (.txt)
+                - button "Choose File" [active] [ref=f18e131]
+              - generic [ref=f18e132]:
+                - generic [ref=f18e133]: Output files (.txt)
+                - button "Choose File" [ref=f18e134]
+              - button "Load Pairs" [ref=f18e135] [cursor=pointer]
+              - paragraph [ref=f18e136]:
+                - text: Files are paired by sorted filename order (e.g. 1.txt with 1.txt). Each file can hold one test case, or several separated by a line containing exactly
+                - code [ref=f18e137]: ===TESTCASE===
+                - text: — full rules in HOWTOUSE.md. Loaded pairs are appended below.
+            - generic [ref=f18e139]:
+              - button [ref=f18e140] [cursor=pointer]
+              - generic [ref=f18e141]:
+                - generic [ref=f18e142]: Input
+                - textbox [ref=f18e143]
+                - generic [ref=f18e144]: Output
+                - textbox [ref=f18e145]
+      - button "Add Problem" [ref=f18e95] [cursor=pointer]
+    - button "Close" [ref=f18e96] [cursor=pointer]

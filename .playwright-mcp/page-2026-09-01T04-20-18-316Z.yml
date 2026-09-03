@@ -1,0 +1,34 @@
+- generic [ref=f5e2]:
+  - generic [ref=f5e47]:
+    - banner [ref=f5e48]:
+      - link "Contest Platform" [ref=f5e49] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f5e50]:
+        - generic [ref=f5e51]: Alice Test (R100)
+        - link "switch" [ref=f5e52] [cursor=pointer]:
+          - /url: /contest/6a965143a0a3f26375f49970/join
+    - main [ref=f5e53]:
+      - generic [ref=f5e54]:
+        - generic [ref=f5e55]:
+          - generic [ref=f5e63]:
+            - heading "Demo Contest" [level=1] [ref=f5e64]
+            - paragraph [ref=f5e65]: Seeded demo contest for local testing.
+          - generic [ref=f5e66]: Ends in 01:54:40
+        - link "Leaderboard" [ref=f5e68] [cursor=pointer]:
+          - /url: /contest/6a965143a0a3f26375f49970/leaderboard
+        - generic [ref=f5e69]:
+          - heading "Problems" [level=3] [ref=f5e71]
+          - generic [ref=f5e73]:
+            - generic [ref=f5e74]:
+              - generic [ref=f5e75]: Sum of Two Numbers
+              - generic [ref=f5e82]:
+                - generic [ref=f5e83]: Easy
+                - link "Solve Problem" [ref=f5e84] [cursor=pointer]:
+                  - /url: /contest/6a965143a0a3f26375f49970/problem/1
+            - generic [ref=f5e85]:
+              - generic [ref=f5e86]: Reverse a String
+              - generic [ref=f5e93]:
+                - generic [ref=f5e94]: Easy
+                - link "Solve Problem" [ref=f5e95] [cursor=pointer]:
+                  - /url: /contest/6a965143a0a3f26375f49970/problem/2
+  - region "Notifications alt+T"

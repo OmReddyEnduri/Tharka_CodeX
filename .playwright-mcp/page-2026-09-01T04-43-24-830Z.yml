@@ -1,0 +1,59 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - generic [ref=f1e4]:
+        - generic [ref=f1e5]:
+          - link "Home" [ref=f1e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f1e10]: C++
+        - generic [ref=f1e15]:
+          - button "Stop" [ref=f1e107] [cursor=pointer]
+          - button "Run" [disabled]
+      - generic [ref=f1e18]:
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - generic [ref=f1e22]: Main.cpp
+            - generic [ref=f1e23]:
+              - img [ref=f1e24] [cursor=pointer]
+              - img [ref=f1e27] [cursor=pointer]
+          - code [ref=f1e57]:
+            - generic [ref=f1e58]:
+              - textbox "Editor content"
+              - textbox [ref=f1e59]
+              - generic [ref=f1e61]:
+                - generic [ref=f1e108]: "1"
+                - generic [ref=f1e111]: "2"
+                - generic [ref=f1e113]:
+                  - generic [ref=f1e114] [cursor=pointer]: 
+                  - generic [ref=f1e115]: "3"
+                - generic [ref=f1e116]: "4"
+                - generic [ref=f1e118]: "5"
+                - generic [ref=f1e120]: "6"
+                - generic [ref=f1e122]: "7"
+                - generic [ref=f1e124]: "8"
+                - generic [ref=f1e126]: "9"
+              - generic [ref=f1e86]:
+                - generic [ref=f1e143]: "#include <iostream>"
+                - generic [ref=f1e145]: using namespace std;
+                - generic [ref=f1e147]: "int main() {"
+                - generic [ref=f1e149]: "cout << \"Enter your name: \";"
+                - generic [ref=f1e151]: string name;
+                - generic [ref=f1e153]: cin >> name;
+                - generic [ref=f1e155]: cout << "Hi " << name << "!" << endl;
+                - generic [ref=f1e157]: return 0;
+                - generic [ref=f1e159]: "}"
+        - separator [ref=f1e35]
+        - generic [ref=f1e45]:
+          - tablist [ref=f1e47]:
+            - tab "Console" [selected] [ref=f1e48] [cursor=pointer]
+            - tab "I/O" [ref=f1e49] [cursor=pointer]
+          - tabpanel "Console" [ref=f1e50]:
+            - generic [ref=f1e51]:
+              - generic [ref=f1e102]: Running...
+              - generic [ref=f1e161]: "Enter your name:"
+            - textbox "Type input and press Enter..." [ref=f1e162]
+          - tabpanel "I/O" [ref=f1e55]
+    - region "Notifications alt+T"
+  - generic [ref=f1e100]:
+    - alert
+    - alert

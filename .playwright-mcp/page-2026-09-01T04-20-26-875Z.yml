@@ -1,0 +1,57 @@
+- generic [ref=f5e2]:
+  - generic [ref=f5e96]:
+    - generic [ref=f5e97]:
+      - generic [ref=f5e98]:
+        - link "Back to Contest" [ref=f5e99] [cursor=pointer]:
+          - /url: /contest/6a965143a0a3f26375f49970
+        - generic [ref=f5e103]:
+          - heading "Sum of Two Numbers" [level=1] [ref=f5e104]
+          - generic [ref=f5e105]: Easy
+      - generic [ref=f5e106]:
+        - button "Run" [ref=f5e107] [cursor=pointer]
+        - button "Submit" [ref=f5e108] [cursor=pointer]
+    - generic [ref=f5e110]:
+      - generic [ref=f5e113]:
+        - tablist [ref=f5e115]:
+          - tab "Description" [selected] [ref=f5e116] [cursor=pointer]
+          - tab "Submissions" [ref=f5e120] [cursor=pointer]
+        - tabpanel "Description" [ref=f5e126]:
+          - generic [ref=f5e127]:
+            - heading "Sum of Two Numbers" [level=2] [ref=f5e128]
+            - generic [ref=f5e129]: Read two integers A and B and print their sum.
+          - generic [ref=f5e130]:
+            - generic [ref=f5e131]:
+              - heading "Input Format" [level=3] [ref=f5e132]
+              - paragraph [ref=f5e133]: Two space-separated integers A and B.
+            - generic [ref=f5e134]:
+              - heading "Output Format" [level=3] [ref=f5e135]
+              - paragraph [ref=f5e136]: "A single integer: A + B."
+            - generic [ref=f5e137]:
+              - heading "Constraints" [level=3] [ref=f5e138]
+              - paragraph [ref=f5e139]: "-10^9 <= A, B <= 10^9"
+          - generic [ref=f5e140]:
+            - heading "Examples" [level=3] [ref=f5e141]
+            - generic [ref=f5e142]:
+              - generic [ref=f5e143]: Example 1
+              - generic [ref=f5e145]:
+                - generic [ref=f5e146]:
+                  - generic [ref=f5e147]:
+                    - generic [ref=f5e148]: Input
+                    - button "Copy to clipboard" [ref=f5e149] [cursor=pointer]
+                  - generic [ref=f5e153]: 2 3
+                - generic [ref=f5e154]:
+                  - generic [ref=f5e155]:
+                    - generic [ref=f5e156]: Output
+                    - button "Copy to clipboard" [ref=f5e157] [cursor=pointer]
+                  - generic [ref=f5e161]: "5"
+      - separator [ref=f5e162]
+      - generic [ref=f5e172]:
+        - generic [ref=f5e173]:
+          - generic [ref=f5e174]:
+            - generic [ref=f5e175]: C++
+            - generic [ref=f5e181]:
+              - img [ref=f5e182] [cursor=pointer]
+              - img [ref=f5e185] [cursor=pointer]
+          - generic [ref=f5e190]: Loading...
+        - generic [ref=f5e193]: Console
+  - region "Notifications alt+T"

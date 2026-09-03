@@ -1,0 +1,54 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - link "Tharka Codex Admin" [ref=f1e6] [cursor=pointer]:
+          - /url: /
+        - combobox "Theme" [ref=f1e20]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - main [ref=f1e21]:
+      - generic [ref=f1e22]:
+        - generic [ref=f1e23]:
+          - generic [ref=f1e24]: 4 devices connected
+          - button "Sync" [ref=f1e29] [cursor=pointer]
+        - generic [ref=f1e30]:
+          - heading "Contests" [level=1] [ref=f1e31]
+          - generic [ref=f1e32]:
+            - button "Bulk Import" [ref=f1e33] [cursor=pointer]
+            - link "New Contest" [ref=f1e34] [cursor=pointer]:
+              - /url: /contests/new
+        - generic [ref=f1e35]:
+          - link "asdfasfd Live 9/2/2026, 2:29:00 PM → 9/2/2026, 6:28:00 PM" [ref=f1e36] [cursor=pointer]:
+            - /url: /contests/6a97e53450759f55c690c4d1
+            - generic [ref=f1e37]:
+              - generic [ref=f1e38]:
+                - heading "asdfasfd" [level=3] [ref=f1e39]
+                - generic [ref=f1e46]: Live
+              - generic [ref=f1e47]: 9/2/2026, 2:29:00 PM → 9/2/2026, 6:28:00 PM
+          - link "adfsfdasdfasfd Live 9/2/2026, 12:31:00 PM → 9/2/2026, 5:31:00 PM" [ref=f1e48] [cursor=pointer]:
+            - /url: /contests/6a97c9b7a9f1980f1a1c10e2
+            - generic [ref=f1e49]:
+              - generic [ref=f1e50]:
+                - heading "adfsfdasdfasfd" [level=3] [ref=f1e51]
+                - generic [ref=f1e58]: Live
+              - generic [ref=f1e59]: 9/2/2026, 12:31:00 PM → 9/2/2026, 5:31:00 PM
+          - link "check1 Live 9/2/2026, 12:09:00 PM → 9/2/2026, 4:23:00 PM" [ref=f1e60] [cursor=pointer]:
+            - /url: /contests/6a97c469a9f1980f1a1c04ee
+            - generic [ref=f1e61]:
+              - generic [ref=f1e62]:
+                - heading "check1" [level=3] [ref=f1e63]
+                - generic [ref=f1e70]: Live
+              - generic [ref=f1e71]: 9/2/2026, 12:09:00 PM → 9/2/2026, 4:23:00 PM
+          - link "Simple Programming Contest 1 Ended 9/1/2026, 6:38:00 PM → 9/1/2026, 6:43:00 PM" [ref=f1e72] [cursor=pointer]:
+            - /url: /contests/6a96cd89cc68598c56209c81
+            - generic [ref=f1e73]:
+              - generic [ref=f1e74]:
+                - heading "Simple Programming Contest 1" [level=3] [ref=f1e75]
+                - generic [ref=f1e82]: Ended
+              - generic [ref=f1e83]: 9/1/2026, 6:38:00 PM → 9/1/2026, 6:43:00 PM
+  - region "Notifications alt+T"

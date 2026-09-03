@@ -1,0 +1,10 @@
+{
+  "name": "judge-cpp",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "pidusage": "^3.0.2",
+    "tree-kill": "^1.2.2"
+  }
+}

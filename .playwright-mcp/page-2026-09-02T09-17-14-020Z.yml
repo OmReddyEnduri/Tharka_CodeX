@@ -1,0 +1,106 @@
+- generic:
+  - generic:
+    - generic [aria-hidden]:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Tharka Codex Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: check1
+              - paragraph: asfsfffsafsfddfa
+              - paragraph: 9/2/2026, 12:09:00 PM → 9/2/2026, 4:23:00 PM
+            - generic:
+              - link:
+                - /url: /contests/6a97c469a9f1980f1a1c04ee/edit
+                - text: Edit
+              - link:
+                - /url: /contests/6a97c469a9f1980f1a1c04ee/results
+                - text: Results
+              - button: Delete Contest
+          - generic:
+            - generic:
+              - heading [level=3]: Problems
+              - generic:
+                - button: Bulk Add
+                - button: Add Problem
+            - generic:
+              - generic:
+                - generic:
+                  - generic: two sum
+                  - generic: Medium
+                - generic:
+                  - button
+                  - button
+              - generic:
+                - generic:
+                  - generic: asdf
+                  - generic: Medium
+                - generic:
+                  - button
+                  - button
+    - region "Notifications alt+T"
+  - dialog [ref=e126]:
+    - generic "Drag to resize" [ref=e127]
+    - generic [ref=e128]:
+      - heading "Add New Contest Problem" [level=2] [ref=e129]
+      - paragraph [ref=e130]: Configure the problem statement and constraints.
+    - generic [ref=e131]:
+      - generic [ref=e132]:
+        - tablist [ref=e133]:
+          - tab "Details" [ref=e134] [cursor=pointer]
+          - tab "Test Cases" [active] [selected] [ref=e135] [cursor=pointer]
+        - tabpanel "Test Cases" [ref=e166]:
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - generic [ref=e169]: Sample Test Cases
+              - button "Add" [ref=e170] [cursor=pointer]
+            - generic [ref=e171]:
+              - generic [ref=e172]:
+                - generic [ref=e173]: Input files (.txt)
+                - button "Choose File" [ref=e174]
+              - generic [ref=e175]:
+                - generic [ref=e176]: Output files (.txt)
+                - button "Choose File" [ref=e177]
+              - button "Load Pairs" [ref=e178] [cursor=pointer]
+              - paragraph [ref=e179]:
+                - text: Files are paired by sorted filename order (e.g. 1.txt with 1.txt). Each file can hold one test case, or several separated by a line containing exactly
+                - code [ref=e180]: ===TESTCASE===
+                - text: — full rules in HOWTOUSE.md. Loaded pairs are appended below.
+            - generic [ref=e182]:
+              - button [ref=e183] [cursor=pointer]
+              - generic [ref=e184]:
+                - generic [ref=e185]: Input
+                - textbox [ref=e186]
+                - generic [ref=e187]: Output
+                - textbox [ref=e188]
+          - generic [ref=e189]:
+            - generic [ref=e190]:
+              - generic [ref=e191]: Hidden Test Cases (For Evaluation)
+              - button "Add" [ref=e192] [cursor=pointer]
+            - generic [ref=e193]:
+              - generic [ref=e194]:
+                - generic [ref=e195]: Input files (.txt)
+                - button "Choose File" [ref=e196]
+              - generic [ref=e197]:
+                - generic [ref=e198]: Output files (.txt)
+                - button "Choose File" [ref=e199]
+              - button "Load Pairs" [ref=e200] [cursor=pointer]
+              - paragraph [ref=e201]:
+                - text: Files are paired by sorted filename order (e.g. 1.txt with 1.txt). Each file can hold one test case, or several separated by a line containing exactly
+                - code [ref=e202]: ===TESTCASE===
+                - text: — full rules in HOWTOUSE.md. Loaded pairs are appended below.
+            - generic [ref=e204]:
+              - button [ref=e205] [cursor=pointer]
+              - generic [ref=e206]:
+                - generic [ref=e207]: Input
+                - textbox [ref=e208]
+                - generic [ref=e209]: Output
+                - textbox [ref=e210]
+      - button "Add Problem" [ref=e160] [cursor=pointer]
+    - button "Close" [ref=e161] [cursor=pointer]

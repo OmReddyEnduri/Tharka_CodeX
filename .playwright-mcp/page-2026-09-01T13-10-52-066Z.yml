@@ -1,0 +1,62 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e3]:
+    - banner [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - link "Tharka Codex Admin" [ref=f2e6] [cursor=pointer]:
+          - /url: /
+        - combobox "Theme" [ref=f2e20]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - main [ref=f2e21]:
+      - generic [ref=f2e23]:
+        - generic [ref=f2e24]:
+          - generic [ref=f2e25]:
+            - heading "Playwright Test Contest A" [level=1] [ref=f2e26]
+            - paragraph [ref=f2e27]: Created by automated test
+            - paragraph [ref=f2e28]: 9/5/2026, 10:00:00 AM → 9/5/2026, 1:00:00 PM
+          - generic [ref=f2e29]:
+            - link "Edit" [ref=f2e30] [cursor=pointer]:
+              - /url: /contests/6a96ce7acc68598c5620a2bf/edit
+            - link "Results" [ref=f2e31] [cursor=pointer]:
+              - /url: /contests/6a96ce7acc68598c5620a2bf/results
+            - button "Delete Contest" [ref=f2e32] [cursor=pointer]
+        - generic [ref=f2e33]:
+          - generic [ref=f2e34]:
+            - heading "Problems" [level=3] [ref=f2e35]
+            - generic [ref=f2e36]:
+              - button "Bulk Add" [ref=f2e37] [cursor=pointer]
+              - button "Add Problem" [ref=f2e38] [cursor=pointer]
+          - generic [ref=f2e39]:
+            - generic [ref=f2e40]:
+              - generic [ref=f2e41]:
+                - generic [ref=f2e47]: PW Two Sum
+                - generic [ref=f2e48]: Easy
+              - generic [ref=f2e49]:
+                - button [ref=f2e50] [cursor=pointer]
+                - button [ref=f2e51] [cursor=pointer]
+            - generic [ref=f2e52]:
+              - generic [ref=f2e53]:
+                - generic [ref=f2e59]: PW No Testcases Yet
+                - generic [ref=f2e60]: Medium
+              - generic [ref=f2e61]:
+                - button [ref=f2e62] [cursor=pointer]
+                - button [ref=f2e63] [cursor=pointer]
+            - generic [ref=f2e200]:
+              - generic [ref=f2e201]:
+                - generic [ref=f2e207]: PW Bulk Problem 1
+                - generic [ref=f2e208]: Easy
+              - generic [ref=f2e209]:
+                - button [ref=f2e210] [cursor=pointer]
+                - button [ref=f2e211] [cursor=pointer]
+            - generic [ref=f2e212]:
+              - generic [ref=f2e213]:
+                - generic [ref=f2e219]: PW Bulk Problem 2 (no testcases)
+                - generic [ref=f2e220]: Hard
+              - generic [ref=f2e221]:
+                - button [ref=f2e222] [cursor=pointer]
+                - button [ref=f2e223] [cursor=pointer]
+  - region "Notifications alt+T"

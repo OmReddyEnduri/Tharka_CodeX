@@ -1,0 +1,61 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - generic [ref=f11e3]:
+      - generic [ref=f11e4]:
+        - generic [ref=f11e5]:
+          - link "Home" [ref=f11e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f11e10]: C++
+        - generic [ref=f11e15]:
+          - button "Run" [ref=f11e16] [cursor=pointer]
+          - combobox "Theme" [ref=f11e25]:
+            - option "Light"
+            - option "Dark" [selected]
+            - option "Dim"
+            - option "Midnight"
+            - option "Solarized"
+            - option "High Contrast"
+      - generic [ref=f11e27]:
+        - generic [ref=f11e29]:
+          - generic [ref=f11e30]:
+            - generic [ref=f11e31]: Main.cpp
+            - generic [ref=f11e32]:
+              - img [ref=f11e33] [cursor=pointer]
+              - img [ref=f11e36] [cursor=pointer]
+          - code [ref=f11e64]:
+            - generic [ref=f11e65]:
+              - textbox "Editor content"
+              - textbox [ref=f11e66]
+              - generic [ref=f11e68]:
+                - generic [ref=f11e134]: "1"
+                - generic [ref=f11e137]: "2"
+                - generic [ref=f11e139]:
+                  - generic [ref=f11e140] [cursor=pointer]: 
+                  - generic [ref=f11e141]: "3"
+                - generic [ref=f11e142]: "4"
+                - generic [ref=f11e144]: "5"
+                - generic [ref=f11e146]: "6"
+                - generic [ref=f11e148]: "7"
+                - generic [ref=f11e150]: "8"
+                - generic [ref=f11e152]: "9"
+              - generic [ref=f11e96]:
+                - generic [ref=f11e169]: "#include <iostream>"
+                - generic [ref=f11e171]: using namespace std;
+                - generic [ref=f11e173]: "int main() {"
+                - generic [ref=f11e175]: "cout << \"Enter your name: \";"
+                - generic [ref=f11e177]: string name;
+                - generic [ref=f11e179]: cin >> name;
+                - generic [ref=f11e181]: cout << "Hi " << name << "!" << endl;
+                - generic [ref=f11e183]: return 0;
+                - generic [ref=f11e185]: "}"
+        - separator [ref=f11e44]
+        - generic [ref=f11e54]:
+          - tablist [ref=f11e56]:
+            - tab "Console" [active] [selected] [ref=f11e57] [cursor=pointer]
+            - tab "I/O" [ref=f11e58] [cursor=pointer]
+          - tabpanel "Console" [ref=f11e59]:
+            - paragraph [ref=f11e189]: Click Run to start a live terminal session.
+    - region "Notifications alt+T"
+  - generic [ref=f11e111]:
+    - alert
+    - alert

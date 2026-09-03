@@ -1,0 +1,26 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - link "Home" [ref=f1e6] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f1e10]: C++
+      - button "Run" [ref=f1e16] [cursor=pointer]
+    - generic [ref=f1e18]:
+      - generic [ref=f1e20]:
+        - generic [ref=f1e21]:
+          - generic [ref=f1e22]: Main.cpp
+          - generic [ref=f1e23]:
+            - img [ref=f1e24] [cursor=pointer]
+            - img [ref=f1e27] [cursor=pointer]
+        - generic [ref=f1e32]: Loading...
+      - separator [ref=f1e35]
+      - generic [ref=f1e45]:
+        - tablist [ref=f1e47]:
+          - tab "Console" [selected] [ref=f1e48] [cursor=pointer]
+          - tab "I/O" [ref=f1e49] [cursor=pointer]
+        - tabpanel "Console" [ref=f1e50]:
+          - paragraph [ref=f1e52]: Click Run to start a live terminal session.
+          - textbox "Run the program to start typing input" [disabled] [ref=f1e54]
+        - tabpanel "I/O" [ref=f1e55]
+  - region "Notifications alt+T"

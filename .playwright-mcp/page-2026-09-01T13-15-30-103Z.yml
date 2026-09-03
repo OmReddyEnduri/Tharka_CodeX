@@ -1,0 +1,34 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e3]:
+    - banner [ref=f6e4]:
+      - generic [ref=f6e5]:
+        - link "Tharka Codex Admin" [ref=f6e6] [cursor=pointer]:
+          - /url: /
+        - combobox "Theme" [ref=f6e20]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - main [ref=f6e21]:
+      - generic [ref=f6e22]:
+        - generic [ref=f6e23]:
+          - generic [ref=f6e24]:
+            - heading "Playwright Test Contest B (empty)" [level=1] [ref=f6e25]
+            - paragraph
+            - paragraph [ref=f6e26]: 9/12/2026, 10:00:00 AM → 9/12/2026, 1:00:00 PM
+          - generic [ref=f6e27]:
+            - link "Edit" [ref=f6e28] [cursor=pointer]:
+              - /url: /contests/6a96ce7acc68598c5620a2cc/edit
+            - link "Results" [ref=f6e29] [cursor=pointer]:
+              - /url: /contests/6a96ce7acc68598c5620a2cc/results
+            - button "Delete Contest" [ref=f6e30] [cursor=pointer]
+        - generic [ref=f6e31]:
+          - generic [ref=f6e32]:
+            - heading "Problems" [level=3] [ref=f6e33]
+            - generic [ref=f6e34]:
+              - button "Bulk Add" [ref=f6e35] [cursor=pointer]
+              - button "Add Problem" [ref=f6e36] [cursor=pointer]
+          - paragraph [ref=f6e38]: No problems yet.
+  - region "Notifications alt+T"

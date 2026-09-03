@@ -1,0 +1,32 @@
+- generic [ref=f7e2]:
+  - generic [ref=f7e3]:
+    - banner [ref=f7e4]:
+      - generic [ref=f7e5]:
+        - link "Contest Platform" [ref=f7e6] [cursor=pointer]:
+          - /url: /
+        - link "Compiler" [ref=f7e7] [cursor=pointer]:
+          - /url: /compiler
+      - combobox "Theme" [ref=f7e16]:
+        - option "Light" [selected]
+        - option "Dark"
+        - option "Dim"
+        - option "Midnight"
+        - option "Solarized"
+        - option "High Contrast"
+    - main [ref=f7e17]:
+      - generic [ref=f7e18]:
+        - generic [ref=f7e19]:
+          - generic [ref=f7e20]:
+            - heading "Server" [level=3] [ref=f7e21]
+            - paragraph [ref=f7e22]: Point this laptop at the contest server on your LAN.
+          - generic [ref=f7e23]:
+            - generic [ref=f7e24]:
+              - text: Server URL
+              - textbox "Server URL" [ref=f7e25]:
+                - /placeholder: http://192.168.1.100:3001
+                - text: http://localhost:3001
+            - button "Save" [ref=f7e26] [cursor=pointer]
+        - generic [ref=f7e27]:
+          - heading "Contests" [level=3] [ref=f7e29]
+          - paragraph [ref=f7e31]: Loading...
+  - region "Notifications alt+T"

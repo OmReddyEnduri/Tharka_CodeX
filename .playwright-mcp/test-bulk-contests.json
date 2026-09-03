@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Playwright Test Contest A",
+    "description": "Created by automated test",
+    "startTime": "2026-09-05T10:00",
+    "endTime": "2026-09-05T13:00",
+    "problems": [
+      {
+        "title": "PW Two Sum",
+        "description": "Given two numbers, print their sum.",
+        "difficulty": "Easy",
+        "sampleTestCases": [{ "input": "5 7", "output": "12" }],
+        "hiddenTestCases": [{ "input": "1 1", "output": "2" }]
+      },
+      {
+        "title": "PW No Testcases Yet",
+        "description": "Statement to be finalized.",
+        "difficulty": "Medium"
+      }
+    ]
+  },
+  {
+    "name": "Playwright Test Contest B (empty)",
+    "startTime": "2026-09-12T10:00",
+    "endTime": "2026-09-12T13:00"
+  }
+]

@@ -1,0 +1,56 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - generic [ref=f8e4]:
+        - generic [ref=f8e5]:
+          - link "Home" [ref=f8e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f8e10]: C++
+        - generic [ref=f8e15]:
+          - button "Run" [ref=f8e16] [cursor=pointer]
+          - combobox "Theme" [ref=f8e25]:
+            - option "Light"
+            - option "Dark"
+            - option "Dim"
+            - option "Midnight"
+            - option "Solarized"
+            - option "High Contrast" [selected]
+      - generic [ref=f8e27]:
+        - generic [ref=f8e29]:
+          - generic [ref=f8e30]:
+            - generic [ref=f8e31]: Main.cpp
+            - generic [ref=f8e32]:
+              - img [ref=f8e33] [cursor=pointer]
+              - img [ref=f8e36] [cursor=pointer]
+          - code [ref=f8e44]:
+            - generic [ref=f8e45]:
+              - textbox "Editor content"
+              - textbox [ref=f8e46]
+              - generic [ref=f8e48]:
+                - generic [ref=f8e49]: "1"
+                - generic [ref=f8e52]: "2"
+                - generic [ref=f8e54]: "3"
+                - generic [ref=f8e56]: "4"
+                - generic [ref=f8e58]: "5"
+                - generic [ref=f8e60]: "6"
+                - generic [ref=f8e62]: "7"
+              - generic [ref=f8e75]:
+                - generic [ref=f8e76]: "#include <iostream>"
+                - generic [ref=f8e78]: using namespace std;
+                - generic [ref=f8e81]: "int main() {"
+                - generic [ref=f8e83]: // Write your code here
+                - generic [ref=f8e85]: return 0;
+                - generic [ref=f8e87]: "}"
+        - separator [ref=f8e90]
+        - generic [ref=f8e100]:
+          - tablist [ref=f8e102]:
+            - tab "Console" [selected] [ref=f8e103] [cursor=pointer]
+            - tab "I/O" [ref=f8e104] [cursor=pointer]
+          - tabpanel "Console" [ref=f8e105]:
+            - paragraph [ref=f8e107]: Click Run to start a live terminal session.
+            - textbox "Run the program to start typing input" [disabled] [ref=f8e109]
+          - tabpanel "I/O" [ref=f8e110]
+    - region "Notifications alt+T"
+  - generic [ref=f8e111]:
+    - alert
+    - alert

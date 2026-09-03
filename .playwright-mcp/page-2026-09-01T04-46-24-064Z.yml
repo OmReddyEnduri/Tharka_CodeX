@@ -1,0 +1,37 @@
+- generic [ref=f3e2]:
+  - generic [ref=f3e3]:
+    - banner [ref=f3e4]:
+      - link "Contest Admin" [ref=f3e6] [cursor=pointer]:
+        - /url: /
+    - main [ref=f3e13]:
+      - generic [ref=f3e15]:
+        - generic [ref=f3e16]:
+          - generic [ref=f3e17]:
+            - heading "Demo Contest" [level=1] [ref=f3e18]
+            - paragraph [ref=f3e19]: Seeded demo contest for local testing.
+            - paragraph [ref=f3e20]: 9/1/2026, 9:48:42 AM → 9/1/2026, 11:53:42 AM
+          - generic [ref=f3e21]:
+            - link "Edit" [ref=f3e22] [cursor=pointer]:
+              - /url: /contests/6a96534ef934e532212b6355/edit
+            - link "Results" [ref=f3e23] [cursor=pointer]:
+              - /url: /contests/6a96534ef934e532212b6355/results
+        - generic [ref=f3e24]:
+          - generic [ref=f3e25]:
+            - heading "Problems" [level=3] [ref=f3e26]
+            - button "Add Problem" [ref=f3e27] [cursor=pointer]
+          - generic [ref=f3e28]:
+            - generic [ref=f3e29]:
+              - generic [ref=f3e30]:
+                - generic [ref=f3e36]: Sum of Two Numbers
+                - generic [ref=f3e37]: Easy
+              - generic [ref=f3e38]:
+                - button [ref=f3e39] [cursor=pointer]
+                - button [ref=f3e40] [cursor=pointer]
+            - generic [ref=f3e41]:
+              - generic [ref=f3e42]:
+                - generic [ref=f3e48]: Reverse a String
+                - generic [ref=f3e49]: Easy
+              - generic [ref=f3e50]:
+                - button [ref=f3e51] [cursor=pointer]
+                - button [ref=f3e52] [cursor=pointer]
+  - region "Notifications alt+T"

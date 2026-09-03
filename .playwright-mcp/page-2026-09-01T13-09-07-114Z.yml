@@ -1,0 +1,65 @@
+- generic:
+  - generic:
+    - generic [aria-hidden]:
+      - banner:
+        - generic:
+          - link:
+            - /url: /
+            - text: Tharka Codex Admin
+          - generic:
+            - combobox
+      - main:
+        - generic:
+          - generic:
+            - generic: 3 devices connected
+            - button: Sync
+          - generic:
+            - heading [level=1]: Contests
+            - generic:
+              - button: Bulk Import
+              - link:
+                - /url: /contests/new
+                - text: New Contest
+          - generic:
+            - link:
+              - /url: /contests/6a96cd89cc68598c56209c81
+              - generic:
+                - generic:
+                  - heading [level=3]: Simple Programming Contest 1
+                  - generic: Live
+                - generic: 9/1/2026, 6:38:00 PM → 9/1/2026, 6:43:00 PM
+            - link:
+              - /url: /contests/6a96cb60e82acadf31a67595
+              - generic:
+                - generic:
+                  - heading [level=3]: hi rk sir
+                  - generic: Ended
+                - generic: 9/1/2026, 6:28:00 PM → 9/1/2026, 6:30:00 PM
+            - link:
+              - /url: /contests/6a9699ee8fa6b99331a3b25c
+              - generic:
+                - generic:
+                  - heading [level=3]: asfasdfasdf
+                  - generic: Ended
+                - generic: 9/1/2026, 2:56:00 PM → 9/1/2026, 2:59:00 PM
+            - link:
+              - /url: /contests/6a9664f2d36b15c21e0b9ebb
+              - generic:
+                - generic:
+                  - heading [level=3]: Demo Contest1
+                  - generic: Ended
+                - generic: 9/1/2026, 11:03:00 AM → 9/1/2026, 1:08:00 PM
+    - region "Notifications alt+T"
+  - dialog [ref=f1e85]:
+    - generic [ref=f1e86]:
+      - heading "Bulk Import Contests" [level=2] [ref=f1e87]
+      - paragraph [ref=f1e88]: Upload a JSON file describing one or more contests. Each contest can optionally include its own problems, and each problem can optionally include its own sample/hidden test cases — every level is optional. Full format in HOWTOUSE.md.
+    - generic [ref=f1e89]:
+      - generic [ref=f1e90]:
+        - button "Choose File" [active] [ref=f1e91]
+        - generic [ref=f1e99]: test-bulk-contests.json
+      - paragraph [ref=f1e100]: Loaded 2 contest(s) from the file. Review the format in HOWTOUSE.md if this doesn't look right, then click Import.
+    - generic [ref=f1e92]:
+      - button "Cancel" [ref=f1e93] [cursor=pointer]
+      - button "Import" [ref=f1e101] [cursor=pointer]
+    - button "Close" [ref=f1e94] [cursor=pointer]

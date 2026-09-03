@@ -1,0 +1,67 @@
+- generic [active] [ref=f13e1]:
+  - generic [ref=f13e2]:
+    - generic [ref=f13e3]:
+      - generic [ref=f13e4]:
+        - generic [ref=f13e5]:
+          - link "Home" [ref=f13e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f13e10]: C++
+        - generic [ref=f13e15]:
+          - button "Stop" [ref=f13e180] [cursor=pointer]
+          - button "Run" [disabled]
+      - generic [ref=f13e18]:
+        - generic [ref=f13e20]:
+          - generic [ref=f13e21]:
+            - generic [ref=f13e22]: Main.cpp
+            - generic [ref=f13e23]:
+              - img [ref=f13e24] [cursor=pointer]
+              - img [ref=f13e27] [cursor=pointer]
+          - code [ref=f13e35]:
+            - generic [ref=f13e36]:
+              - textbox "Editor content"
+              - textbox [ref=f13e37]
+              - generic [ref=f13e39]:
+                - generic [ref=f13e103]: "1"
+                - generic [ref=f13e106]: "2"
+                - generic [ref=f13e108]:
+                  - generic [ref=f13e109] [cursor=pointer]: 
+                  - generic [ref=f13e110]: "3"
+                - generic [ref=f13e111]: "4"
+                - generic [ref=f13e113]: "5"
+                - generic [ref=f13e115]: "6"
+                - generic [ref=f13e117]: "7"
+                - generic [ref=f13e119]: "8"
+                - generic [ref=f13e121]: "9"
+                - generic [ref=f13e123]: "10"
+                - generic [ref=f13e125]: "11"
+                - generic [ref=f13e127]: "12"
+                - generic [ref=f13e129]: "13"
+              - generic [ref=f13e66]:
+                - generic [ref=f13e154]: "#include <iostream>"
+                - generic [ref=f13e156]: using namespace std;
+                - generic [ref=f13e158]: "int main() {"
+                - generic [ref=f13e160]: cout << "What is your name? ";
+                - generic [ref=f13e162]: string name;
+                - generic [ref=f13e164]: cin >> name;
+                - generic [ref=f13e166]: cout << "Hello, " << name << "!" << endl;
+                - generic [ref=f13e168]: int a, b;
+                - generic [ref=f13e170]: "cout << \"Enter two numbers: \";"
+                - generic [ref=f13e172]: cin >> a >> b;
+                - generic [ref=f13e174]: "cout << \"Sum: \" << (a + b) << endl;"
+                - generic [ref=f13e176]: return 0;
+                - generic [ref=f13e178]: "}"
+        - separator [ref=f13e81]
+        - generic [ref=f13e91]:
+          - tablist [ref=f13e93]:
+            - tab "Console" [selected] [ref=f13e94] [cursor=pointer]
+            - tab "I/O" [ref=f13e95] [cursor=pointer]
+          - tabpanel "Console" [ref=f13e96]:
+            - generic [ref=f13e97]:
+              - generic [ref=f13e181]: Running...
+              - generic [ref=f13e183]: What is your name?
+            - textbox "Type input and press Enter..." [ref=f13e182]
+          - tabpanel "I/O" [ref=f13e101]
+    - region "Notifications alt+T"
+  - generic [ref=f13e102]:
+    - alert
+    - alert

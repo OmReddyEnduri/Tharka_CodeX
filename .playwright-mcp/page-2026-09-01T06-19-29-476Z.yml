@@ -1,0 +1,45 @@
+- generic [ref=f18e2]:
+  - generic [ref=f18e3]:
+    - banner [ref=f18e4]:
+      - generic [ref=f18e5]:
+        - link "Contest Admin" [ref=f18e6] [cursor=pointer]:
+          - /url: /
+        - combobox "Theme" [ref=f18e20]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - main [ref=f18e21]:
+      - generic [ref=f18e22]:
+        - generic [ref=f18e23]:
+          - generic [ref=f18e24]:
+            - heading "Demo Contest" [level=1] [ref=f18e25]
+            - paragraph [ref=f18e26]: Seeded demo contest for local testing.
+            - paragraph [ref=f18e27]: 9/1/2026, 11:03:58 AM → 9/1/2026, 1:08:58 PM
+          - generic [ref=f18e28]:
+            - link "Edit" [ref=f18e29] [cursor=pointer]:
+              - /url: /contests/6a9664f2d36b15c21e0b9ebb/edit
+            - link "Results" [ref=f18e30] [cursor=pointer]:
+              - /url: /contests/6a9664f2d36b15c21e0b9ebb/results
+        - generic [ref=f18e31]:
+          - generic [ref=f18e32]:
+            - heading "Problems" [level=3] [ref=f18e33]
+            - button "Add Problem" [ref=f18e34] [cursor=pointer]
+          - generic [ref=f18e35]:
+            - generic [ref=f18e36]:
+              - generic [ref=f18e37]:
+                - generic [ref=f18e43]: Sum of Two Numbers
+                - generic [ref=f18e44]: Easy
+              - generic [ref=f18e45]:
+                - button [ref=f18e46] [cursor=pointer]
+                - button [ref=f18e47] [cursor=pointer]
+            - generic [ref=f18e48]:
+              - generic [ref=f18e49]:
+                - generic [ref=f18e55]: Reverse a String
+                - generic [ref=f18e56]: Easy
+              - generic [ref=f18e57]:
+                - button [ref=f18e58] [cursor=pointer]
+                - button [ref=f18e59] [cursor=pointer]
+  - region "Notifications alt+T"

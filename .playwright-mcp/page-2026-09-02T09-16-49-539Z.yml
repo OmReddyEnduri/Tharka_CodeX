@@ -1,0 +1,48 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "Tharka Codex Admin" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - combobox "Theme" [ref=e20]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - main [ref=e21]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - generic [ref=e86]:
+            - heading "check1" [level=1] [ref=e87]
+            - paragraph [ref=e88]: asfsfffsafsfddfa
+            - paragraph [ref=e89]: 9/2/2026, 12:09:00 PM → 9/2/2026, 4:23:00 PM
+          - generic [ref=e90]:
+            - link "Edit" [ref=e91] [cursor=pointer]:
+              - /url: /contests/6a97c469a9f1980f1a1c04ee/edit
+            - link "Results" [ref=e92] [cursor=pointer]:
+              - /url: /contests/6a97c469a9f1980f1a1c04ee/results
+            - button "Delete Contest" [ref=e93] [cursor=pointer]
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - heading "Problems" [level=3] [ref=e96]
+            - generic [ref=e97]:
+              - button "Bulk Add" [ref=e98] [cursor=pointer]
+              - button "Add Problem" [ref=e99] [cursor=pointer]
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - generic [ref=e108]: two sum
+                - generic [ref=e109]: Medium
+              - generic [ref=e110]:
+                - button [ref=e111] [cursor=pointer]
+                - button [ref=e112] [cursor=pointer]
+            - generic [ref=e113]:
+              - generic [ref=e114]:
+                - generic [ref=e120]: asdf
+                - generic [ref=e121]: Medium
+              - generic [ref=e122]:
+                - button [ref=e123] [cursor=pointer]
+                - button [ref=e124] [cursor=pointer]
+  - region "Notifications alt+T"

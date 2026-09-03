@@ -1,0 +1,53 @@
+{
+  "name": "tharka-codex",
+  "version": "1.0.0",
+  "description": "LAN contest platform - student desktop client",
+  "author": "Tharka Lab Contest",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "pidusage": "^4.0.1",
+    "socket.io-client": "^4.8.3",
+    "tree-kill": "^1.2.2"
+  },
+  "devDependencies": {
+    "app-builder-bin": "^5.0.0-alpha.10",
+    "electron": "32.3.3",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.tharka.codex",
+    "productName": "Tharka Codex",
+    "executableName": "Tharka Codex",
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "files": [
+      "main.js",
+      "preload.js",
+      "db.js",
+      "judge-cpp/**",
+      "node_modules/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../client-web/dist",
+        "to": "client-web-dist"
+      }
+    ],
+    "win": {
+      "target": ["nsis"]
+    },
+    "nsis": {
+      "artifactName": "${productName}.exe",
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tharka Codex"
+    }
+  }
+}

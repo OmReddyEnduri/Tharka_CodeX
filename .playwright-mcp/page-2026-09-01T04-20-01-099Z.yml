@@ -1,0 +1,19 @@
+- generic [ref=f5e2]:
+  - generic [ref=f5e31]:
+    - banner [ref=f5e32]:
+      - link "Contest Platform" [ref=f5e33] [cursor=pointer]:
+        - /url: /
+    - main [ref=f5e34]:
+      - generic [ref=f5e36]:
+        - generic [ref=f5e37]:
+          - heading "Join Contest" [level=3] [ref=f5e38]
+          - paragraph [ref=f5e39]: Enter your name and roll number to continue.
+        - generic [ref=f5e41]:
+          - generic [ref=f5e42]:
+            - text: Name
+            - textbox "Name" [ref=f5e43]
+          - generic [ref=f5e44]:
+            - text: Roll Number
+            - textbox "Roll Number" [ref=f5e45]
+          - button "Continue" [ref=f5e46] [cursor=pointer]
+  - region "Notifications alt+T"

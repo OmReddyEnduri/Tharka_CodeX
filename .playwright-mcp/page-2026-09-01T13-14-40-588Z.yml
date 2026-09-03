@@ -1,0 +1,54 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e3]:
+    - banner [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - link "Tharka Codex Admin" [ref=f4e6] [cursor=pointer]:
+          - /url: /
+        - combobox "Theme" [ref=f4e20]:
+          - option "Light"
+          - option "Dark" [selected]
+          - option "Dim"
+          - option "Midnight"
+          - option "Solarized"
+          - option "High Contrast"
+    - main [ref=f4e21]:
+      - generic [ref=f4e22]:
+        - heading "Live Results" [level=3] [ref=f4e24]
+        - table [ref=f4e28]:
+          - rowgroup [ref=f4e29]:
+            - row [ref=f4e30]:
+              - columnheader "Rank" [ref=f4e31]
+              - columnheader "Student" [ref=f4e32]
+              - columnheader "Roll No." [ref=f4e33]
+              - columnheader "Add Two Numbers" [ref=f4e34]
+              - columnheader "Array Sum" [ref=f4e35]
+              - columnheader "Find the Maximum" [ref=f4e36]
+              - columnheader "Even or Odd" [ref=f4e37]
+              - columnheader "Palindrome Check" [ref=f4e38]
+              - columnheader "Count Numbers in Range" [ref=f4e39]
+              - columnheader "Reverse an Array" [ref=f4e40]
+              - columnheader "Prime Number Check" [ref=f4e41]
+              - columnheader "Linear Search" [ref=f4e42]
+              - columnheader "Sort the Array" [ref=f4e43]
+              - columnheader "Score" [ref=f4e44]
+              - columnheader "Action" [ref=f4e45]
+          - rowgroup [ref=f4e46]:
+            - row [ref=f4e47]:
+              - cell "1" [ref=f4e48]
+              - cell "tu" [ref=f4e49]
+              - cell "4" [ref=f4e51]
+              - cell [ref=f4e52]:
+                - button "AC" [ref=f4e53] [cursor=pointer]
+              - cell "-" [ref=f4e54]
+              - cell "-" [ref=f4e55]
+              - cell "-" [ref=f4e56]
+              - cell "-" [ref=f4e57]
+              - cell "-" [ref=f4e58]
+              - cell "-" [ref=f4e59]
+              - cell "-" [ref=f4e60]
+              - cell "-" [ref=f4e61]
+              - cell "-" [ref=f4e62]
+              - cell "100" [ref=f4e63]
+              - cell [ref=f4e64]:
+                - button "Disqualify" [ref=f4e65] [cursor=pointer]
+  - region "Notifications alt+T"
