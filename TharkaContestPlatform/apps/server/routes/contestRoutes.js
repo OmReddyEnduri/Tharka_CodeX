@@ -11,6 +11,23 @@ const { getJudgeSettings } = require("../lib/judgeSettings");
 const { isAdminRequest, requireAdmin } = require("../lib/adminAuth");
 const { stripHiddenTestCaseIO } = require("../lib/hiddenTestCases");
 
+// `checker` picks how a problem's output is compared - "token"
+// (whitespace-insensitive, the default) or "exact" (line/spacing-sensitive,
+// for pattern-printing problems) - see packages/judge-cpp/index.js. Used by
+// every *creation* path (single-add, bulk-add, bulk-contest-import): a
+// missing value defaults to "token", same default judge-cpp's run() and the
+// schema itself both use for a problem that already exists with no value
+// stored. An explicitly-supplied but unrecognized value (a typo in a
+// bulk-import file, say) is a real mistake and must be rejected, not
+// silently guessed.
+function resolveChecker(value) {
+  if (value === undefined || value === null || value === "") return { checker: "token" };
+  if (value !== "token" && value !== "exact") {
+    return { error: `Invalid checker "${value}" - must be "token" or "exact"` };
+  }
+  return { checker: value };
+}
+
 // Used by the bulk importer when a problem entry omits `id` - single-add
 // (the admin form) always sends an id because the UI generates one
 // client-side, but a bulk JSON file may leave it out for convenience.
@@ -33,7 +50,7 @@ async function generateUniqueProblemId() {
 async function addProblemToContest(contest, data) {
   const {
     title, description, category, difficulty, constraints,
-    inputFormat, outputFormat, timeLimit, memoryLimit,
+    inputFormat, outputFormat, timeLimit, memoryLimit, checker, points,
     sampleTestCases, hiddenTestCases,
   } = data || {};
 
@@ -52,9 +69,13 @@ async function addProblemToContest(contest, data) {
     if (!title || !description || !difficulty) {
       return { id, title, status: "skipped", reason: "New problem id needs title, description, and difficulty" };
     }
+    const resolvedChecker = resolveChecker(checker);
+    if (resolvedChecker.error) {
+      return { id, title, status: "skipped", reason: resolvedChecker.error };
+    }
     contestProblem = new ContestProblem({
       id, title, description, category, difficulty, constraints,
-      inputFormat, outputFormat, timeLimit, memoryLimit,
+      inputFormat, outputFormat, timeLimit, memoryLimit, checker: resolvedChecker.checker, points,
       sampleTestCases: sampleTestCases || [], hiddenTestCases: hiddenTestCases || [],
     });
     await contestProblem.save();
@@ -417,7 +438,7 @@ router.post("/:contestId/problems", requireAdmin, async (req, res) => {
   try {
     const {
       id, title, description, category, difficulty, constraints,
-      inputFormat, outputFormat, timeLimit, memoryLimit,
+      inputFormat, outputFormat, timeLimit, memoryLimit, checker, points,
       sampleTestCases, hiddenTestCases,
     } = req.body;
 
@@ -430,9 +451,11 @@ router.post("/:contestId/problems", requireAdmin, async (req, res) => {
 
     let contestProblem = await ContestProblem.findOne({ id });
     if (!contestProblem) {
+      const resolvedChecker = resolveChecker(checker);
+      if (resolvedChecker.error) return res.status(400).json({ msg: resolvedChecker.error });
       contestProblem = new ContestProblem({
         id, title, description, category, difficulty, constraints,
-        inputFormat, outputFormat, timeLimit, memoryLimit,
+        inputFormat, outputFormat, timeLimit, memoryLimit, checker: resolvedChecker.checker, points,
         sampleTestCases, hiddenTestCases,
       });
       await contestProblem.save();
@@ -481,16 +504,27 @@ router.put("/:contestId/problems/:problemId", requireAdmin, async (req, res) => 
   try {
     const {
       title, description, category, difficulty, constraints,
-      inputFormat, outputFormat, timeLimit, memoryLimit,
+      inputFormat, outputFormat, timeLimit, memoryLimit, checker, points,
       sampleTestCases, hiddenTestCases,
     } = req.body;
 
     const contestProblem = await ContestProblem.findOne({ id: req.params.problemId });
     if (!contestProblem) return res.status(404).json({ msg: "Problem not found" });
 
+    // Unlike creation, a missing `checker` here means "this edit didn't
+    // touch it" (an older admin build, or an API caller that only wants to
+    // change other fields) - preserve whatever's already on the document
+    // rather than resolving it to "token" and clobbering an intentional
+    // "exact" via Object.assign.
+    if (checker !== undefined) {
+      const resolvedChecker = resolveChecker(checker);
+      if (resolvedChecker.error) return res.status(400).json({ msg: resolvedChecker.error });
+      contestProblem.checker = resolvedChecker.checker;
+    }
+
     Object.assign(contestProblem, {
       title, description, category, difficulty, constraints,
-      inputFormat, outputFormat, timeLimit, memoryLimit,
+      inputFormat, outputFormat, timeLimit, memoryLimit, points,
       sampleTestCases, hiddenTestCases,
     });
 
@@ -562,6 +596,7 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
       timeLimit: problem.timeLimit,
       memoryLimit: problem.memoryLimit,
       judgeSettings,
+      checker: problem.checker,
     });
 
     if (result.status === "Error") {
@@ -674,6 +709,7 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
           timeLimit: problem.timeLimit,
           memoryLimit: problem.memoryLimit,
           judgeSettings,
+          checker: problem.checker,
         });
         verdict = judged.status;
         testCasesPassed = judged.testCasesPassed ?? 0;

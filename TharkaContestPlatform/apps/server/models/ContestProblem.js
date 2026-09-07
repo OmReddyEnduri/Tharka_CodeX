@@ -20,6 +20,23 @@ const contestProblemSchema = new mongoose.Schema({
   // reports it.
   timeLimit: { type: Number, required: true, default: 1000, min: 100 },
   memoryLimit: { type: Number, required: true, default: 256, min: 16 },
+  // How output is compared - "token" (whitespace-insensitive - the default,
+  // right for almost all competitive-programming problems) or "exact"
+  // (line/spacing-sensitive - only needed for pattern-printing/formatting
+  // problems where leading spaces and line breaks are part of the answer).
+  // See packages/judge-cpp/index.js's compareOutput() for the checkers
+  // themselves. Applies platform-wide to any problem, old or new - a
+  // problem saved before this field existed reads back as "token" too, same
+  // as one created today without touching this dropdown.
+  checker: { type: String, enum: ["token", "exact"], default: "token" },
+  // How many leaderboard points an Accepted verdict on this problem is
+  // worth - not every problem has to be worth the same amount (a Hard
+  // problem can outweigh three Easy ones). See lib/leaderboard.js, which
+  // looks this up per problem instead of using one fixed value for every
+  // problem in every contest. A problem saved before this field existed
+  // reads back as 100, matching what every problem was implicitly worth
+  // when that was the only value that ever existed.
+  points: { type: Number, required: true, default: 100, min: 1 },
   sampleTestCases: [testCaseSchema],
   hiddenTestCases: [testCaseSchema],
 }, { timestamps: true });

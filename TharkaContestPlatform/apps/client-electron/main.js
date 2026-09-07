@@ -56,6 +56,18 @@ const MIME_TYPES = {
 // script tag silently didn't. Serving the built site over a real (if
 // loopback-only) http:// origin from inside the app sidesteps that entirely
 // - this has nothing to do with the contest server's reachability.
+// Fixed, not random (`server.listen(0, ...)` used to pick a new port every
+// launch). localStorage is scoped per-origin, and this server's port IS the
+// app's origin (http://127.0.0.1:<port>) - a different port every launch
+// meant a completely fresh, empty localStorage every single time the app
+// started, silently wiping code drafts, the saved template, editor
+// settings, and local submission history on every restart. Picked from the
+// dynamic/private port range to make a collision with something else on the
+// laptop unlikely; falls back to a random port (with a console warning)
+// only if this exact one is somehow already taken, rather than failing to
+// start at all.
+const STATIC_SERVER_PORT = 51837;
+
 function startStaticServer(rootDir) {
   return new Promise((resolve) => {
     const server = http.createServer((req, res) => {
@@ -80,7 +92,18 @@ function startStaticServer(rootDir) {
         res.end(data);
       });
     });
-    server.listen(0, "127.0.0.1", () => resolve(server.address().port));
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.warn(
+          `[startStaticServer] port ${STATIC_SERVER_PORT} is already in use - falling back to a random port. ` +
+            "localStorage (drafts, settings, submission history) won't carry over from the last run this time."
+        );
+        server.listen(0, "127.0.0.1", () => resolve(server.address().port));
+      } else {
+        throw err;
+      }
+    });
+    server.listen(STATIC_SERVER_PORT, "127.0.0.1", () => resolve(server.address().port));
   });
 }
 
@@ -325,6 +348,7 @@ async function localJudge(problemId, code, mode) {
     timeLimit: problem.timeLimit,
     memoryLimit: problem.memoryLimit,
     judgeSettings: db.getJudgeSettings(),
+    checker: problem.checker,
   });
 }
 
@@ -508,6 +532,18 @@ const SOURCE_FILE_FILTERS = [
   { name: "Text", extensions: ["txt"] },
   { name: "All files", extensions: ["*"] },
 ];
+const WORKSPACE_FILE_EXTENSIONS = new Set([".cpp", ".cc", ".cxx", ".c", ".h", ".hpp", ".txt"]);
+
+// A standing folder on the Desktop for the Compiler page's file sidebar -
+// unlike open-file/save-file above (one-off native dialogs, save anywhere),
+// this is the one place the sidebar always looks. Created on first access,
+// not at app startup, so a laptop that never touches the Compiler page
+// never gets an empty folder dropped on someone's Desktop for no reason.
+function getWorkspaceDir() {
+  const dir = path.join(app.getPath("desktop"), "Tharka Codex");
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
 
 ipcMain.handle("open-file", async () => {
   const res = await dialog.showOpenDialog(mainWindow, {
@@ -534,7 +570,11 @@ ipcMain.handle("save-file", async (event, { content, path: filePath, suggestedNa
   if (!target) {
     const res = await dialog.showSaveDialog(mainWindow, {
       title: "Save source file",
-      defaultPath: suggestedName || "Main.cpp",
+      // Default into the workspace folder so a save-as-new-file naturally
+      // lands somewhere the sidebar will show it, rather than wherever the
+      // OS last remembered - the whole point of that folder is "the place
+      // your files are", so a brand new file should start there too.
+      defaultPath: path.join(getWorkspaceDir(), suggestedName || "Main.cpp"),
       filters: SOURCE_FILE_FILTERS,
     });
     if (res.canceled || !res.filePath) return { canceled: true };
@@ -543,6 +583,41 @@ ipcMain.handle("save-file", async (event, { content, path: filePath, suggestedNa
   try {
     fs.writeFileSync(target, content, "utf8");
     return { canceled: false, path: target, name: path.basename(target) };
+  } catch (err) {
+    return { error: err.message };
+  }
+});
+
+// --- Workspace folder (Compiler page's left file sidebar) ------------------
+
+ipcMain.handle("get-workspace-dir", () => getWorkspaceDir());
+
+ipcMain.handle("list-workspace-files", () => {
+  const dir = getWorkspaceDir();
+  try {
+    return fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && WORKSPACE_FILE_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))
+      .map((entry) => {
+        const stat = fs.statSync(path.join(dir, entry.name));
+        return { name: entry.name, mtimeMs: stat.mtimeMs };
+      })
+      .sort((a, b) => b.mtimeMs - a.mtimeMs); // most recently edited first
+  } catch (err) {
+    return { error: err.message };
+  }
+});
+
+// Opens a file *by name* straight from the workspace folder - no dialog,
+// since the sidebar already showed the student exactly what's in there.
+// Only ever reads inside getWorkspaceDir(): `name` must be a bare filename
+// (path.basename strips any directory component), so this can't be used to
+// read an arbitrary path elsewhere on disk.
+ipcMain.handle("open-workspace-file", (event, name) => {
+  const dir = getWorkspaceDir();
+  const filePath = path.join(dir, path.basename(String(name || "")));
+  try {
+    return { path: filePath, name: path.basename(filePath), content: fs.readFileSync(filePath, "utf8") };
   } catch (err) {
     return { error: err.message };
   }

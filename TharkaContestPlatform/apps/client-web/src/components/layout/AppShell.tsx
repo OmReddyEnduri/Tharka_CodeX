@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { Settings as SettingsIcon } from "lucide-react";
 import { getIdentity } from "@/lib/identity";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -6,7 +6,15 @@ import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { contestId } = useParams<{ contestId: string }>();
-  const identity = contestId ? getIdentity(contestId) : null;
+  const location = useLocation();
+  // On the join/switch page itself, the *old* identity is still what's in
+  // localStorage (nothing's been submitted yet) - showing "You are: Alice
+  // [switch]" while Alice is actively in the middle of switching away read
+  // exactly like the switch hadn't done anything, even though it works
+  // correctly the moment the form is submitted. Simplest fix: just don't
+  // show it on this one page.
+  const onJoinPage = location.pathname.endsWith("/join");
+  const identity = contestId && !onJoinPage ? getIdentity(contestId) : null;
 
   return (
     <div className="min-h-screen flex flex-col">

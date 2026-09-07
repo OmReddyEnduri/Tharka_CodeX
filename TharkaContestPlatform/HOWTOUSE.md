@@ -98,6 +98,8 @@ and fill in the rest later through the normal editor.
         "category": "Arrays",
         "timeLimit": 1000,
         "memoryLimit": 256,
+        "checker": "token",
+        "points": 100,
         "sampleTestCases": [
           { "input": "5 7", "output": "12" }
         ],
@@ -147,6 +149,18 @@ array of problem objects (same shape as the `problems` entries above), or
 - `sampleTestCases`/`hiddenTestCases` on a problem use the same
   `{ "input": ..., "output": ... }` pairs as the single-problem editor —
   omit either array (or leave it empty) for a problem with no test cases yet.
+- `checker` is `"token"` (whitespace-insensitive - right for almost all
+  problems, and the default if omitted) or `"exact"` (line/spacing-sensitive
+  - only needed for pattern-printing problems where leading spaces and line
+  breaks are part of the answer). Any other value is rejected and that row
+  is skipped with a reason, rather than silently guessing.
+- `points` is how much an Accepted verdict on this problem is worth on the
+  leaderboard. Omit it for `100` - problems don't have to be worth the same
+  amount, so a harder problem can be set higher to outweigh easier ones.
+- Recommended, not enforced: give every problem a real `description`, at
+  least 2 `sampleTestCases`, and around 10 `hiddenTestCases`. Nothing
+  rejects a thinner problem than that, but a problem judged on too few
+  hidden cases is easy to accidentally pass with a wrong solution.
 
 **Row-level skipping, not all-or-nothing:** a bad or duplicate entry is
 skipped and reported, the rest of the file still imports. After you click

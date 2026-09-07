@@ -55,6 +55,46 @@ export function fileAccessMode(): "native" | "picker" | "download" {
   return "download";
 }
 
+// --- Workspace folder (Compiler page's left file sidebar) -----------------
+// Electron-only: a standing "Tharka Codex" folder on the Desktop, created on
+// first use by main.js, so there's always one obvious place a student's
+// saved programs live and a slim sidebar can list them from - as opposed to
+// open/save above, which are one-off native dialogs that can point anywhere.
+// No equivalent in the plain-browser tiers (there's no "the Desktop" a page
+// running in a tab can see), so every export here is a no-op/empty result
+// outside Electron - callers feature-detect with hasWorkspace().
+
+export interface WorkspaceFile {
+  name: string;
+  mtimeMs: number;
+}
+
+export function hasWorkspace(): boolean {
+  return !!electronAPI()?.listWorkspaceFiles;
+}
+
+export async function listWorkspaceFiles(): Promise<WorkspaceFile[]> {
+  const api = electronAPI();
+  if (!api?.listWorkspaceFiles) return [];
+  const res = await api.listWorkspaceFiles();
+  if (!Array.isArray(res)) return []; // { error } shape - treat as empty rather than throwing on every poll
+  return res;
+}
+
+export async function openWorkspaceFile(name: string): Promise<OpenedFile | null> {
+  const api = electronAPI();
+  if (!api?.openWorkspaceFile) return null;
+  const res = await api.openWorkspaceFile(name);
+  if (!res || res.error) throw new Error(res?.error || "Could not open the file");
+  return { file: { name: res.name, path: res.path }, code: res.content };
+}
+
+export async function getWorkspaceDir(): Promise<string | null> {
+  const api = electronAPI();
+  if (!api?.getWorkspaceDir) return null;
+  return api.getWorkspaceDir();
+}
+
 export async function openCodeFile(): Promise<OpenedFile | null> {
   const api = electronAPI();
   if (api?.openFile) {

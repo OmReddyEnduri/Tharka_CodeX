@@ -92,6 +92,7 @@ export default function AdminResults() {
                 {results.problems.map((p) => (
                   <TableHead key={p.id} className="text-center">
                     {p.title}
+                    <span className="block text-[10px] font-normal text-muted-foreground">{p.points} pts</span>
                   </TableHead>
                 ))}
                 <TableHead className="text-right">Score</TableHead>

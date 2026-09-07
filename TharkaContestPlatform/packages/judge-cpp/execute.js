@@ -42,7 +42,8 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
       // failed every pattern-printing problem (`  *` / ` ***` / `*****`
       // pyramids, right-aligned tables), and worse, accepted a wrong answer
       // that omitted the leading spaces entirely. Leading whitespace is now
-      // left intact on this side so index.js's normalizeOutput is the single
+      // left intact on this side so index.js's checker (normalizeExactOutput
+      // or tokenizeOutput, depending on problem.checker) is the single
       // transformation, applied identically to both sides of the compare.
       resolve({ verdict, stdout: trimTrailing(stdout), stderr: trimTrailing(stderr), memoryPeakKb, ...extra });
     };

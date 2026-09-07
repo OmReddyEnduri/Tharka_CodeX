@@ -38,6 +38,10 @@ contextBridge.exposeInMainWorld("contestAPI", {
   openFile: () => ipcRenderer.invoke("open-file"),
   saveFile: (args) => ipcRenderer.invoke("save-file", args),
 
+  getWorkspaceDir: () => ipcRenderer.invoke("get-workspace-dir"),
+  listWorkspaceFiles: () => ipcRenderer.invoke("list-workspace-files"),
+  openWorkspaceFile: (name) => ipcRenderer.invoke("open-workspace-file", name),
+
   syncNow: () => ipcRenderer.invoke("sync-now"),
   getPendingSubmissionsCount: () => ipcRenderer.invoke("get-pending-submissions-count"),
   getSyncState: () => ipcRenderer.invoke("get-sync-state"),

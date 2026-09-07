@@ -3,6 +3,12 @@
 // to the Electron client on sync, viewable offline afterward) - kept in one
 // place so the two never drift apart.
 function computeLeaderboard(contest, submissions) {
+  // Not every problem is worth the same - an admin can set any problem's
+  // `points` (default 100, same as when this was the only value that ever
+  // existed). Looked up per problem instead of a single hardcoded value for
+  // every problem in every contest.
+  const pointsByProblemId = new Map((contest.problems || []).map((p) => [p.id, p.points ?? 100]));
+
   // Defense in depth against already-stored late submissions (e.g. from
   // before the endTime check existed, or a spoofed client timestamp that
   // slipped through) - the leaderboard must never move once the contest
@@ -44,7 +50,7 @@ function computeLeaderboard(contest, submissions) {
       const previousAttempts = leaderboard[key].scores[sub.contestProblemId]?.attempts || 0;
       leaderboard[key].scores[sub.contestProblemId] = {
         verdict: sub.verdict,
-        score: sub.verdict === "Accepted" ? 100 : 0,
+        score: sub.verdict === "Accepted" ? pointsByProblemId.get(sub.contestProblemId) ?? 100 : 0,
         time: timeInMinutes,
         attempts: previousAttempts + 1,
       };
@@ -69,7 +75,7 @@ function computeLeaderboard(contest, submissions) {
   });
 
   return {
-    problems: (contest.problems || []).map((p) => ({ id: p.id, title: p.title })),
+    problems: (contest.problems || []).map((p) => ({ id: p.id, title: p.title, points: p.points ?? 100 })),
     leaderboard: sortedLeaderboard.map((entry, index) => ({
       rank: index + 1,
       studentName: entry.studentName,

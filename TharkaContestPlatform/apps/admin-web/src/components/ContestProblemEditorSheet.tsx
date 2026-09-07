@@ -29,6 +29,8 @@ const contestProblemSchema = z.object({
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
   timeLimit: z.coerce.number().min(100),
   memoryLimit: z.coerce.number().min(1),
+  points: z.coerce.number().min(1),
+  checker: z.enum(["token", "exact"]),
   inputFormat: z.string().optional(),
   outputFormat: z.string().optional(),
   constraints: z.string().optional(),
@@ -46,6 +48,8 @@ const defaultValues = (): ContestProblemFormData => ({
   difficulty: "Medium",
   timeLimit: 1000,
   memoryLimit: 256,
+  points: 100,
+  checker: "token",
   inputFormat: "Standard Input",
   outputFormat: "Standard Output",
   constraints: "",
@@ -142,7 +146,16 @@ export function ContestProblemEditorSheet({
 
   useEffect(() => {
     if (isOpen) {
-      form.reset(isEditMode && editingProblem ? (editingProblem as ContestProblemFormData) : defaultValues());
+      // A problem saved before the checker field existed has no `checker`
+      // in the fetched data - it's actually being graded as "token" too
+      // (see judge-cpp's run()'s default), so the form must show "Token"
+      // here rather than leaving the picker on whatever its first <option>
+      // happens to be.
+      form.reset(
+        isEditMode && editingProblem
+          ? { ...(editingProblem as ContestProblemFormData), checker: editingProblem.checker === "exact" ? "exact" : "token" }
+          : defaultValues()
+      );
       setActiveTab("details");
     }
   }, [isOpen, isEditMode, editingProblem]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -212,7 +225,7 @@ export function ContestProblemEditorSheet({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Difficulty</Label>
                   <select
@@ -225,6 +238,16 @@ export function ContestProblemEditorSheet({
                   </select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Points</Label>
+                  <Input type="number" {...form.register("points")} />
+                  {form.formState.errors.points && (
+                    <p className="text-red-500 text-xs">{form.formState.errors.points.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label>Time Limit (ms)</Label>
                   <Input type="number" {...form.register("timeLimit")} />
                 </div>
@@ -232,6 +255,22 @@ export function ContestProblemEditorSheet({
                   <Label>Memory Limit (MB)</Label>
                   <Input type="number" {...form.register("memoryLimit")} />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Output Checker</Label>
+                <select
+                  {...form.register("checker")}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                >
+                  <option value="token">Token</option>
+                  <option value="exact">Exact</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  {form.watch("checker") === "exact"
+                    ? "Line structure and meaningful spaces are preserved. Only harmless trailing whitespace and line-ending differences are ignored. Use for pattern-printing and formatting-sensitive problems."
+                    : "Whitespace between tokens and line breaks are ignored. Use for normal competitive-programming problems."}
+                </p>
               </div>
 
               <div className="space-y-2">

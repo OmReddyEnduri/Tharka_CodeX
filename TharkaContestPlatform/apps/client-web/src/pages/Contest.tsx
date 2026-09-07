@@ -144,6 +144,7 @@ export default function Contest() {
                       >
                         {problem.difficulty}
                       </Badge>
+                      <span className="text-xs text-muted-foreground">{problem.points ?? 100} pts</span>
                       <Button asChild>
                         <Link to={`/contest/${contestId}/problem/${problem.id}`}>Solve Problem</Link>
                       </Button>

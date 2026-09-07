@@ -24,10 +24,16 @@ const SERVER_URL_KEY = "contest_server_url";
 // the public git history for anyone to read without even running the app.
 const ADMIN_BYPASS_TOKEN = import.meta.env.VITE_ADMIN_BYPASS_TOKEN || "";
 
-// This app IS the admin, so the default assumes it's running on the server
-// machine itself.
+// This app IS the admin, and the server always runs on the same machine that
+// serves this page (see CLAUDE.md) - so default to whatever host the browser
+// actually loaded the page from, on port 3001, rather than a hardcoded
+// "localhost". A hardcoded localhost silently breaks every request when the
+// dashboard is opened from a *different* machine on the LAN (e.g.
+// http://192.168.1.101:5174 from another laptop instead of sitting at the
+// server itself) - "localhost" in that browser means the laptop, which has
+// nothing listening on :3001, so Add/Edit/Delete all fail.
 export function getServerUrl(): string {
-  return localStorage.getItem(SERVER_URL_KEY) || "http://localhost:3001";
+  return localStorage.getItem(SERVER_URL_KEY) || `${window.location.protocol}//${window.location.hostname}:3001`;
 }
 
 export function setServerUrl(url: string) {
