@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { TrophyIcon, FileCode, ListOrdered } from "lucide-react";
@@ -20,6 +20,19 @@ export default function Contest() {
       navigate(`/contest/${contestId}/join`, { replace: true });
     }
   }, [contestId, navigate]);
+
+  // `notStarted` below used to be computed once per render from Date.now(),
+  // so a student sitting on this page waiting for the contest to begin saw
+  // "hasn't started yet" indefinitely past the real start time - nothing
+  // ever triggered a re-render, even though ContestTimer's own countdown
+  // badge right next to it ticks every second (that state is internal to
+  // ContestTimer and never bubbles up here). Same ticking pattern, lifted
+  // to this page too, so the problem list actually unlocks on its own.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: contest, isLoading, isError, error } = useQuery<any>({
     queryKey: ["contest", contestId],
@@ -66,7 +79,7 @@ export default function Contest() {
     );
   }
 
-  const notStarted = new Date(contest.startTime).getTime() > Date.now();
+  const notStarted = new Date(contest.startTime).getTime() > now;
 
   return (
     <AppShell>

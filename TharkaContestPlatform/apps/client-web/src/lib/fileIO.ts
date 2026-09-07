@@ -81,11 +81,33 @@ export async function openCodeFile(): Promise<OpenedFile | null> {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ACCEPT_EXTENSIONS.join(",");
+    let settled = false;
+    const settle = (value: OpenedFile | null) => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("focus", onWindowFocus);
+      resolve(value);
+    };
     input.onchange = async () => {
       const f = input.files?.[0];
-      resolve(f ? { file: { name: f.name }, code: await f.text() } : null);
+      settle(f ? { file: { name: f.name }, code: await f.text() } : null);
     };
-    input.oncancel = () => resolve(null);
+    input.oncancel = () => settle(null);
+    // `cancel` isn't fired by every browser, which used to leave this
+    // promise pending forever if the student closed the dialog without
+    // picking a file. The window reliably regains focus the moment the
+    // native dialog closes either way, so use that as a fallback - but only
+    // resolve null from it if `input.files` is still empty by then (it's
+    // populated synchronously as soon as a file is chosen, even before
+    // onchange's own async body above finishes reading it), so a real
+    // selection is never raced out by this fallback.
+    const onWindowFocus = () => {
+      window.removeEventListener("focus", onWindowFocus);
+      setTimeout(() => {
+        if (!input.files || input.files.length === 0) settle(null);
+      }, 300);
+    };
+    window.addEventListener("focus", onWindowFocus);
     input.click();
   });
 }

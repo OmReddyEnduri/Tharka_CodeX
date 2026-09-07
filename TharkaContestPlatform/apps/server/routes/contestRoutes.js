@@ -8,46 +8,8 @@ const ContestSubmission = require("../models/ContestSubmission");
 const judge = require("judge-cpp");
 const { computeLeaderboard } = require("../lib/leaderboard");
 const { getJudgeSettings } = require("../lib/judgeSettings");
-
-// No auth in this build (see plan decision: identification, not authentication)
-// - this token is a UX gate only (lets the admin app preview a contest before
-// it starts, and see hidden-testcase I/O while a contest is live), not a real
-// security boundary; anyone who extracts this exact string from admin-web's
-// bundle and replays it gets the same access a browsing admin already has.
-// It's still a fixed, install-specific random value rather than a short
-// guessable one like the old "admin=1" (which was also this app's own
-// documented convention, and so was effectively public) - so a student can no
-// longer get the same access just by trying a well-known trick. Read from
-// .env (gitignored), NOT hardcoded here, because this repo is public - a
-// value committed to source would be readable by anyone on GitHub, which
-// defeats the whole point of it not being a guessable well-known string.
-// Must match admin-web's VITE_ADMIN_BYPASS_TOKEN (apps/admin-web/.env).
-const ADMIN_BYPASS_TOKEN = process.env.ADMIN_BYPASS_TOKEN;
-if (!ADMIN_BYPASS_TOKEN) {
-  console.warn("WARNING: ADMIN_BYPASS_TOKEN not set in .env - admin preview/early-access will not work.");
-}
-function isAdminRequest(req) {
-  if (!ADMIN_BYPASS_TOKEN) return false;
-  return req.query.admin === ADMIN_BYPASS_TOKEN || req.headers["x-contest-admin"] === ADMIN_BYPASS_TOKEN;
-}
-
-// Hidden test cases are the "answer key" - a non-admin fetch of a problem
-// while its contest is still running must not carry the raw input/
-// expectedOutput over the wire at all (a student can read the Network tab,
-// or just hit the URL directly), regardless of whether any UI renders it.
-// Mirrors the submit route's redaction, but for the problem-fetch routes.
-// Electron's local judge never hits these HTTP routes (it reads its own
-// locally-synced copy over IPC instead - see client-electron/main.js).
-function stripHiddenTestCaseIO(problem, contest, req) {
-  if (isAdminRequest(req)) return problem;
-  if (contest.settings?.hideHiddenTestCasesWhileLive === false) return problem;
-  const contestEnded = contest.endTime && new Date(contest.endTime) <= new Date();
-  if (contestEnded) return problem;
-
-  const obj = typeof problem.toObject === "function" ? problem.toObject() : { ...problem };
-  obj.hiddenTestCases = (obj.hiddenTestCases || []).map(() => ({}));
-  return obj;
-}
+const { isAdminRequest, requireAdmin } = require("../lib/adminAuth");
+const { stripHiddenTestCaseIO } = require("../lib/hiddenTestCases");
 
 // Used by the bulk importer when a problem entry omits `id` - single-add
 // (the admin form) always sends an id because the UI generates one
@@ -215,7 +177,7 @@ router.post("/:contestId/join", async (req, res) => {
 
 // @route   POST /api/contests
 // @desc    Create a new contest
-router.post("/", async (req, res) => {
+router.post("/", requireAdmin, async (req, res) => {
   try {
     const { name, startTime, endTime, description, problemIds, settings } = req.body;
     let { id } = req.body;
@@ -247,7 +209,7 @@ router.post("/", async (req, res) => {
 // optional: a contest can be created with zero problems, a problem with zero
 // testcases. A bad/duplicate row is skipped and reported rather than failing
 // the whole batch, so one typo doesn't lose an otherwise-good import.
-router.post("/bulk", async (req, res) => {
+router.post("/bulk", requireAdmin, async (req, res) => {
   try {
     const { contests } = req.body;
     if (!Array.isArray(contests)) {
@@ -290,7 +252,7 @@ router.post("/bulk", async (req, res) => {
 });
 
 // @route   PUT /api/contests/:contestId
-router.put("/:contestId", async (req, res) => {
+router.put("/:contestId", requireAdmin, async (req, res) => {
   try {
     const { name, startTime, endTime, description, problemIds, settings } = req.body;
 
@@ -317,7 +279,7 @@ router.put("/:contestId", async (req, res) => {
 // number). Disqualifying does not delete their submissions - the leaderboard
 // route just flags and sorts them last instead of ranking their score, so
 // this stays reversible if the admin flags the wrong student.
-router.put("/:contestId/disqualify", async (req, res) => {
+router.put("/:contestId/disqualify", requireAdmin, async (req, res) => {
   try {
     const { studentRollNumber, studentName, disqualified, reason } = req.body;
     if (!studentRollNumber) return res.status(400).json({ msg: "studentRollNumber is required" });
@@ -347,7 +309,7 @@ router.put("/:contestId/disqualify", async (req, res) => {
 // :contestId param. A missing/bad id is skipped and reported rather than
 // failing the whole batch, same skip-and-report pattern as the other bulk
 // routes in this file.
-router.delete("/bulk", async (req, res) => {
+router.delete("/bulk", requireAdmin, async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -376,7 +338,7 @@ router.delete("/bulk", async (req, res) => {
 });
 
 // @route   DELETE /api/contests/:contestId
-router.delete("/:contestId", async (req, res) => {
+router.delete("/:contestId", requireAdmin, async (req, res) => {
   try {
     const contest = await Contest.findById(req.params.contestId);
     if (!contest) return res.status(404).json({ msg: "Contest not found" });
@@ -399,7 +361,7 @@ router.delete("/:contestId", async (req, res) => {
 // attached to more than one contest - only this contest's references to it
 // are pulled). Registered before .../problems/:problemId so "bulk" isn't
 // swallowed as a :problemId param.
-router.delete("/:contestId/problems/bulk", async (req, res) => {
+router.delete("/:contestId/problems/bulk", requireAdmin, async (req, res) => {
   try {
     const { problemIds } = req.body;
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
@@ -430,7 +392,7 @@ router.delete("/:contestId/problems/bulk", async (req, res) => {
 });
 
 // @route   DELETE /api/contests/:contestId/problems/:problemId
-router.delete("/:contestId/problems/:problemId", async (req, res) => {
+router.delete("/:contestId/problems/:problemId", requireAdmin, async (req, res) => {
   try {
     const contest = await Contest.findById(req.params.contestId);
     if (!contest) return res.status(404).json({ msg: "Contest not found" });
@@ -451,7 +413,7 @@ router.delete("/:contestId/problems/:problemId", async (req, res) => {
 
 // @route   POST /api/contests/:contestId/problems
 // @desc    Add a problem to a contest (or create a new problem)
-router.post("/:contestId/problems", async (req, res) => {
+router.post("/:contestId/problems", requireAdmin, async (req, res) => {
   try {
     const {
       id, title, description, category, difficulty, constraints,
@@ -491,7 +453,7 @@ router.post("/:contestId/problems", async (req, res) => {
 // @desc    Add multiple problems to one existing contest in one shot, each
 // optionally carrying its own sampleTestCases/hiddenTestCases. Same
 // skip-and-report-per-row behavior as POST /bulk.
-router.post("/:contestId/problems/bulk", async (req, res) => {
+router.post("/:contestId/problems/bulk", requireAdmin, async (req, res) => {
   try {
     const { problems } = req.body;
     if (!Array.isArray(problems)) {
@@ -515,7 +477,7 @@ router.post("/:contestId/problems/bulk", async (req, res) => {
 });
 
 // @route   PUT /api/contests/:contestId/problems/:problemId
-router.put("/:contestId/problems/:problemId", async (req, res) => {
+router.put("/:contestId/problems/:problemId", requireAdmin, async (req, res) => {
   try {
     const {
       title, description, category, difficulty, constraints,
@@ -650,8 +612,19 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
 
 // @route   POST /api/contests/:contestId/submissions/sync
 // @desc    Client push-up of locally-judged submissions (from the Electron
-// client's local judge). Upserts by localId so retries are safe; the server
-// trusts the client-computed verdict rather than re-judging.
+// client's local judge). Upserts by localId so retries are safe.
+//
+// This route is reachable by every student's laptop with no token (there is
+// no per-device auth in this build - see the no-auth decision), so it can
+// NEVER trust a client-reported verdict/testCasesPassed the way it used to:
+// that let anyone with devtools open POST a fabricated "Accepted" for any
+// problem with no code ever compiled. Instead this now re-judges every
+// synced submission server-side against the real hidden test cases, exactly
+// like the direct /submit route does - Electron's own local verdict is only
+// ever a fast preview shown to the student while offline; this is the one
+// that actually counts for the leaderboard. Yes, this means a submission
+// gets compiled twice (once locally, once on sync) - that's the price of the
+// server being the only thing that can authoritatively say "Accepted".
 router.post("/:contestId/submissions/sync", async (req, res) => {
   try {
     const { contestId } = req.params;
@@ -663,15 +636,17 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
     const contest = await Contest.findById(contestId);
     if (!contest) return res.status(404).json({ msg: "Contest not found" });
 
+    const judgeSettings = await getJudgeSettings();
     const results = [];
     for (const sub of submissions) {
-      // Trust the client's local judging and save it even if its
-      // submittedAt is after the contest ended (a laptop can push its local
-      // queue well after the contest window closes, or a student keeps
-      // practicing post-contest) - this is safe because the leaderboard
-      // route filters by `submittedAt <= contest.endTime` independently, so
-      // a late submission is recorded for the record but can never move the
-      // leaderboard.
+      // Trust that this submission genuinely happened and save it even if
+      // its submittedAt is after the contest ended (a laptop can push its
+      // local queue well after the contest window closes, or a student
+      // keeps practicing post-contest) - this is safe because the
+      // leaderboard route filters by `submittedAt <= contest.endTime`
+      // independently, so a late submission is recorded for the record but
+      // can never move the leaderboard. What's re-judged below is only the
+      // VERDICT of that submission, never whether it's allowed to exist.
       const alreadyAccepted = await ContestSubmission.findOne({
         contest: contest._id,
         contestProblemId: sub.contestProblemId,
@@ -684,6 +659,29 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
         continue;
       }
 
+      const problem = await ContestProblem.findOne({ id: sub.contestProblemId });
+      let verdict, testCasesPassed, totalTestCases, timeTaken, errorLog;
+      if (!problem || typeof sub.code !== "string" || !sub.code.trim()) {
+        verdict = "Error";
+        testCasesPassed = 0;
+        totalTestCases = 0;
+        timeTaken = undefined;
+        errorLog = !problem ? "Problem not found" : "No code submitted";
+      } else {
+        const judged = await judge.run({
+          sourceCode: sub.code,
+          testCases: problem.hiddenTestCases,
+          timeLimit: problem.timeLimit,
+          memoryLimit: problem.memoryLimit,
+          judgeSettings,
+        });
+        verdict = judged.status;
+        testCasesPassed = judged.testCasesPassed ?? 0;
+        totalTestCases = judged.totalTestCases ?? (problem.hiddenTestCases || []).length;
+        timeTaken = judged.timeTaken;
+        errorLog = judged.errorLog;
+      }
+
       const saved = await ContestSubmission.findOneAndUpdate(
         { localId: sub.localId },
         {
@@ -693,17 +691,17 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
           studentRollNumber: sub.studentRollNumber,
           language: sub.language || "cpp",
           code: sub.code,
-          verdict: sub.verdict,
-          testCasesPassed: sub.testCasesPassed,
-          totalTestCases: sub.totalTestCases,
-          timeTaken: sub.timeTaken,
-          errorLog: sub.errorLog,
+          verdict,
+          testCasesPassed,
+          totalTestCases,
+          timeTaken,
+          errorLog,
           submittedAt: sub.submittedAt,
           source: "client-synced",
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
-      results.push({ localId: sub.localId, savedId: saved._id });
+      results.push({ localId: sub.localId, savedId: saved._id, verdict });
     }
 
     res.json({ synced: results.length, results });

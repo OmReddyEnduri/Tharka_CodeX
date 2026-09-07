@@ -20,6 +20,15 @@ if (process.platform === "win32") {
 
 const DEFAULT_SERVER_URL = "http://192.168.1.101:3001";
 
+// Must exactly match the server's SYNC_DEVICE_TOKEN (apps/server/.env) - see
+// apps/server/lib/syncAuth.js for why GET /api/sync/full needs this. Not a
+// secret worth protecting much harder than this: it's baked into every
+// installed copy of this app the same way DEFAULT_SERVER_URL is, so it only
+// ever raises the bar from "anyone who knows the URL" to "anyone who
+// extracts this string from the packaged app" - same tradeoff as the
+// server's own admin token.
+const SYNC_DEVICE_TOKEN = "388f9ae71491781926fc53ae7e6b3786321b6d6875645b40";
+
 let mainWindow = null;
 let socket = null;
 
@@ -89,6 +98,12 @@ async function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // Stripping the app menu already removes the usual DevTools shortcuts,
+      // but this closes the question outright rather than relying on that.
+      // Matters because save-file's IPC handler (below) trusts whatever
+      // path it's handed on the assumption that only this app itself ever
+      // supplies one - true only as long as DevTools stays unreachable.
+      devTools: false,
     },
   });
 
@@ -123,7 +138,9 @@ function broadcastSyncStatus(status) {
 }
 
 async function pullFullSync() {
-  const res = await fetch(`${getServerUrl()}/api/sync/full`);
+  const res = await fetch(`${getServerUrl()}/api/sync/full`, {
+    headers: { "x-contest-sync-token": SYNC_DEVICE_TOKEN },
+  });
   if (!res.ok) throw new Error(`sync/full failed: ${res.status}`);
   const snapshot = await res.json();
   db.replaceContestData(snapshot);
@@ -564,4 +581,14 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+// The interactive terminal's child process isn't spawned detached, but that
+// doesn't guarantee it dies with this app on Windows - closing the window
+// mid-run used to leave a compiled student program running in the
+// background on the shared lab machine for up to its own session-timeout
+// ceiling (5 minutes by default).
+app.on("before-quit", () => {
+  interactiveSession?.stop();
+  interactiveSession = null;
 });

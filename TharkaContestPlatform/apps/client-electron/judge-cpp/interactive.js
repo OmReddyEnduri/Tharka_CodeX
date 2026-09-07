@@ -25,6 +25,15 @@ class InteractiveSession {
     this._sessionTimer = null;
     this._memoryTimer = null;
     this._settled = false;
+    // Set by stop() if it's called while still compiling (this.child is
+    // still null then, so _kill()'s `if (this.child)` is a no-op) - without
+    // this, a caller that starts a new session before the old one finishes
+    // compiling (re-clicking Run quickly) would find its "stopped" old
+    // session spawn anyway once compile() resolves, orphaned but still
+    // wired to the same onStdout/onStderr/onExit callbacks - interleaving
+    // two unrelated programs' output into the same terminal, unstoppable
+    // from the UI until it hits its own session timeout.
+    this._stopped = false;
   }
 
   // `settings` (all optional, admin-configurable via JudgeSettings) lets the
@@ -67,7 +76,24 @@ class InteractiveSession {
       return;
     }
 
+    // stop() was called while we were still compiling - don't spawn a
+    // process nothing references anymore.
+    if (this._stopped) {
+      this._cleanup();
+      return;
+    }
+
     this.child = spawn(execPath, [], { windowsHide: true });
+
+    // A program that exits while the student is mid-keystroke (or right
+    // after it stops reading input) closes its stdin pipe out from under
+    // write() below - even with the writable check there, spawn/exit and a
+    // renderer-driven write are two independent event sources, so the check
+    // can pass a moment before the pipe actually closes. Writing to a closed
+    // pipe raises an EPIPE 'error'; with no listener that's an uncaught
+    // exception that crashes the whole Electron/server process, not just
+    // this one session.
+    this.child.stdin.on('error', () => {});
 
     this._sessionTimer = setTimeout(() => {
       settle({ status: 'Time Limit Exceeded', message: `Session exceeded the max run time (${maxSessionMs / 1000}s).` });
@@ -82,8 +108,16 @@ class InteractiveSession {
           settle({ status: 'Memory Limit Exceeded' });
           this._kill();
         }
-      } catch {
-        // process already exited - the 'close' handler below settles it.
+      } catch (err) {
+        // Usually the process already exited - the 'close' handler below
+        // settles it. But if Node still thinks it's running and pidusage
+        // still failed, that's worth knowing about: most likely pidusage's
+        // Windows backend (wmic.exe) itself is broken/missing, which would
+        // otherwise silently disable memory-limit enforcement with zero
+        // visibility.
+        if (this.child && this.child.exitCode === null && !this.child.killed) {
+          console.warn(`[judge-cpp] pidusage failed for still-running pid ${this.child.pid}:`, err.message);
+        }
       }
     }, MEMORY_POLL_MS);
 
@@ -131,12 +165,20 @@ class InteractiveSession {
   }
 
   stop() {
+    this._stopped = true;
     this._kill();
     this._cleanup();
   }
 
   _cleanup() {
-    if (this.workDir) fs.rm(this.workDir, { recursive: true, force: true }, () => {});
+    // Windows can briefly hold a file lock on a just-SIGKILL'd process's own
+    // exe, which can fail this delete - previously silent, so a workDir
+    // leak from that would accumulate unnoticed over a long contest.
+    if (this.workDir) {
+      fs.rm(this.workDir, { recursive: true, force: true }, (err) => {
+        if (err) console.warn(`[judge-cpp] failed to clean up ${this.workDir}:`, err.message);
+      });
+    }
     this.child = null;
   }
 }

@@ -15,8 +15,28 @@ const judgeSettingsRoutes = require("./routes/judgeSettingsRoutes");
 const { initSyncSocket } = require("./sockets/syncSocket");
 const { initCompilerSocket } = require("./sockets/compilerSocket");
 
+// A crash here takes down judging for the entire lab at once (one server,
+// dozens of laptops), and node-windows only restarts the *process* - every
+// in-flight request still gets dropped first. Node's default behavior for
+// an unhandled rejection is to crash exactly like an uncaught exception
+// (`--unhandled-rejections=throw`), so both need the same safety net: log
+// loudly and exit so node-windows's configured restart-with-backoff (see
+// install-service.js) brings it back, instead of limping along in a
+// possibly-corrupted state or (worse) silently swallowing the error.
+process.on("uncaughtException", (err) => {
+  console.error("FATAL uncaughtException - exiting so the service can restart:", err);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("FATAL unhandledRejection - exiting so the service can restart:", reason);
+  process.exit(1);
+});
+
 const app = express();
-app.use(express.json());
+// Default express.json() caps requests at 100kb - too small for a bulk
+// contest/testcase import or an Electron client syncing a backlog of queued
+// submissions (each carrying full C++ source) after being offline a while.
+app.use(express.json({ limit: "10mb" }));
 // Trusted LAN environment (lab laptops on one network, no auth) - CORS is
 // intentionally wide open rather than locked to one origin, since the admin
 // app, client-web, and the Electron client's embedded browser all connect

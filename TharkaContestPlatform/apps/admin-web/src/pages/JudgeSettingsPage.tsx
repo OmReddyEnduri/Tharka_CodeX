@@ -23,6 +23,15 @@ export default function JudgeSettingsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["judge-settings"],
     queryFn: () => apiClient.getJudgeSettings(),
+    // React Query's default refetchOnWindowFocus would otherwise refetch
+    // (and hand the effect below a new object reference, even when nothing
+    // actually changed server-side) the moment the admin alt-tabs and comes
+    // back mid-edit - silently wiping whatever they'd typed with the
+    // server's last-saved values, no error shown. This data only ever
+    // changes via this page's own save (which updates the cache directly in
+    // saveMutation's onSuccess below), so there's nothing else to refetch
+    // for.
+    staleTime: Infinity,
   });
 
   useEffect(() => {
@@ -71,7 +80,29 @@ export default function JudgeSettingsPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={form.handleSubmit((values) => saveMutation.mutate(values))} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit((values) => {
+            const keywordCount = values.blockedKeywords
+              .split(",")
+              .map((k) => k.trim())
+              .filter(Boolean).length;
+            const defaultCount = data?.defaultBlockedKeywords?.length ?? 0;
+            // One accidental select-all-delete in that textarea used to
+            // disable the entire static-check defense for every contest
+            // platform-wide, instantly, with only a generic "saved" toast -
+            // no warning that anything unusual just happened.
+            if (keywordCount === 0 || (defaultCount > 0 && keywordCount < defaultCount / 2)) {
+              const proceed = window.confirm(
+                keywordCount === 0
+                  ? "The blocked-keywords list is empty. This disables the entire static-check defense for every contest, immediately. Save anyway?"
+                  : `Only ${keywordCount} keyword(s) left (the default list has ${defaultCount}). This weakens the static-check defense for every contest, immediately. Save anyway?`
+              );
+              if (!proceed) return;
+            }
+            saveMutation.mutate(values);
+          })}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="blockedKeywords">Blocked keywords</Label>
             <Textarea

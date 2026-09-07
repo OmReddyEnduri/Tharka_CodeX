@@ -1,28 +1,71 @@
 const fs = require('fs');
 const path = require('path');
-const util = require('util');
-const execPromise = util.promisify(require('child_process').exec);
+const { spawn } = require('child_process');
+const treeKill = require('tree-kill');
 
 const DEFAULT_TIMEOUT_MS = 10000;
 
 // Compiles a C++ source file in workDir. Returns { execPath } on success,
 // or throws an Error carrying `.stderr` (compiler diagnostics) on failure.
 // `timeoutMs` is admin-configurable (see JudgeSettings) - defaults to 10s.
-async function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS) {
-  const sourcePath = path.join(workDir, 'sub.cpp');
-  const execPath = path.join(workDir, process.platform === 'win32' ? 'sub.exe' : 'sub');
+//
+// Uses spawn + tree-kill, not exec()'s built-in {timeout} - exec's timeout
+// only kills the wrapping shell it runs the command through, not the actual
+// g++/cc1plus/as/ld process tree underneath it (documented Node behavior).
+// A hung compile (a runaway template-recursion pattern is a common,
+// often-accidental way to trigger this) used to leave the real compiler
+// process running at full CPU forever, invisible to the judge, with no
+// verdict ever returned. spawn() with an argv array also sidesteps shell
+// string-building entirely, same pattern already used in execute.js.
+function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS) {
+  return new Promise((resolve, reject) => {
+    const sourcePath = path.join(workDir, 'sub.cpp');
+    const execPath = path.join(workDir, process.platform === 'win32' ? 'sub.exe' : 'sub');
 
-  fs.writeFileSync(sourcePath, sourceCode);
+    fs.writeFileSync(sourcePath, sourceCode);
 
-  try {
-    await execPromise(`g++ "${sourcePath}" -O2 -o "${execPath}"`, { timeout: timeoutMs });
-  } catch (err) {
-    const compileError = new Error('Compilation Error');
-    compileError.stderr = err.stderr || err.message;
-    throw compileError;
-  }
+    const child = spawn('g++', [sourcePath, '-O2', '-o', execPath], { windowsHide: true });
 
-  return { execPath };
+    let stderr = '';
+    let settled = false;
+
+    const fail = (message) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutTimer);
+      const compileError = new Error('Compilation Error');
+      compileError.stderr = message;
+      reject(compileError);
+    };
+
+    // Settle synchronously the instant the timeout fires, then kill as
+    // best-effort cleanup - same settled-before-kill pattern as execute.js,
+    // so a 'close' event that arrives after the kill can't also try to
+    // resolve/reject.
+    const timeoutTimer = setTimeout(() => {
+      fail(`Compilation timed out after ${timeoutMs}ms`);
+      treeKill(child.pid, 'SIGKILL');
+    }, timeoutMs);
+
+    child.stderr.on('data', (d) => {
+      stderr += d.toString();
+    });
+
+    child.on('error', (err) => fail(err.message));
+
+    child.on('close', (code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutTimer);
+      if (code === 0) {
+        resolve({ execPath });
+      } else {
+        const compileError = new Error('Compilation Error');
+        compileError.stderr = stderr || `g++ exited with code ${code}`;
+        reject(compileError);
+      }
+    });
+  });
 }
 
 module.exports = { compile };

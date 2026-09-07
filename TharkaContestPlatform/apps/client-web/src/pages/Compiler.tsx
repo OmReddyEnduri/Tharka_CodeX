@@ -97,6 +97,19 @@ export default function Compiler() {
     return () => clearTimeout(id);
   }, [code]);
 
+  // The debounce above cancels its pending save on every keystroke's own
+  // cleanup, by design - but that also cancelled it on navigation, so typing
+  // a final line and immediately clicking Home within 500ms could drop that
+  // last edit. Separate effect with empty deps so its cleanup fires exactly
+  // once, on actual unmount, reading the latest code from a ref instead of
+  // depending on it directly (which would just re-create the same bug the
+  // debounce effect above already has by design).
+  const latestCodeRef = useRef(code);
+  latestCodeRef.current = code;
+  useEffect(() => {
+    return () => saveCompilerDraft(latestCodeRef.current);
+  }, []);
+
   // --- Console tab: live interactive terminal ---
   const socketRef = useRef<Socket | null>(null);
   const [terminal, setTerminal] = useState<TerminalLine[]>([]);
@@ -274,9 +287,22 @@ export default function Compiler() {
   //
   // Suspended while the settings dialog is open, so Ctrl+S in the template
   // editor in there doesn't save the main buffer to disk behind your back.
+  //
+  // Latest running/handleRun/activeTab/terminalRunning/handleSave/handleOpen
+  // are read from a ref instead of being effect dependencies - handleRun and
+  // handleSave get a new identity on every render (handleRun is a fresh
+  // ternary every render; handleSave is a useCallback keyed on `code`, which
+  // changes every keystroke), so depending on them directly here meant this
+  // global window listener was torn down and re-added on every render,
+  // including every character typed in the editor - same bug already fixed
+  // in ContestProblem.tsx.
+  const shortcutStateRef = useRef({ running, handleRun, activeTab, terminalRunning, handleSave, handleOpen, stopInteractive });
+  shortcutStateRef.current = { running, handleRun, activeTab, terminalRunning, handleSave, handleOpen, stopInteractive };
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!e.ctrlKey || isSettingsOpen) return;
+      const { running, handleRun, activeTab, terminalRunning, handleSave, handleOpen, stopInteractive } = shortcutStateRef.current;
       const key = e.key.toLowerCase();
       if (key === "b") {
         e.preventDefault();
@@ -294,7 +320,7 @@ export default function Compiler() {
     };
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [running, handleRun, activeTab, terminalRunning, handleSave, handleOpen, isSettingsOpen]);
+  }, [isSettingsOpen]);
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">

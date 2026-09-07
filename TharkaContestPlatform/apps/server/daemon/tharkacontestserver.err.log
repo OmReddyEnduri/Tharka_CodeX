@@ -1,2 +1,3 @@
 Cast to ObjectId failed for value "91cf7f73" (type string) at path "_id" for model "Contest"
 Cast to ObjectId failed for value "91cf7f73" (type string) at path "_id" for model "Contest"
+WARNING: SYNC_DEVICE_TOKEN not set in .env - GET /api/sync/full will be unreachable by Electron clients.

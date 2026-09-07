@@ -45,8 +45,19 @@ function load() {
 }
 
 function persist() {
-  fs.mkdirSync(path.dirname(filePath()), { recursive: true });
-  fs.writeFileSync(filePath(), JSON.stringify(cache), "utf8");
+  const target = filePath();
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  // Write to a temp file then rename over the target, rather than
+  // overwriting it in place. A crash or power loss mid-write (a real risk
+  // on a lab laptop) used to leave contest-store.json truncated/invalid;
+  // load()'s catch-all would then silently fall back to an empty default
+  // store, wiping the local contest mirror, sync version, and any queued
+  // offline submissions with nothing shown to the student. A rename is
+  // atomic on the same filesystem, so the file on disk is always either the
+  // old complete version or the new complete version, never a partial one.
+  const tmpPath = `${target}.tmp-${process.pid}`;
+  fs.writeFileSync(tmpPath, JSON.stringify(cache), "utf8");
+  fs.renameSync(tmpPath, target);
 }
 
 function getSetting(key, fallback = null) {
@@ -69,11 +80,26 @@ function getLocalVersion() {
 // `snapshot.contests` is the populated array from GET /api/sync/full - each
 // contest carries its own `problems` array, stored inline.
 function replaceContestData(snapshot) {
-  const store = load();
-  store.contests = {};
-  for (const contest of snapshot.contests) {
-    store.contests[contest._id] = contest;
+  // Validate before touching the live store. This used to do
+  // `store.contests = {}` and then loop over `snapshot.contests` to refill
+  // it - if the snapshot was malformed (missing/non-array `contests`, or
+  // anything else in the loop threw), the in-memory store was already wiped
+  // but persist() was never reached. The on-disk file stayed fine, but the
+  // running app then showed zero contests for the rest of its session,
+  // reported by every caller as generic "offline" with no real explanation.
+  // Building the new map in a local variable first means a bad snapshot
+  // throws before anything live is touched.
+  if (!snapshot || !Array.isArray(snapshot.contests)) {
+    throw new Error("replaceContestData: snapshot.contests must be an array");
   }
+
+  const contests = {};
+  for (const contest of snapshot.contests) {
+    contests[contest._id] = contest;
+  }
+
+  const store = load();
+  store.contests = contests;
   store.syncState = { version: snapshot.version, lastSyncedAt: new Date().toISOString() };
   // Judge engine config (blocklist, compile timeout, output cap, interactive
   // session cap - see server's models/JudgeSettings.js) rides along in the

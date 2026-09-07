@@ -21,6 +21,12 @@ const DEFAULT_BLOCKED_KEYWORDS = [
 // ordinary words a legitimate submission would ever contain.
 const BLOCKED_SUBSTRINGS = [
   'WinExec', 'ShellExecute', 'CreateProcess', 'DeleteFile', 'RemoveDirectory',
+  // Resolving a blocked WinAPI/libc function at runtime instead of calling
+  // it directly (or declaring its prototype by hand instead of including
+  // its header) never puts the function's own name where an include/keyword
+  // check would see it "in context" - but it still has to name the resolver
+  // itself, so blocking these closes that specific gap.
+  'LoadLibrary', 'GetProcAddress', 'dlopen', 'dlsym',
 ];
 const BLOCKED_INCLUDES = [
   '<filesystem>', '<unistd.h>', '<curl/curl.h>', '<sys/socket.h>', '<netdb.h>',
@@ -37,7 +43,11 @@ function staticCheck(code, blockedKeywords) {
     : DEFAULT_BLOCKED_KEYWORDS;
   const foundKeyword = keywords.find((kw) => new RegExp(`\\b${escapeRegex(kw)}\\b`).test(code));
   const foundSubstring = BLOCKED_SUBSTRINGS.find((s) => code.includes(s));
-  const foundInclude = BLOCKED_INCLUDES.find((inc) => code.includes(inc));
+  // Case-insensitive: MinGW's header lookup is case-insensitive, so
+  // `#include <Windows.h>` compiles identically to `<windows.h>` but used to
+  // sail straight past this check.
+  const lowerCode = code.toLowerCase();
+  const foundInclude = BLOCKED_INCLUDES.find((inc) => lowerCode.includes(inc.toLowerCase()));
 
   if (foundKeyword || foundSubstring || foundInclude) {
     return {

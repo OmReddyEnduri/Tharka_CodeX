@@ -2,7 +2,12 @@ const { spawn } = require('child_process');
 const treeKill = require('tree-kill');
 const pidusage = require('pidusage');
 
-const MEMORY_POLL_INTERVAL_MS = 50;
+// pidusage's Windows backend shells out to wmic.exe per call, which
+// routinely takes longer than 50ms in practice - at that interval,
+// overlapping wmic subprocesses stack up per judged run (worse under a
+// submission rush). 500ms is still frequent enough to catch a runaway
+// allocation well before it matters, and matches interactive.js's interval.
+const MEMORY_POLL_INTERVAL_MS = 500;
 const DEFAULT_MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB default - well beyond any legitimate judge-problem output; guards a print-flood loop
 
 // Strips trailing whitespace/newlines only. Keeps leading whitespace, which
@@ -62,11 +67,30 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
           finish('Memory Limit Exceeded');
           treeKill(child.pid, 'SIGKILL');
         }
-      } catch {
-        // process already exited between the interval firing and pidusage
-        // reading it - nothing to do, the 'close' handler will settle this.
+      } catch (err) {
+        // The common case is the process already exited between the
+        // interval firing and pidusage reading it - nothing to do, the
+        // 'close' handler will settle this. But if Node still thinks the
+        // child is running (no exit code yet) and pidusage still failed,
+        // that's a different, worth-knowing-about failure - most likely
+        // pidusage's Windows backend (wmic.exe) itself is broken/missing,
+        // which would otherwise silently disable memory-limit enforcement
+        // entirely with zero visibility.
+        if (child.exitCode === null && !child.killed) {
+          console.warn(`[judge-cpp] pidusage failed for still-running pid ${child.pid}:`, err.message);
+        }
       }
     }, MEMORY_POLL_INTERVAL_MS);
+
+    // A program that exits before reading its input (or exits instantly,
+    // e.g. `int main(){}`) closes its stdin pipe out from under us - writing
+    // to it then raises an EPIPE 'error' on the stream. With no listener,
+    // that's an uncaught exception that crashes the whole judge process
+    // (there's no domain-wide safety net for this specific stream). The
+    // 'close' handler below already settles the verdict correctly either
+    // way, so this listener only needs to stop the crash, not report
+    // anything itself.
+    child.stdin.on('error', () => {});
 
     let inputToWrite = input || '';
     if (!inputToWrite.endsWith('\n')) inputToWrite += '\n';

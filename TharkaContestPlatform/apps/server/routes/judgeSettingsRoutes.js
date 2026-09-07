@@ -5,11 +5,17 @@ const SyncState = require("../models/SyncState");
 const { DEFAULT_BLOCKED_KEYWORDS } = require("judge-cpp/staticCheck");
 const { getJudgeSettings } = require("../lib/judgeSettings");
 const { broadcastSync } = require("../sockets/syncSocket");
+const { requireAdmin } = require("../lib/adminAuth");
 
 // @route   GET /api/judge-settings
 router.get("/", async (req, res) => {
-  const settings = await getJudgeSettings();
-  res.json({ ...settings.toObject(), defaultBlockedKeywords: DEFAULT_BLOCKED_KEYWORDS });
+  try {
+    const settings = await getJudgeSettings();
+    res.json({ ...settings.toObject(), defaultBlockedKeywords: DEFAULT_BLOCKED_KEYWORDS });
+  } catch (error) {
+    console.error("Get judge settings error:", error);
+    res.status(500).json({ msg: "Server Error" });
+  }
 });
 
 // @route   PUT /api/judge-settings
@@ -18,7 +24,7 @@ router.get("/", async (req, res) => {
 // the shared sync version so every connected Electron client (whose local
 // judge reads these same settings out of its own synced copy) picks up the
 // change immediately, exactly like an admin-triggered contest sync.
-router.put("/", async (req, res) => {
+router.put("/", requireAdmin, async (req, res) => {
   try {
     const { blockedKeywords, compileTimeoutMs, maxOutputBytes, interactiveSessionMaxMs } = req.body;
     const settings = await getJudgeSettings();

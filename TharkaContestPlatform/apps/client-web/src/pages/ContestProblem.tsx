@@ -145,6 +145,26 @@ const ContestProblem = () => {
     return () => clearTimeout(id);
   }, [code, contestId, problemId, identity]);
 
+  // The debounce above cancels its pending save on every keystroke's own
+  // cleanup, by design - but that also cancelled it on navigation, so typing
+  // a final line and immediately clicking away (Back to Contest, Home)
+  // within 500ms could drop that last edit entirely. This is a *separate*
+  // effect with empty deps so its cleanup fires exactly once, on actual
+  // unmount - it reads the latest values from a ref (kept current every
+  // render below) rather than depending on them directly, which is what
+  // keeps it from re-running on every keystroke like the debounce effect
+  // above already does.
+  const latestDraftRef = useRef({ contestId, problemId, rollNumber: identity?.rollNumber, code });
+  latestDraftRef.current = { contestId, problemId, rollNumber: identity?.rollNumber, code };
+  useEffect(() => {
+    return () => {
+      const draft = latestDraftRef.current;
+      if (draft.contestId && draft.problemId && draft.rollNumber && restoredForRef.current === `${draft.contestId}:${draft.problemId}`) {
+        saveDraft(draft.contestId, draft.problemId, draft.rollNumber, draft.code);
+      }
+    };
+  }, []);
+
   const handleResetCode = () => {
     if (!window.confirm("Discard your code for this problem and start again from your template?")) return;
     if (contestId && problemId && identity) clearDraft(contestId, problemId, identity.rollNumber);

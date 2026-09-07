@@ -14,8 +14,12 @@ const contestProblemSchema = new mongoose.Schema({
   constraints: { type: String, required: false },
   inputFormat: { type: String, default: "Standard Input" },
   outputFormat: { type: String, default: "Standard Output" },
-  timeLimit: { type: Number, required: true, default: 1000 },
-  memoryLimit: { type: Number, required: true, default: 256 },
+  // A floor, not just "required": 0 (or a typo'd negative number) would
+  // instant-TLE/MLE every correct submission to this problem for the rest
+  // of the contest, with no way for an admin to notice until a student
+  // reports it.
+  timeLimit: { type: Number, required: true, default: 1000, min: 100 },
+  memoryLimit: { type: Number, required: true, default: 256, min: 16 },
   sampleTestCases: [testCaseSchema],
   hiddenTestCases: [testCaseSchema],
 }, { timestamps: true });

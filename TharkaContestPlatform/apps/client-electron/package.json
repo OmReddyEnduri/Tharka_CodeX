@@ -7,6 +7,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "prebuild": "node ../../scripts/check-judge-cpp-drift.js",
     "build": "electron-builder"
   },
   "dependencies": {

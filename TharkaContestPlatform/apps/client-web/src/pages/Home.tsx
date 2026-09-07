@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { TrophyIcon, Search } from "lucide-react";
@@ -9,8 +9,7 @@ import { getContests } from "@/lib/apiClient";
 
 type ContestStatus = "live" | "upcoming" | "ended";
 
-function contestStatus(startTime: string, endTime: string): ContestStatus {
-  const now = Date.now();
+function contestStatus(startTime: string, endTime: string, now: number): ContestStatus {
   const start = new Date(startTime).getTime();
   const end = new Date(endTime).getTime();
   if (now < start) return "upcoming";
@@ -57,6 +56,17 @@ function ContestSection({ title, contests }: { title: string; contests: any[] })
 export default function Home() {
   const [search, setSearch] = useState("");
 
+  // Without a ticking clock here, a contest sitting in "Upcoming" never
+  // moves itself to "Live" (or "Live" to "Previous") while this page is
+  // left open past that moment - every status check below used to be a
+  // one-shot Date.now() snapshot from whenever the component last rendered
+  // for some other reason.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const { data: contests, isLoading } = useQuery({
     queryKey: ["contests"],
     queryFn: getContests,
@@ -67,9 +77,9 @@ export default function Home() {
     return (contests || []).filter((c: any) => !q || c.name.toLowerCase().includes(q));
   }, [contests, search]);
 
-  const live = filtered.filter((c: any) => contestStatus(c.startTime, c.endTime) === "live");
-  const upcoming = filtered.filter((c: any) => contestStatus(c.startTime, c.endTime) === "upcoming");
-  const ended = filtered.filter((c: any) => contestStatus(c.startTime, c.endTime) === "ended");
+  const live = filtered.filter((c: any) => contestStatus(c.startTime, c.endTime, now) === "live");
+  const upcoming = filtered.filter((c: any) => contestStatus(c.startTime, c.endTime, now) === "upcoming");
+  const ended = filtered.filter((c: any) => contestStatus(c.startTime, c.endTime, now) === "ended");
 
   return (
     <AppShell>

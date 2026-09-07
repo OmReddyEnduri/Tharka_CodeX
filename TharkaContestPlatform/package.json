@@ -9,7 +9,8 @@
     "server": "npm run dev --workspace=server",
     "admin": "npm run dev --workspace=admin-web",
     "client": "npm run dev --workspace=client-web",
-    "seed": "npm run seed --workspace=server"
+    "seed": "npm run seed --workspace=server",
+    "check-judge-drift": "node scripts/check-judge-cpp-drift.js"
   },
   "allowScripts": {
     "@swc/core@1.16.1": true,

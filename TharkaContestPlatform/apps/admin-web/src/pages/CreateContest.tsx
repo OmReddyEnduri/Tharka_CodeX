@@ -43,6 +43,14 @@ export default function CreateContest() {
     queryKey: ["contest", contestId],
     queryFn: () => apiClient.getContest(contestId!),
     enabled: isEditMode,
+    // Without this, React Query's default refetchOnWindowFocus would
+    // refetch (with a new object reference, even if nothing changed) the
+    // moment the admin alt-tabs mid-edit, re-firing the reset effect below
+    // and silently discarding whatever they'd already typed - e.g. edit the
+    // end time, glance at another tab, come back, save, and the extension
+    // is just gone with no error. This page navigates away on a successful
+    // save, so there's nothing else that needs this to ever refetch.
+    staleTime: Infinity,
   });
 
   useEffect(() => {

@@ -20,6 +20,11 @@ export interface LocalSubmission {
 }
 
 const STORAGE_KEY = "contest_local_submissions";
+// Every submission from every contest this laptop has ever run lives under
+// this one unbounded key, full source code included - cap it so a shared
+// lab laptop used across a whole semester can't quietly run this key up to
+// localStorage's quota. Oldest entries drop first (list is newest-first).
+const MAX_STORED_SUBMISSIONS = 500;
 
 function readAll(): LocalSubmission[] {
   try {
@@ -30,13 +35,23 @@ function readAll(): LocalSubmission[] {
 }
 
 function writeAll(subs: LocalSubmission[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
+  } catch {
+    // Quota exceeded or private mode. Unlike every other localStorage writer
+    // in this app, this one used to have no guard - a quota error thrown
+    // from here surfaces inside ContestProblem.tsx's submit try-block
+    // *after* the server has already returned a real verdict, so a student
+    // who was genuinely judged Accepted would see "Failed to submit code"
+    // and might panic and resubmit. Losing this local history entry is
+    // strictly better than that.
+  }
 }
 
 export function addLocalSubmission(sub: LocalSubmission): void {
   const all = readAll();
   all.unshift(sub); // newest first
-  writeAll(all);
+  writeAll(all.slice(0, MAX_STORED_SUBMISSIONS));
 }
 
 export function getLocalSubmissions(
