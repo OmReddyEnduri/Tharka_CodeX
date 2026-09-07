@@ -13,6 +13,19 @@ function computeLeaderboard(contest, submissions) {
     : submissions;
 
   const leaderboard = {};
+  // Seed a zero-score row per student who has joined (see POST
+  // .../join and Contest.participants), so they appear on the leaderboard
+  // right away instead of only after their first submission.
+  for (const p of contest.participants || []) {
+    leaderboard[p.studentRollNumber] = {
+      studentName: p.studentName,
+      studentRollNumber: p.studentRollNumber,
+      scores: {},
+      totalScore: 0,
+      joinedAt: p.joinedAt,
+    };
+  }
+
   for (const sub of validSubmissions) {
     const key = sub.studentRollNumber;
     if (!leaderboard[key]) {
@@ -43,6 +56,7 @@ function computeLeaderboard(contest, submissions) {
   }
 
   const dqSet = new Set((contest.disqualifiedStudents || []).map((d) => d.studentRollNumber));
+  const dqReasons = new Map((contest.disqualifiedStudents || []).map((d) => [d.studentRollNumber, d.reason]));
 
   // Disqualified students keep their computed score (for the admin's
   // record) but are sorted to the bottom regardless of it, below everyone
@@ -63,6 +77,8 @@ function computeLeaderboard(contest, submissions) {
       totalScore: entry.totalScore,
       scores: entry.scores,
       disqualified: dqSet.has(entry.studentRollNumber),
+      disqualifiedReason: dqReasons.get(entry.studentRollNumber) ?? null,
+      joinedAt: entry.joinedAt ?? null,
     })),
   };
 }

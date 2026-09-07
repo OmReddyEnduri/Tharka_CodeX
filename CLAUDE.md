@@ -208,7 +208,46 @@ pointed at the Vite dev server (`app.isPackaged` is false in that mode). The
 packaged-mode code path (`loadFile` from `extraResources`) is written but
 untested. Phase 7 (real multi-laptop LAN pilot) also still not started.
 
-Known bugs already found and fixed (don't reintroduce): a race between `tree-kill`'s
+## Editor persistence, code template, and file save/open (client-web)
+
+Three small localStorage-backed libs, all per-laptop and deliberately never synced:
+- `lib/codeTemplate.ts` — a LeetCode-style **saved code template**. Every new
+  problem and the `/compiler` page open with it instead of the old hardcoded
+  stub. Edited in the gear-icon `ContestSettingsDialog` (a small Monaco editor
+  plus "Use current code" / "Reset" / "Save template").
+- `lib/codeDrafts.ts` — **per-problem draft autosave** (debounced 500ms), keyed
+  `contestId:problemId:rollNumber` so two students sharing a lab laptop for the
+  same contest never inherit each other's in-progress code. The compiler page
+  has its own fixed key. Restore is guarded by a ref keyed on contest+problem,
+  **not** a `!code` test — the old `!code` test refilled the editor the instant
+  a student selected-all and deleted.
+- `lib/editorSettings.ts` — Monaco theme/font/keybinding, now persisted (they
+  used to reset on every page load).
+
+`lib/fileIO.ts` does Save/Open with three feature-detected tiers: Electron IPC
+native dialogs (`window.contestAPI.saveFile/openFile` → `main.js`'s
+`save-file`/`open-file` handlers, which return a real absolute path so Ctrl+S
+overwrites in place), then the File System Access API (Chromium, secure
+contexts only — so **not** a student browsing to the LAN server over plain
+http), then a download/`<input type=file>` fallback. `fileAccessMode()` reports
+which tier is live so the UI can say "Download" instead of implying an
+overwrite that isn't happening. Compiler shortcuts: Ctrl+B run, Ctrl+Q stop,
+Ctrl+S save, Ctrl+Shift+S save-as, Ctrl+O open. Problem page: Ctrl+' run,
+Ctrl+Enter submit. All are capture-phase on `window` and suspended while the
+settings dialog is open.
+
+Known bugs already found and fixed (don't reintroduce): **`execute.js` must
+trim trailing whitespace only, never `.trim()`** — a full trim ate *leading*
+whitespace from the program's actual output while the admin's expected output
+was never leading-trimmed to match. That asymmetry failed every correct
+pattern-printing solution (the `  *` / ` ***` / `*****` pyramid contests 6-9)
+and, worse, *accepted* a wrong answer that omitted the leading spaces. All
+output leniency now lives in exactly one place, `index.js`'s `normalizeOutput`,
+applied identically to both sides: CRLF→LF, per-line trailing whitespace, and
+leading/trailing blank lines are ignored; leading spaces and internal spacing
+are significant. `results[].userOutput` is reported in that same normalized
+form so the "Your Output" vs "Expected" panels show exactly the two strings
+that were compared. Also fixed earlier: a race between `tree-kill`'s
 completion callback and a killed child process's own `close` event, which caused
 TLE/MLE to be misreported as "Runtime Error" (fixed in both `execute.js` and
 `interactive.js` by settling the verdict synchronously before killing, guarded by a

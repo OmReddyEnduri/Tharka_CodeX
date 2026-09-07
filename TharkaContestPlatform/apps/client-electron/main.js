@@ -1,7 +1,8 @@
 const path = require("path");
 const fs = require("fs");
 const http = require("http");
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, Notification } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const { io: ioClient } = require("socket.io-client");
 // Vendored locally (not a workspace/npm dependency) so electron-builder can
 // bundle it without fighting npm workspace hoisting - see package.json note.
@@ -143,7 +144,8 @@ async function checkStaleAndSync(logPrefix) {
   try {
     const res = await fetch(`${getServerUrl()}/api/sync/version`);
     if (!res.ok) return;
-    const { version } = await res.json();
+    const { version, serverTime } = await res.json();
+    if (serverTime) db.setSetting("clockOffsetMs", new Date(serverTime).getTime() - Date.now());
     const local = db.getLocalVersion();
     console.log(`[${logPrefix}] server version=`, version, "local=", local);
     if (!local || local.version !== version) {
@@ -159,6 +161,94 @@ async function checkStaleAndSync(logPrefix) {
     console.warn(`[${logPrefix}] stale check failed (offline?), using cached local data:`, err.message);
     broadcastSyncStatus("offline");
   }
+}
+
+// Whether hidden testcase I/O should still be redacted (the "answer key")
+// must never be decided from this laptop's own clock - a student could just
+// set it forward past the contest's endTime to unlock it early. Ask the
+// server what time it actually is (a fast, tiny request) and use that;
+// only if the server is genuinely unreachable right now do we fall back to
+// this laptop's clock adjusted by the offset last observed during a real
+// sync (still far harder to spoof than the raw local clock, since that
+// offset was captured from the server, not typed in by the student).
+async function getAuthoritativeNow() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1500);
+    const res = await fetch(`${getServerUrl()}/api/sync/version`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const { serverTime } = await res.json();
+      if (serverTime) return new Date(serverTime);
+    }
+  } catch {
+    // offline or server unreachable right now - fall through to the cached offset
+  }
+  const offsetMs = db.getSetting("clockOffsetMs", 0);
+  return new Date(Date.now() + offsetMs);
+}
+
+// --- Auto-update (packaged builds only, published to GitHub Releases) -----
+// electron-builder's `publish` config (package.json) points at the GitHub
+// repo; electron-updater checks that repo's latest Release for a newer
+// version than app.getVersion() and, if found, downloads it in the
+// background automatically. Installing it (which force-closes and restarts
+// the app) is held back until no contest is currently live - every lab
+// laptop updating at once would otherwise cut off any student mid-contest.
+let updateReadyVersion = null; // set once a downloaded update is waiting on a safe moment to install
+
+async function isAnyContestLive() {
+  const now = await getAuthoritativeNow();
+  return db.listContests().some((c) => new Date(c.startTime) <= now && now <= new Date(c.endTime));
+}
+
+async function installUpdateIfSafe() {
+  if (!updateReadyVersion) return;
+  if (await isAnyContestLive()) {
+    console.log(`[autoUpdate] ${updateReadyVersion} ready but a contest is live - waiting`);
+    return;
+  }
+  const version = updateReadyVersion;
+  updateReadyVersion = null; // clear first so a concurrent call can't double-fire the install
+  console.log(`[autoUpdate] installing ${version} now`);
+  try {
+    new Notification({
+      title: "Tharka Codex is updating",
+      body: `Restarting to install version ${version} in 15 seconds...`,
+    }).show();
+  } catch {
+    // Notification unsupported/denied on this machine - proceed with the
+    // update anyway, it's a courtesy heads-up, not a required step.
+  }
+  setTimeout(() => autoUpdater.quitAndInstall(), 15000);
+}
+
+function setupAutoUpdater() {
+  if (!app.isPackaged) return; // dev mode: there's no installed build for electron-updater to replace
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = false; // we decide exactly when, via installUpdateIfSafe()
+
+  autoUpdater.on("update-available", (info) => console.log("[autoUpdate] update available:", info.version));
+  autoUpdater.on("update-not-available", () => console.log("[autoUpdate] already up to date"));
+  autoUpdater.on("error", (err) => console.warn("[autoUpdate] check/download failed:", err.message));
+  autoUpdater.on("update-downloaded", (info) => {
+    updateReadyVersion = info.version;
+    console.log(`[autoUpdate] downloaded ${info.version} - installing once no contest is live`);
+    installUpdateIfSafe();
+  });
+
+  // A contest that was live when the download finished may have ended
+  // since - keep checking rather than only trying once.
+  setInterval(installUpdateIfSafe, 2 * 60 * 1000);
+}
+
+// Safe to call anytime (no-ops in dev mode) - both on app start and whenever
+// the admin explicitly triggers a sync, so pressing "Sync" doubles as "check
+// for and start rolling out a new app version" with no separate step.
+function checkForAppUpdate(logPrefix) {
+  if (!app.isPackaged) return;
+  autoUpdater.checkForUpdates().catch((err) => console.warn(`[${logPrefix}] update check failed:`, err.message));
 }
 
 function connectSyncSocket() {
@@ -189,6 +279,10 @@ function connectSyncSocket() {
       console.log("[sync:push] pulled full sync, new local=", db.getLocalVersion());
       mainWindow?.webContents.send("sync-push");
       broadcastSyncStatus("synced");
+      // The admin triggering a sync is also a natural moment to check
+      // whether a new app version has shipped - "push Sync" doubles as
+      // "roll out the latest build" with no separate step for the admin.
+      checkForAppUpdate("sync:push");
     } catch (err) {
       console.warn("[sync:push] pull failed (offline?):", err.message);
       broadcastSyncStatus("offline");
@@ -208,7 +302,13 @@ async function localJudge(problemId, code, mode) {
   const problem = db.getContestProblemById(problemId);
   if (!problem) return { status: "Error", message: "This problem hasn't been synced to this laptop yet." };
   const testCases = mode === "run" ? problem.sampleTestCases : problem.hiddenTestCases;
-  return judge.run({ sourceCode: code, testCases, timeLimit: problem.timeLimit, memoryLimit: problem.memoryLimit });
+  return judge.run({
+    sourceCode: code,
+    testCases,
+    timeLimit: problem.timeLimit,
+    memoryLimit: problem.memoryLimit,
+    judgeSettings: db.getJudgeSettings(),
+  });
 }
 
 // Pushes one submission to the server for the leaderboard/admin view. On any
@@ -307,6 +407,27 @@ ipcMain.handle("submit-code", async (event, { contestId, problemId, code, studen
   // independently, so a late submission is recorded but can never move the
   // leaderboard, regardless of what happens here.
   const result = await localJudge(problemId, code, "submit");
+
+  // Hidden test cases are the "answer key" - while the contest is still
+  // running (and the admin hasn't flipped contest.settings.
+  // hideHiddenTestCasesWhileLive off), strip the actual input/expected/got
+  // values before this ever reaches the renderer, mirroring the server's own
+  // submit-route redaction (see contestRoutes.js). `contest` here is this
+  // laptop's locally-synced copy (see db.js/replaceContestData), which
+  // already carries `settings` since it's just part of the Contest document
+  // returned by GET /api/sync/full - so an admin toggling this in the admin
+  // app takes effect on every lab PC the next time it syncs, with no
+  // Electron code change needed. Defaults to hiding (`!== false`) so an
+  // un-synced/older local copy without a `settings` field is still safe.
+  // The UI already renders the "shown once the contest ends" placeholder
+  // whenever `res.input` is undefined - no client-web/React change needed.
+  const contest = db.getContestById(contestId);
+  const shouldHideHiddenIO = contest?.settings?.hideHiddenTestCasesWhileLive !== false;
+  const contestStillRunning = contest?.endTime && new Date(contest.endTime) > (await getAuthoritativeNow());
+  if (shouldHideHiddenIO && contestStillRunning && Array.isArray(result.results)) {
+    result.results = result.results.map((r) => ({ testCase: r.testCase, passed: r.passed, error: r.error }));
+  }
+
   if (result.status !== "Error") {
     const pushedNow = await pushSubmission(contestId, problemId, code, studentName, studentRollNumber, localId, result);
     // Lets the UI tell the student "saved, will sync automatically" instead
@@ -317,7 +438,9 @@ ipcMain.handle("submit-code", async (event, { contestId, problemId, code, studen
   return result;
 });
 
-ipcMain.handle("run-standalone", (event, { code, input }) => judge.runOnce({ sourceCode: code, input }));
+ipcMain.handle("run-standalone", (event, { code, input }) =>
+  judge.runOnce({ sourceCode: code, input, judgeSettings: db.getJudgeSettings() })
+);
 
 // --- Interactive terminal (Compiler page's "Console" tab) -----------------
 // Same seam idea as everything else: without this, that tab would fall back
@@ -329,14 +452,23 @@ let interactiveSession = null;
 ipcMain.handle("interactive-start", async (event, code) => {
   if (interactiveSession) interactiveSession.stop();
   interactiveSession = new InteractiveSession();
-  await interactiveSession.start(code, {
-    onStdout: (chunk) => mainWindow?.webContents.send("interactive-stdout", chunk),
-    onStderr: (chunk) => mainWindow?.webContents.send("interactive-stderr", chunk),
-    onExit: (info) => {
-      mainWindow?.webContents.send("interactive-exit", info);
-      interactiveSession = null;
+  const judgeSettings = db.getJudgeSettings() || {};
+  await interactiveSession.start(
+    code,
+    {
+      onStdout: (chunk) => mainWindow?.webContents.send("interactive-stdout", chunk),
+      onStderr: (chunk) => mainWindow?.webContents.send("interactive-stderr", chunk),
+      onExit: (info) => {
+        mainWindow?.webContents.send("interactive-exit", info);
+        interactiveSession = null;
+      },
     },
-  });
+    {
+      maxSessionMs: judgeSettings.interactiveSessionMaxMs,
+      maxOutputBytes: judgeSettings.maxOutputBytes,
+      blockedKeywords: judgeSettings.blockedKeywords,
+    }
+  );
   return true;
 });
 
@@ -347,6 +479,56 @@ ipcMain.handle("interactive-input", (event, data) => {
 ipcMain.handle("interactive-stop", () => {
   interactiveSession?.stop();
   interactiveSession = null;
+});
+
+// --- Local file open/save (Compiler page's Open / Save / Ctrl+O / Ctrl+S) --
+// Native OS dialogs, and a real absolute path handed back to the renderer so
+// a later Ctrl+S overwrites the file the student opened instead of prompting
+// again. The renderer never gets `fs` - it only round-trips the opaque path
+// string we gave it. See apps/client-web/src/lib/fileIO.ts for the caller.
+const SOURCE_FILE_FILTERS = [
+  { name: "C++ source", extensions: ["cpp", "cc", "cxx", "c", "h", "hpp"] },
+  { name: "Text", extensions: ["txt"] },
+  { name: "All files", extensions: ["*"] },
+];
+
+ipcMain.handle("open-file", async () => {
+  const res = await dialog.showOpenDialog(mainWindow, {
+    title: "Open source file",
+    properties: ["openFile"],
+    filters: SOURCE_FILE_FILTERS,
+  });
+  if (res.canceled || !res.filePaths.length) return { canceled: true };
+  const filePath = res.filePaths[0];
+  try {
+    return {
+      canceled: false,
+      path: filePath,
+      name: path.basename(filePath),
+      content: fs.readFileSync(filePath, "utf8"),
+    };
+  } catch (err) {
+    return { error: err.message };
+  }
+});
+
+ipcMain.handle("save-file", async (event, { content, path: filePath, suggestedName }) => {
+  let target = filePath;
+  if (!target) {
+    const res = await dialog.showSaveDialog(mainWindow, {
+      title: "Save source file",
+      defaultPath: suggestedName || "Main.cpp",
+      filters: SOURCE_FILE_FILTERS,
+    });
+    if (res.canceled || !res.filePath) return { canceled: true };
+    target = res.filePath;
+  }
+  try {
+    fs.writeFileSync(target, content, "utf8");
+    return { canceled: false, path: target, name: path.basename(target) };
+  } catch (err) {
+    return { error: err.message };
+  }
 });
 
 ipcMain.handle("sync-now", async () => {
@@ -372,6 +554,8 @@ app.whenReady().then(() => {
   createWindow();
   connectSyncSocket();
   staleCheckOnOpen();
+  setupAutoUpdater();
+  checkForAppUpdate("app-ready");
 
   require("child_process").exec("g++ --version", (error) => {
     if (error) console.warn("WARNING: g++ is not installed or not in PATH. Local judging will fail.");

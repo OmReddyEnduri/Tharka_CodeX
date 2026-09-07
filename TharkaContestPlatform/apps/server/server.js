@@ -11,6 +11,7 @@ const { exec } = require("child_process");
 const contestRoutes = require("./routes/contestRoutes");
 const syncRoutes = require("./routes/syncRoutes");
 const compileRoutes = require("./routes/compileRoutes");
+const judgeSettingsRoutes = require("./routes/judgeSettingsRoutes");
 const { initSyncSocket } = require("./sockets/syncSocket");
 const { initCompilerSocket } = require("./sockets/compilerSocket");
 
@@ -34,6 +35,7 @@ app.get("/api", (req, res) => {
 app.use("/api/contests", contestRoutes);
 app.use("/api/sync", syncRoutes);
 app.use("/api/compile", compileRoutes);
+app.use("/api/judge-settings", judgeSettingsRoutes);
 
 // Startup check: local judging (and this interim server-side judging path)
 // both need g++ on PATH.

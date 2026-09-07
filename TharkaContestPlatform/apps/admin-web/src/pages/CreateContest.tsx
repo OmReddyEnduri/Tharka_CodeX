@@ -17,6 +17,7 @@ const contestSchema = z.object({
   description: z.string().optional(),
   startTime: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid start time"),
   endTime: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid end time"),
+  hideHiddenTestCasesWhileLive: z.boolean(),
 });
 
 type ContestFormData = z.infer<typeof contestSchema>;
@@ -33,7 +34,10 @@ export default function CreateContest() {
   const isEditMode = !!contestId;
   const navigate = useNavigate();
 
-  const form = useForm<ContestFormData>({ resolver: zodResolver(contestSchema) });
+  const form = useForm<ContestFormData>({
+    resolver: zodResolver(contestSchema),
+    defaultValues: { hideHiddenTestCasesWhileLive: true },
+  });
 
   const { data: existing } = useQuery({
     queryKey: ["contest", contestId],
@@ -48,13 +52,16 @@ export default function CreateContest() {
         description: existing.description || "",
         startTime: toLocalInputValue(existing.startTime),
         endTime: toLocalInputValue(existing.endTime),
+        hideHiddenTestCasesWhileLive: existing.settings?.hideHiddenTestCasesWhileLive ?? true,
       });
     }
   }, [existing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveMutation = useMutation({
-    mutationFn: (data: ContestFormData) =>
-      isEditMode ? apiClient.updateContest(contestId!, data) : apiClient.createContest(data),
+    mutationFn: ({ hideHiddenTestCasesWhileLive, ...data }: ContestFormData) => {
+      const payload = { ...data, settings: { hideHiddenTestCasesWhileLive } };
+      return isEditMode ? apiClient.updateContest(contestId!, payload) : apiClient.createContest(payload);
+    },
     onSuccess: (contest) => {
       toast.success(isEditMode ? "Contest updated" : "Contest created");
       navigate(`/contests/${contest._id}`);
@@ -93,6 +100,24 @@ export default function CreateContest() {
               {form.formState.errors.endTime && (
                 <p className="text-red-500 text-sm">{form.formState.errors.endTime.message}</p>
               )}
+            </div>
+          </div>
+          <div className="flex items-start gap-2 rounded-md border p-3">
+            <input
+              id="hideHiddenTestCasesWhileLive"
+              type="checkbox"
+              className="mt-1"
+              {...form.register("hideHiddenTestCasesWhileLive")}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="hideHiddenTestCasesWhileLive" className="cursor-pointer">
+                Hide hidden test case I/O while contest is live
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                While ON, a Wrong Answer/TLE/etc. result only shows the verdict and test number - not the actual
+                input/expected/got - until the contest ends. Applies on every laptop, browser or the Electron app,
+                the next time it syncs. Turn OFF only for practice/open-book contests.
+              </p>
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={saveMutation.isPending}>

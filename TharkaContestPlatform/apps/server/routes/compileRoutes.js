@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const judge = require("judge-cpp");
+const { getJudgeSettings } = require("../lib/judgeSettings");
 
 // @route   POST /api/compile/run
 // @desc    Freeform "online compiler" - no contest/problem context, just
@@ -10,7 +11,8 @@ router.post("/run", async (req, res) => {
   if (!code) return res.status(400).json({ status: "Error", message: "No code provided" });
 
   try {
-    const result = await judge.runOnce({ sourceCode: code, input: input || "" });
+    const judgeSettings = await getJudgeSettings();
+    const result = await judge.runOnce({ sourceCode: code, input: input || "", judgeSettings });
     res.json(result);
   } catch (err) {
     console.error("Compiler run error:", err);

@@ -10,6 +10,7 @@
     "build": "electron-builder"
   },
   "dependencies": {
+    "electron-updater": "^6.3.9",
     "pidusage": "^4.0.1",
     "socket.io-client": "^4.8.3",
     "tree-kill": "^1.2.2"
@@ -38,6 +39,11 @@
         "to": "client-web-dist"
       }
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "OmReddyEnduri",
+      "repo": "Tharka_CodeX"
+    },
     "win": {
       "target": ["nsis"]
     },

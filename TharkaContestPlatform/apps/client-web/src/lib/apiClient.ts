@@ -58,6 +58,18 @@ export const getSubmissions = (contestId: string, problemId: string | number, ro
 export const getResults = (contestId: string) =>
   getContestAPI()?.getResults?.(contestId) ?? apiFetch(`/api/contests/${contestId}/results`);
 
+// Tells the server a student has joined this contest, so the admin sees
+// them on the leaderboard immediately (not just after their first
+// submission). Best-effort: JoinContest.tsx doesn't block navigation on
+// this - identity already lives in localStorage regardless (see
+// lib/identity.ts), and a laptop that's briefly unreachable simply won't
+// show up until its next successful call to the server.
+export const joinContest = (contestId: string, studentName: string, studentRollNumber: string) =>
+  apiFetch(`/api/contests/${contestId}/join`, {
+    method: "POST",
+    body: JSON.stringify({ studentName, studentRollNumber }),
+  });
+
 export const getSyncVersion = () => apiFetch("/api/sync/version");
 export const getSyncFull = () => apiFetch("/api/sync/full");
 

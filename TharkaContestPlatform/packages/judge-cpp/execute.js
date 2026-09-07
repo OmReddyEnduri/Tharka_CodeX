@@ -3,13 +3,21 @@ const treeKill = require('tree-kill');
 const pidusage = require('pidusage');
 
 const MEMORY_POLL_INTERVAL_MS = 50;
-const MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB - well beyond any legitimate judge-problem output; guards a print-flood loop
+const DEFAULT_MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB default - well beyond any legitimate judge-problem output; guards a print-flood loop
+
+// Strips trailing whitespace/newlines only. Keeps leading whitespace, which
+// is meaningful output (indented patterns, aligned columns) and must survive
+// to the comparison in index.js - see the note at the resolve() below.
+function trimTrailing(s) {
+  return (s || '').replace(/\s+$/, '');
+}
 
 // Runs a compiled executable against one input, enforcing time and memory
 // limits via subprocess supervision (no OS-level sandbox - see staticCheck.js
 // for why that's an accepted tradeoff here). Resolves with a result object,
-// never rejects - callers branch on `verdict`.
-function execute(execPath, input, { timeLimitMs, memoryLimitMb }) {
+// never rejects - callers branch on `verdict`. `maxOutputBytes` is
+// admin-configurable (see JudgeSettings) - defaults to 1MB.
+function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES }) {
   return new Promise((resolve) => {
     const child = spawn(execPath, [], { windowsHide: true });
 
@@ -23,7 +31,15 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb }) {
       settled = true;
       clearTimeout(timeoutTimer);
       clearInterval(memoryTimer);
-      resolve({ verdict, stdout: stdout.trim(), stderr: stderr.trim(), memoryPeakKb, ...extra });
+      // Trailing-only trim, NOT a full .trim(). A full trim also ate LEADING
+      // whitespace, and only from the program's actual output - the admin's
+      // expected output was never leading-trimmed to match. That asymmetry
+      // failed every pattern-printing problem (`  *` / ` ***` / `*****`
+      // pyramids, right-aligned tables), and worse, accepted a wrong answer
+      // that omitted the leading spaces entirely. Leading whitespace is now
+      // left intact on this side so index.js's normalizeOutput is the single
+      // transformation, applied identically to both sides of the compare.
+      resolve({ verdict, stdout: trimTrailing(stdout), stderr: trimTrailing(stderr), memoryPeakKb, ...extra });
     };
 
     // Settle the verdict synchronously the instant the limit fires, then kill
@@ -60,7 +76,7 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb }) {
     let outputBytes = 0;
     const trackOutput = (d) => {
       outputBytes += d.length;
-      if (outputBytes > MAX_OUTPUT_BYTES) {
+      if (outputBytes > maxOutputBytes) {
         finish('Output Limit Exceeded');
         treeKill(child.pid, 'SIGKILL');
         return true;

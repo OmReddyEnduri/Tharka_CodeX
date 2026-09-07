@@ -7,13 +7,46 @@ const ContestProblem = require("../models/ContestProblem");
 const ContestSubmission = require("../models/ContestSubmission");
 const judge = require("judge-cpp");
 const { computeLeaderboard } = require("../lib/leaderboard");
+const { getJudgeSettings } = require("../lib/judgeSettings");
 
-// No auth in this build (see plan decision: identification, not authentication).
-// `admin=1` is a UX gate only (lets the admin app preview a contest before it
-// starts) - it is not a security boundary. That's an accepted tradeoff of the
-// no-auth decision, same as trusting client-reported judge verdicts on sync.
+// No auth in this build (see plan decision: identification, not authentication)
+// - this token is a UX gate only (lets the admin app preview a contest before
+// it starts, and see hidden-testcase I/O while a contest is live), not a real
+// security boundary; anyone who extracts this exact string from admin-web's
+// bundle and replays it gets the same access a browsing admin already has.
+// It's still a fixed, install-specific random value rather than a short
+// guessable one like the old "admin=1" (which was also this app's own
+// documented convention, and so was effectively public) - so a student can no
+// longer get the same access just by trying a well-known trick. Read from
+// .env (gitignored), NOT hardcoded here, because this repo is public - a
+// value committed to source would be readable by anyone on GitHub, which
+// defeats the whole point of it not being a guessable well-known string.
+// Must match admin-web's VITE_ADMIN_BYPASS_TOKEN (apps/admin-web/.env).
+const ADMIN_BYPASS_TOKEN = process.env.ADMIN_BYPASS_TOKEN;
+if (!ADMIN_BYPASS_TOKEN) {
+  console.warn("WARNING: ADMIN_BYPASS_TOKEN not set in .env - admin preview/early-access will not work.");
+}
 function isAdminRequest(req) {
-  return req.query.admin === "1" || req.headers["x-contest-admin"] === "1";
+  if (!ADMIN_BYPASS_TOKEN) return false;
+  return req.query.admin === ADMIN_BYPASS_TOKEN || req.headers["x-contest-admin"] === ADMIN_BYPASS_TOKEN;
+}
+
+// Hidden test cases are the "answer key" - a non-admin fetch of a problem
+// while its contest is still running must not carry the raw input/
+// expectedOutput over the wire at all (a student can read the Network tab,
+// or just hit the URL directly), regardless of whether any UI renders it.
+// Mirrors the submit route's redaction, but for the problem-fetch routes.
+// Electron's local judge never hits these HTTP routes (it reads its own
+// locally-synced copy over IPC instead - see client-electron/main.js).
+function stripHiddenTestCaseIO(problem, contest, req) {
+  if (isAdminRequest(req)) return problem;
+  if (contest.settings?.hideHiddenTestCasesWhileLive === false) return problem;
+  const contestEnded = contest.endTime && new Date(contest.endTime) <= new Date();
+  if (contestEnded) return problem;
+
+  const obj = typeof problem.toObject === "function" ? problem.toObject() : { ...problem };
+  obj.hiddenTestCases = (obj.hiddenTestCases || []).map(() => ({}));
+  return obj;
 }
 
 // Used by the bulk importer when a problem entry omits `id` - single-add
@@ -83,6 +116,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+// @route   GET /api/contests/live-status
+// @desc    Is any contest currently running right now (startTime <= now <=
+// endTime)? Used to gate anything that would disrupt every connected
+// laptop at once - the server auto-deploy script (apps/server/deploy) and
+// the Electron client's auto-update (main.js's installUpdateIfSafe) both
+// hold off while this is true, so a code push or app update never cuts off
+// a student mid-contest. Must be registered before the /:contestId route
+// below, or Express would treat "live-status" as a contestId.
+router.get("/live-status", async (req, res) => {
+  try {
+    const now = new Date();
+    const liveContests = await Contest.find({ startTime: { $lte: now }, endTime: { $gte: now } }).select(
+      "name startTime endTime"
+    );
+    res.json({ anyLive: liveContests.length > 0, liveContests });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
 // @route   GET /api/contests/:contestId
 router.get("/:contestId", async (req, res) => {
   try {
@@ -94,7 +148,10 @@ router.get("/:contestId", async (req, res) => {
       contest.problems = [];
     }
 
-    res.json(contest);
+    const contestObj = contest.toObject();
+    contestObj.problems = contestObj.problems.map((p) => stripHiddenTestCaseIO(p, contest, req));
+
+    res.json(contestObj);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });
@@ -115,7 +172,41 @@ router.get("/:contestId/problems/:problemId", async (req, res) => {
     const contestProblem = await ContestProblem.findOne({ id: req.params.problemId });
     if (!contestProblem) return res.status(404).json({ msg: "Contest problem not found" });
 
-    res.json(contestProblem);
+    res.json(stripHiddenTestCaseIO(contestProblem, contest, req));
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route   POST /api/contests/:contestId/join
+// @desc    Records a student's presence in a contest the moment they submit
+// the name+roll join form (still identification, not authentication - see
+// the no-auth decision in CLAUDE.md). Upserted by roll number, so re-joining
+// (reload, different laptop) just refreshes name/joinedAt instead of
+// duplicating. computeLeaderboard() seeds a zero-score row per participant,
+// so the admin sees them on the leaderboard immediately, before any
+// submission - not gated on startTime, since joining itself is harmless.
+router.post("/:contestId/join", async (req, res) => {
+  try {
+    const { studentName, studentRollNumber } = req.body;
+    if (!studentName || !studentRollNumber) {
+      return res.status(400).json({ msg: "studentName and studentRollNumber are required" });
+    }
+
+    const contest = await Contest.findById(req.params.contestId);
+    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+
+    const existing = contest.participants.find((p) => p.studentRollNumber === studentRollNumber);
+    if (existing) {
+      existing.studentName = studentName;
+      existing.joinedAt = new Date();
+    } else {
+      contest.participants.push({ studentRollNumber, studentName });
+    }
+
+    await contest.save();
+    res.json({ msg: "Joined" });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });
@@ -126,7 +217,7 @@ router.get("/:contestId/problems/:problemId", async (req, res) => {
 // @desc    Create a new contest
 router.post("/", async (req, res) => {
   try {
-    const { name, startTime, endTime, description, problemIds } = req.body;
+    const { name, startTime, endTime, description, problemIds, settings } = req.body;
     let { id } = req.body;
 
     if (!id) id = crypto.randomBytes(4).toString("hex");
@@ -138,6 +229,7 @@ router.post("/", async (req, res) => {
       endTime,
       description,
       problemIds: problemIds || [],
+      settings,
     });
 
     await newContest.save();
@@ -200,7 +292,7 @@ router.post("/bulk", async (req, res) => {
 // @route   PUT /api/contests/:contestId
 router.put("/:contestId", async (req, res) => {
   try {
-    const { name, startTime, endTime, description, problemIds } = req.body;
+    const { name, startTime, endTime, description, problemIds, settings } = req.body;
 
     const contest = await Contest.findById(req.params.contestId);
     if (!contest) return res.status(404).json({ msg: "Contest not found" });
@@ -210,6 +302,7 @@ router.put("/:contestId", async (req, res) => {
     contest.endTime = endTime ?? contest.endTime;
     contest.description = description ?? contest.description;
     contest.problemIds = problemIds ?? contest.problemIds;
+    if (settings) contest.settings = { ...contest.settings?.toObject?.() ?? contest.settings, ...settings };
 
     await contest.save();
     res.json(contest);
@@ -226,7 +319,7 @@ router.put("/:contestId", async (req, res) => {
 // this stays reversible if the admin flags the wrong student.
 router.put("/:contestId/disqualify", async (req, res) => {
   try {
-    const { studentRollNumber, studentName, disqualified } = req.body;
+    const { studentRollNumber, studentName, disqualified, reason } = req.body;
     if (!studentRollNumber) return res.status(400).json({ msg: "studentRollNumber is required" });
 
     const contest = await Contest.findById(req.params.contestId);
@@ -236,11 +329,46 @@ router.put("/:contestId/disqualify", async (req, res) => {
       (d) => d.studentRollNumber !== studentRollNumber
     );
     if (disqualified) {
-      contest.disqualifiedStudents.push({ studentRollNumber, studentName });
+      contest.disqualifiedStudents.push({ studentRollNumber, studentName, reason });
     }
 
     await contest.save();
     res.json({ disqualifiedStudents: contest.disqualifiedStudents });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route   DELETE /api/contests/bulk
+// @desc    Delete multiple contests in one shot - same cleanup per id as
+// single DELETE /:contestId (submissions + attached problems + the contest
+// itself). Registered before /:contestId so "bulk" isn't swallowed as a
+// :contestId param. A missing/bad id is skipped and reported rather than
+// failing the whole batch, same skip-and-report pattern as the other bulk
+// routes in this file.
+router.delete("/bulk", async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ msg: "Body must be { ids: [...] }" });
+    }
+
+    const results = [];
+    for (const id of ids) {
+      const contest = await Contest.findById(id).catch(() => null);
+      if (!contest) {
+        results.push({ id, status: "skipped", reason: "Contest not found" });
+        continue;
+      }
+
+      await ContestSubmission.deleteMany({ contest: contest._id });
+      await ContestProblem.deleteMany({ _id: { $in: contest.problems } });
+      await Contest.findByIdAndDelete(id);
+      results.push({ id, status: "deleted" });
+    }
+
+    res.json({ results });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });
@@ -258,6 +386,43 @@ router.delete("/:contestId", async (req, res) => {
     await Contest.findByIdAndDelete(req.params.contestId);
 
     res.json({ msg: "Contest deleted successfully" });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route   DELETE /api/contests/:contestId/problems/bulk
+// @desc    Remove multiple problems from one contest in one shot - same
+// detach-only semantics as single DELETE .../problems/:problemId (the
+// ContestProblem document itself is NOT deleted, since a problem can be
+// attached to more than one contest - only this contest's references to it
+// are pulled). Registered before .../problems/:problemId so "bulk" isn't
+// swallowed as a :problemId param.
+router.delete("/:contestId/problems/bulk", async (req, res) => {
+  try {
+    const { problemIds } = req.body;
+    if (!Array.isArray(problemIds) || problemIds.length === 0) {
+      return res.status(400).json({ msg: "Body must be { problemIds: [...] }" });
+    }
+
+    const contest = await Contest.findById(req.params.contestId);
+    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+
+    const results = [];
+    for (const problemId of problemIds) {
+      const problem = await ContestProblem.findOne({ id: problemId });
+      if (!problem) {
+        results.push({ problemId, status: "skipped", reason: "Problem not found" });
+        continue;
+      }
+      contest.problems.pull(problem._id);
+      contest.problemIds.pull(problem.id);
+      results.push({ problemId, status: "removed" });
+    }
+
+    await contest.save();
+    res.json({ results });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });
@@ -427,12 +592,14 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
     }
 
     const testCases = mode === "run" ? problem.sampleTestCases : problem.hiddenTestCases;
+    const judgeSettings = await getJudgeSettings();
 
     const result = await judge.run({
       sourceCode: code,
       testCases,
       timeLimit: problem.timeLimit,
       memoryLimit: problem.memoryLimit,
+      judgeSettings,
     });
 
     if (result.status === "Error") {
@@ -440,14 +607,16 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
     }
 
     // Hidden test cases are the "answer key" - while the contest is still
-    // running, strip the actual input/expected/got values from a submit-mode
-    // result so a student can't read them off a failed submission, keeping
-    // just the verdict (Accepted/Wrong Answer/TLE/MLE/...) and which test
-    // number it stopped on. Sample-testcase Run results are never redacted
-    // (the student already has that I/O on the problem page), and once the
+    // running (and the admin hasn't disabled this via contest.settings),
+    // strip the actual input/expected/got values from a submit-mode result
+    // so a student can't read them off a failed submission, keeping just the
+    // verdict (Accepted/Wrong Answer/TLE/MLE/...) and which test number it
+    // stopped on. Sample-testcase Run results are never redacted (the
+    // student already has that I/O on the problem page), and once the
     // contest ends the full diff is restored for review.
+    const shouldHideHiddenIO = contest.settings?.hideHiddenTestCasesWhileLive !== false;
     const contestStillRunning = contest.endTime && new Date(contest.endTime) > now;
-    if (mode !== "run" && contestStillRunning && Array.isArray(result.results)) {
+    if (mode !== "run" && shouldHideHiddenIO && contestStillRunning && Array.isArray(result.results)) {
       result.results = result.results.map((r) => ({ testCase: r.testCase, passed: r.passed, error: r.error }));
     }
 
@@ -466,6 +635,7 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
           totalTestCases: result.totalTestCases,
           timeTaken: result.timeTaken,
           errorLog: result.errorLog,
+          source: "server-judged",
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
@@ -529,6 +699,7 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
           timeTaken: sub.timeTaken,
           errorLog: sub.errorLog,
           submittedAt: sub.submittedAt,
+          source: "client-synced",
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import screenfull from "screenfull";
@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Copy,
   Check,
+  RotateCcw,
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
@@ -25,13 +26,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { SettingsDialog } from "@/components/ContestSettingsDialog";
+import { SettingsDialog, type ShortcutHint } from "@/components/ContestSettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
 import { getContestProblem, runCode, submitCode } from "@/lib/apiClient";
 import { getIdentity } from "@/lib/identity";
 import { addLocalSubmission, getLocalSubmissions, type LocalSubmission } from "@/lib/localSubmissions";
 import { registerCustomMonacoThemes } from "@/lib/monacoThemes";
+import { getTemplate } from "@/lib/codeTemplate";
+import { clearDraft, getDraft, saveDraft } from "@/lib/codeDrafts";
+import { getEditorSettings, saveEditorSettings, type EditorSettings } from "@/lib/editorSettings";
 
 const CopyButton = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
@@ -57,18 +61,24 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-const defaultCode = `#include <iostream>
-using namespace std;
-
-int main() {
-    // Write your code here
-    return 0;
-}`;
+const SHORTCUTS: ShortcutHint[] = [
+  { keys: "Ctrl+'", label: "Run sample tests" },
+  { keys: "Ctrl+Enter", label: "Submit" },
+];
 
 const ContestProblem = () => {
   const { contestId, problemId } = useParams<{ contestId: string; problemId: string }>();
   const navigate = useNavigate();
-  const identity = contestId ? getIdentity(contestId) : null;
+  // getIdentity() does a fresh JSON.parse and returns a brand-new object on
+  // every call - calling it unmemoized in the render body meant `identity`
+  // was a new reference on every single re-render (including every
+  // keystroke, since typing re-renders this component). Four effects below
+  // key off `identity` by reference (join-redirect, draft restore, draft
+  // autosave, keyboard shortcuts), so all four were tearing down and
+  // re-running on every keystroke instead of only when the student's
+  // identity actually changes. Memoized so they only re-run when contestId
+  // (or the identity data itself) changes.
+  const identity = useMemo(() => (contestId ? getIdentity(contestId) : null), [contestId]);
 
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState("description");
@@ -81,11 +91,12 @@ const ContestProblem = () => {
   const [viewCodeSub, setViewCodeSub] = useState<LocalSubmission | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [editorSettings, setEditorSettings] = useState({
-    theme: "vs-dark",
-    fontSize: 14,
-    keybinding: "default",
-  });
+  const [editorSettings, setEditorSettings] = useState<EditorSettings>(getEditorSettings);
+
+  const handleEditorSettingsChange = (next: EditorSettings) => {
+    setEditorSettings(next);
+    saveEditorSettings(next);
+  };
 
   useEffect(() => {
     if (contestId && !identity) {
@@ -109,11 +120,37 @@ const ContestProblem = () => {
     retry: false,
   });
 
+  // Restore whatever this student last had in the editor for this exact
+  // problem (lib/codeDrafts.ts), falling back to their saved code template.
+  // Guarded by a ref keyed on contest+problem rather than the old `!code`
+  // test: that test re-fired the moment a student selected all and deleted,
+  // silently refilling the editor under them.
+  const restoredForRef = useRef<string | null>(null);
   useEffect(() => {
-    if (problem && !code) {
-      setCode(defaultCode);
-    }
-  }, [problem, code]);
+    if (!problem || !contestId || !problemId || !identity) return;
+    const key = `${contestId}:${problemId}`;
+    if (restoredForRef.current === key) return;
+    restoredForRef.current = key;
+    setCode(getDraft(contestId, problemId, identity.rollNumber) ?? getTemplate());
+  }, [problem, contestId, problemId, identity]);
+
+  // Autosave that draft. Debounced because localStorage writes are
+  // synchronous and one per keystroke stutters a slow lab laptop. Skipped
+  // until the restore above has run, so an empty initial editor can't
+  // overwrite a real saved draft.
+  useEffect(() => {
+    if (!contestId || !problemId || !identity) return;
+    if (restoredForRef.current !== `${contestId}:${problemId}`) return;
+    const id = setTimeout(() => saveDraft(contestId, problemId, identity.rollNumber, code), 500);
+    return () => clearTimeout(id);
+  }, [code, contestId, problemId, identity]);
+
+  const handleResetCode = () => {
+    if (!window.confirm("Discard your code for this problem and start again from your template?")) return;
+    if (contestId && problemId && identity) clearDraft(contestId, problemId, identity.rollNumber);
+    setCode(getTemplate());
+    toast.success("Editor reset to your template.");
+  };
 
   useEffect(() => {
     if (error) {
@@ -212,6 +249,34 @@ const ContestProblem = () => {
     }
   };
 
+  // LeetCode's two editor shortcuts: Ctrl+' runs the sample tests, Ctrl+Enter
+  // submits. Capture phase so they land before Monaco swallows the combo.
+  // Suspended while the settings dialog is open so typing in the template
+  // editor in there can't fire a submission.
+  //
+  // Latest running/submitting/handlers are read from a ref instead of being
+  // effect dependencies - `code` changes on every keystroke, so depending on
+  // it directly here meant this global window listener was torn down and
+  // re-added on every single character typed in the editor.
+  const shortcutStateRef = useRef({ running, submitting, handleRun, handleSubmit });
+  shortcutStateRef.current = { running, submitting, handleRun, handleSubmit };
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const { running, submitting, handleRun, handleSubmit } = shortcutStateRef.current;
+      if (!e.ctrlKey || isSettingsOpen || running || submitting) return;
+      if (e.key === "'") {
+        e.preventDefault();
+        handleRun();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        handleSubmit();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [isSettingsOpen]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -259,10 +324,10 @@ const ContestProblem = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleRun} disabled={running || submitting} className="gap-2">
+          <Button variant="outline" size="sm" onClick={handleRun} disabled={running || submitting} className="gap-2" title="Ctrl+'">
             {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Run
           </Button>
-          <Button size="sm" onClick={handleSubmit} disabled={submitting || running} className="gap-2">
+          <Button size="sm" onClick={handleSubmit} disabled={submitting || running} className="gap-2" title="Ctrl+Enter">
             {submitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Code2 className="h-3 w-3" />}
             Submit
           </Button>
@@ -455,7 +520,6 @@ const ContestProblem = () => {
                               fontSize: 14,
                               lineNumbers: "on",
                               scrollBeyondLastLine: false,
-                              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
                             }}
                           />
                         </div>
@@ -478,6 +542,12 @@ const ContestProblem = () => {
                     <span className="text-xs font-semibold">C++</span>
                   </div>
                   <div className="flex items-center gap-3">
+                    <span title="Reset to your template" className="flex">
+                      <RotateCcw
+                        className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground"
+                        onClick={handleResetCode}
+                      />
+                    </span>
                     <Settings
                       className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground"
                       onClick={() => setIsSettingsOpen(true)}
@@ -510,7 +580,7 @@ const ContestProblem = () => {
                       scrollBeyondLastLine: false,
                       automaticLayout: true,
                       padding: { top: 10 },
-                      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                      wordBasedSuggestions: "currentDocument",
                     }}
                   />
                 </div>
@@ -565,7 +635,7 @@ const ContestProblem = () => {
                             <div className="grid grid-cols-1 gap-2">
                               <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-semibold text-muted-foreground">Input</span>
-                                <div className="bg-muted p-2 rounded text-xs font-mono">{ex.input || "No input"}</div>
+                                <div className="bg-muted p-2 rounded text-xs font-mono whitespace-pre-wrap">{ex.input || "No input"}</div>
                               </div>
                             </div>
                           </div>
@@ -632,14 +702,14 @@ const ContestProblem = () => {
                                       <div className="grid grid-cols-1 gap-1 text-xs">
                                         <div className="flex flex-col gap-1">
                                           <span className="text-[10px] uppercase text-muted-foreground">Input</span>
-                                          <code className="bg-black/20 p-1.5 rounded font-mono break-all">{res.input}</code>
+                                          <code className="bg-black/20 p-1.5 rounded font-mono break-words whitespace-pre-wrap">{res.input}</code>
                                         </div>
                                         {res.userOutput !== undefined && (
                                           <div className="grid grid-cols-2 gap-2 mt-1">
                                             <div className="flex flex-col gap-1">
                                               <span className="text-[10px] uppercase text-muted-foreground">Your Output</span>
                                               <code
-                                                className={`p-1.5 rounded font-mono break-all ${
+                                                className={`p-1.5 rounded font-mono break-words whitespace-pre-wrap ${
                                                   res.passed ? "bg-black/20" : "bg-red-500/10 text-red-500"
                                                 }`}
                                               >
@@ -648,7 +718,7 @@ const ContestProblem = () => {
                                             </div>
                                             <div className="flex flex-col gap-1">
                                               <span className="text-[10px] uppercase text-muted-foreground">Expected</span>
-                                              <code className="bg-black/20 p-1.5 rounded font-mono break-all">{res.expectedOutput}</code>
+                                              <code className="bg-black/20 p-1.5 rounded font-mono break-words whitespace-pre-wrap">{res.expectedOutput}</code>
                                             </div>
                                           </div>
                                         )}
@@ -673,7 +743,9 @@ const ContestProblem = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={editorSettings}
-        onSettingsChange={setEditorSettings}
+        onSettingsChange={handleEditorSettingsChange}
+        currentCode={code}
+        shortcuts={SHORTCUTS}
       />
     </div>
   );

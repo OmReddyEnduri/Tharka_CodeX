@@ -18,6 +18,7 @@ export default function ContestDetail() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingProblem, setEditingProblem] = useState<ContestProblem | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [selectedProblems, setSelectedProblems] = useState<Set<number>>(new Set());
 
   const { data: contest, isLoading } = useQuery({
     queryKey: ["contest", contestId],
@@ -30,6 +31,16 @@ export default function ContestDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contest", contestId] });
       toast.success("Problem removed");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const bulkDeleteProblemsMutation = useMutation({
+    mutationFn: (problemIds: number[]) => apiClient.bulkDeleteProblems(contestId!, problemIds),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["contest", contestId] });
+      setSelectedProblems(new Set());
+      toast.success(`Removed ${res.results.filter((r) => r.status === "removed").length} problem(s)`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -48,6 +59,22 @@ export default function ContestDetail() {
     if (!window.confirm(`Delete "${problem.title}"? This removes it from this contest.`)) return;
     if (!window.confirm("Are you sure? This can't be undone.")) return;
     deleteProblemMutation.mutate(problem.id);
+  };
+
+  const toggleSelectedProblem = (id: number) => {
+    setSelectedProblems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDeleteProblems = () => {
+    if (selectedProblems.size === 0) return;
+    if (!window.confirm(`Remove ${selectedProblems.size} selected problem(s) from this contest?`)) return;
+    if (!window.confirm("Are you sure? This can't be undone.")) return;
+    bulkDeleteProblemsMutation.mutate(Array.from(selectedProblems));
   };
 
   const handleDeleteContest = () => {
@@ -96,6 +123,17 @@ export default function ContestDetail() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Problems</CardTitle>
           <div className="flex gap-2">
+            {selectedProblems.size > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2 text-destructive hover:text-destructive"
+                onClick={handleBulkDeleteProblems}
+                disabled={bulkDeleteProblemsMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4" /> Delete Selected ({selectedProblems.size})
+              </Button>
+            )}
             <Button size="sm" variant="outline" className="gap-2" onClick={() => setBulkOpen(true)}>
               <Upload className="h-4 w-4" /> Bulk Add
             </Button>
@@ -118,6 +156,12 @@ export default function ContestDetail() {
           {contest.problems.map((problem) => (
             <div key={problem.id} className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={selectedProblems.has(problem.id)}
+                  onChange={() => toggleSelectedProblem(problem.id)}
+                />
                 <FileCode className="h-4 w-4 text-blue-500" />
                 <span className="font-medium">{problem.title}</span>
                 <Badge variant="secondary">{problem.difficulty}</Badge>

@@ -43,7 +43,7 @@ export default function AdminResults() {
   });
 
   const disqualifyMutation = useMutation({
-    mutationFn: (vars: { studentRollNumber: string; studentName: string; disqualified: boolean }) =>
+    mutationFn: (vars: { studentRollNumber: string; studentName: string; disqualified: boolean; reason?: string }) =>
       apiClient.setDisqualified(contestId!, vars),
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["results", contestId] });
@@ -57,10 +57,18 @@ export default function AdminResults() {
     const verb = next ? "Disqualify" : "Re-qualify";
     if (!window.confirm(`${verb} ${entry.studentName} (${entry.studentRollNumber})?`)) return;
     if (!window.confirm("Are you sure?")) return;
+
+    let reason: string | undefined;
+    if (next) {
+      // Kept for the audit trail - a boolean flag alone doesn't tell anyone
+      // reviewing this later *why* a student was flagged.
+      reason = window.prompt("Reason for disqualifying (shown in this table, optional):") || undefined;
+    }
     disqualifyMutation.mutate({
       studentRollNumber: entry.studentRollNumber,
       studentName: entry.studentName,
       disqualified: next,
+      reason,
     });
   };
 
@@ -98,8 +106,16 @@ export default function AdminResults() {
                     <div className="flex items-center gap-2">
                       {entry.studentName}
                       {entry.disqualified && (
-                        <Badge className="bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
-                          Disqualified
+                        <Badge
+                          className="bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
+                          title={entry.disqualifiedReason || undefined}
+                        >
+                          Disqualified{entry.disqualifiedReason ? `: ${entry.disqualifiedReason}` : ""}
+                        </Badge>
+                      )}
+                      {!entry.disqualified && entry.joinedAt && Object.keys(entry.scores).length === 0 && (
+                        <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                          Joined, no submissions yet
                         </Badge>
                       )}
                     </div>
@@ -173,14 +189,24 @@ export default function AdminResults() {
             {submissions?.map((sub) => (
               <div key={sub._id} className="border rounded-md p-3 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span
-                    className={
-                      sub.verdict === "Accepted"
-                        ? "font-medium text-green-600 dark:text-green-400"
-                        : "font-medium text-muted-foreground"
-                    }
-                  >
-                    {sub.verdict} ({sub.testCasesPassed}/{sub.totalTestCases} tests, {sub.timeTaken}ms)
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={
+                        sub.verdict === "Accepted"
+                          ? "font-medium text-green-600 dark:text-green-400"
+                          : "font-medium text-muted-foreground"
+                      }
+                    >
+                      {sub.verdict} ({sub.testCasesPassed}/{sub.totalTestCases} tests, {sub.timeTaken}ms)
+                    </span>
+                    {sub.source === "client-synced" && (
+                      <Badge
+                        variant="outline"
+                        title="Judged locally by the student's laptop and pushed to the server unverified, not re-judged here."
+                      >
+                        Client-synced
+                      </Badge>
+                    )}
                   </span>
                   <span className="text-muted-foreground">{new Date(sub.submittedAt).toLocaleString()}</span>
                 </div>

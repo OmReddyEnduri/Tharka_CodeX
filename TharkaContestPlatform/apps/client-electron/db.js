@@ -75,7 +75,16 @@ function replaceContestData(snapshot) {
     store.contests[contest._id] = contest;
   }
   store.syncState = { version: snapshot.version, lastSyncedAt: new Date().toISOString() };
+  // Judge engine config (blocklist, compile timeout, output cap, interactive
+  // session cap - see server's models/JudgeSettings.js) rides along in the
+  // same full-sync snapshot, so an admin's change reaches this laptop's
+  // local judge on the next sync with no separate fetch.
+  if (snapshot.judgeSettings) store.settings.judgeSettings = snapshot.judgeSettings;
   persist();
+}
+
+function getJudgeSettings() {
+  return load().settings.judgeSettings || null;
 }
 
 function listContests() {
@@ -129,6 +138,7 @@ module.exports = {
   setSetting,
   getLocalVersion,
   replaceContestData,
+  getJudgeSettings,
   listContests,
   getContestById,
   getContestProblemById,

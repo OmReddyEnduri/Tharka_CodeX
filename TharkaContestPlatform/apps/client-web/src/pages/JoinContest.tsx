@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { setIdentity } from "@/lib/identity";
+import { joinContest } from "@/lib/apiClient";
 
 const joinSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -25,6 +26,9 @@ export default function JoinContest() {
   const onSubmit = (data: JoinFormData) => {
     if (!contestId) return;
     setIdentity(contestId, data);
+    // Best-effort - don't block navigation if the server's briefly
+    // unreachable, identity is already saved locally either way.
+    joinContest(contestId, data.name, data.rollNumber).catch(() => {});
     navigate(`/contest/${contestId}`);
   };
 

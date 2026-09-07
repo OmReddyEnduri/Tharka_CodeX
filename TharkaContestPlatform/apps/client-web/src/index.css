@@ -1,17 +1,3 @@
-/* Self-hosted (via @fontsource) instead of a live fonts.googleapis.com
-   @import. A remote @import is render-blocking - on a lab laptop with no
-   network the whole app sat waiting on that DNS lookup before anything
-   (including the compiler) became responsive. Bundling the font files
-   removes the app's last runtime dependency on internet access. */
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
-@import '@fontsource/inter/800.css';
-@import '@fontsource/inter/900.css';
-@import '@fontsource/jetbrains-mono/500.css';
-@import '@fontsource/jetbrains-mono/700.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

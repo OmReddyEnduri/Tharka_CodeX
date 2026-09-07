@@ -4,6 +4,7 @@ import AdminContestsList from "@/pages/AdminContestsList";
 import CreateContest from "@/pages/CreateContest";
 import ContestDetail from "@/pages/ContestDetail";
 import AdminResults from "@/pages/AdminResults";
+import JudgeSettingsPage from "@/pages/JudgeSettingsPage";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/contests/:contestId/edit" element={<CreateContest />} />
         <Route path="/contests/:contestId" element={<ContestDetail />} />
         <Route path="/contests/:contestId/results" element={<AdminResults />} />
+        <Route path="/judge-settings" element={<JudgeSettingsPage />} />
       </Route>
     </Routes>
   );

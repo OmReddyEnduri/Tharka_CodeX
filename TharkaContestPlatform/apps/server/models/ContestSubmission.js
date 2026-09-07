@@ -54,6 +54,19 @@ const contestSubmissionSchema = new mongoose.Schema({
     type: String // To store compiler errors or runtime stack traces
   },
 
+  // Which side computed this verdict: "server-judged" (this server ran
+  // packages/judge-cpp itself, via the /submit route) vs "client-synced"
+  // (an Electron laptop judged locally and pushed the result over
+  // /submissions/sync, unverified - see that route's comment). No auth means
+  // any device on the LAN can also POST a forged client-synced submission
+  // directly; this field at least makes that distinguishable from a normal
+  // one in the admin results view, rather than indistinguishable.
+  source: {
+    type: String,
+    enum: ['server-judged', 'client-synced'],
+    default: 'server-judged',
+  },
+
   submittedAt: {
     type: Date,
     default: Date.now

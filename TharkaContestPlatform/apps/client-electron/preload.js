@@ -35,6 +35,9 @@ contextBridge.exposeInMainWorld("contestAPI", {
     return () => ipcRenderer.removeListener("interactive-exit", handler);
   },
 
+  openFile: () => ipcRenderer.invoke("open-file"),
+  saveFile: (args) => ipcRenderer.invoke("save-file", args),
+
   syncNow: () => ipcRenderer.invoke("sync-now"),
   getPendingSubmissionsCount: () => ipcRenderer.invoke("get-pending-submissions-count"),
   getSyncState: () => ipcRenderer.invoke("get-sync-state"),

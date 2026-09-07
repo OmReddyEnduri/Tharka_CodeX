@@ -9,10 +9,10 @@ const pidusage = require('pidusage');
 const { compile } = require('./compile');
 const { staticCheck } = require('./staticCheck');
 
-const MAX_SESSION_MS = 5 * 60 * 1000; // hard cap - runaway/malicious programs get killed, not left running
-const MEMORY_LIMIT_MB = 256;
+const DEFAULT_MAX_SESSION_MS = 5 * 60 * 1000; // hard cap - runaway/malicious programs get killed, not left running
+const DEFAULT_MEMORY_LIMIT_MB = 256;
 const MEMORY_POLL_MS = 500;
-const MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB - guards against a print-flood loop filling memory over a 5min session
+const DEFAULT_MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB - guards against a print-flood loop filling memory over a long session
 
 // A live, interactive run: unlike run()/runOnce() (which supply one fixed
 // input blob and wait for exit), this keeps the process's stdin open so a
@@ -27,7 +27,18 @@ class InteractiveSession {
     this._settled = false;
   }
 
-  async start(sourceCode, { onStdout, onStderr, onExit }) {
+  // `settings` (all optional, admin-configurable via JudgeSettings) lets the
+  // Compiler page's interactive Console respect the same admin-controlled
+  // limits/blocklist as contest judging, instead of these being separately
+  // hardcoded here.
+  async start(sourceCode, { onStdout, onStderr, onExit }, settings = {}) {
+    const {
+      maxSessionMs = DEFAULT_MAX_SESSION_MS,
+      memoryLimitMb = DEFAULT_MEMORY_LIMIT_MB,
+      maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES,
+      blockedKeywords,
+    } = settings;
+
     // Settle exactly once: a killed process's own 'close' event can still
     // fire after a timeout/memory-limit kill already reported the verdict
     // (same race as execute.js) - without this guard the caller would see
@@ -38,7 +49,7 @@ class InteractiveSession {
       onExit(info);
     };
 
-    const check = staticCheck(sourceCode);
+    const check = staticCheck(sourceCode, blockedKeywords);
     if (check.blocked) {
       settle({ status: 'Error', message: check.reason });
       return;
@@ -59,15 +70,15 @@ class InteractiveSession {
     this.child = spawn(execPath, [], { windowsHide: true });
 
     this._sessionTimer = setTimeout(() => {
-      settle({ status: 'Time Limit Exceeded', message: `Session exceeded the max run time (${MAX_SESSION_MS / 1000}s).` });
+      settle({ status: 'Time Limit Exceeded', message: `Session exceeded the max run time (${maxSessionMs / 1000}s).` });
       this._kill();
-    }, MAX_SESSION_MS);
+    }, maxSessionMs);
 
     this._memoryTimer = setInterval(async () => {
       if (!this.child) return;
       try {
         const stats = await pidusage(this.child.pid);
-        if (stats.memory / 1024 / 1024 > MEMORY_LIMIT_MB) {
+        if (stats.memory / 1024 / 1024 > memoryLimitMb) {
           settle({ status: 'Memory Limit Exceeded' });
           this._kill();
         }
@@ -79,8 +90,8 @@ class InteractiveSession {
     let outputBytes = 0;
     const trackOutput = (d) => {
       outputBytes += d.length;
-      if (outputBytes > MAX_OUTPUT_BYTES) {
-        settle({ status: 'Output Limit Exceeded', message: `Program produced more than ${MAX_OUTPUT_BYTES / 1024 / 1024}MB of output.` });
+      if (outputBytes > maxOutputBytes) {
+        settle({ status: 'Output Limit Exceeded', message: `Program produced more than ${maxOutputBytes / 1024 / 1024}MB of output.` });
         this._kill();
         return true;
       }

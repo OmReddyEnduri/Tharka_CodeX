@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { io, type Socket } from "socket.io-client";
 import screenfull from "screenfull";
@@ -11,6 +11,12 @@ import {
   Maximize2,
   Minimize2,
   Code2,
+  Save,
+  FolderOpen,
+  FilePlus2,
+  Copy,
+  Check,
+  Trash2,
 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
@@ -19,10 +25,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { SettingsDialog } from "@/components/ContestSettingsDialog";
+import { SettingsDialog, type ShortcutHint } from "@/components/ContestSettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { runStandalone, getServerUrl } from "@/lib/apiClient";
 import { registerCustomMonacoThemes } from "@/lib/monacoThemes";
+import { getTemplate } from "@/lib/codeTemplate";
+import { getCompilerDraft, saveCompilerDraft } from "@/lib/codeDrafts";
+import { getEditorSettings, saveEditorSettings, type EditorSettings } from "@/lib/editorSettings";
+import { openCodeFile, saveCodeFile, fileAccessMode, type EditorFile } from "@/lib/fileIO";
 
 // A freeform "online compiler" page (no contest/problem context), modeled
 // on OneCompiler's layout: editor on one side, a Console/I-O tabbed panel
@@ -37,13 +47,18 @@ import { registerCustomMonacoThemes } from "@/lib/monacoThemes";
 //     a stream of events rather than a single request/response.
 //   - I/O: simpler batch mode - paste fixed input up front, run once, see
 //     the full stdout/stderr at the end (reuses /api/compile/run via apiClient).
-const defaultCode = `#include <iostream>
-using namespace std;
+//
+// The buffer itself behaves like a desktop editor: it autosaves as a draft
+// (lib/codeDrafts.ts) so closing the app never loses work, and it can be
+// opened from / saved to a real file on disk (lib/fileIO.ts, Ctrl+O/Ctrl+S).
 
-int main() {
-    // Write your code here
-    return 0;
-}`;
+const SHORTCUTS: ShortcutHint[] = [
+  { keys: "Ctrl+B", label: "Run" },
+  { keys: "Ctrl+Q", label: "Stop" },
+  { keys: "Ctrl+S", label: "Save file" },
+  { keys: "Ctrl+Shift+S", label: "Save as" },
+  { keys: "Ctrl+O", label: "Open file" },
+];
 
 type TerminalLine = { type: "stdout" | "stderr" | "input" | "system"; text: string };
 
@@ -54,11 +69,33 @@ function exitLabel(info: any): string {
 }
 
 export default function Compiler() {
-  const [code, setCode] = useState(defaultCode);
+  // Restore whatever was last in the editor on this laptop; fall back to the
+  // saved template (settings dialog) and finally the built-in stub.
+  const [code, setCode] = useState<string>(() => getCompilerDraft() ?? getTemplate());
   const [activeTab, setActiveTab] = useState<"console" | "io">("console");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [editorSettings, setEditorSettings] = useState({ theme: "vs-dark", fontSize: 14, keybinding: "default" });
+  const [editorSettings, setEditorSettings] = useState<EditorSettings>(getEditorSettings);
+  const [copied, setCopied] = useState(false);
+
+  // --- File on disk ---
+  const [currentFile, setCurrentFile] = useState<EditorFile | null>(null);
+  // Snapshot of the code as it was last written to / read from disk, so the
+  // tab can show an unsaved-changes dot. Null when there is no file yet.
+  const [lastSavedCode, setLastSavedCode] = useState<string | null>(null);
+  const isDirty = currentFile !== null && code !== lastSavedCode;
+
+  const handleEditorSettingsChange = (next: EditorSettings) => {
+    setEditorSettings(next);
+    saveEditorSettings(next);
+  };
+
+  // Debounced draft autosave - localStorage writes are synchronous, so doing
+  // one per keystroke would stutter the editor on a slow lab laptop.
+  useEffect(() => {
+    const id = setTimeout(() => saveCompilerDraft(code), 500);
+    return () => clearTimeout(id);
+  }, [code]);
 
   // --- Console tab: live interactive terminal ---
   const socketRef = useRef<Socket | null>(null);
@@ -157,6 +194,68 @@ export default function Compiler() {
   const running = activeTab === "console" ? terminalRunning : ioRunning;
   const handleRun = activeTab === "console" ? runInteractive : runBatch;
 
+  // --- File actions ---
+  // In the download-fallback tier (a plain browser over http on a LAN IP,
+  // where the File System Access API is unavailable) there is no handle to
+  // reuse, so every save is really "download a copy" - say so on the button
+  // rather than implying an in-place overwrite that isn't happening.
+  const savesByDownload = fileAccessMode() === "download";
+
+  const handleSave = useCallback(
+    async (saveAs = false) => {
+      try {
+        const saved = await saveCodeFile(code, currentFile, { saveAs, suggestedName: "Main.cpp" });
+        if (!saved) return; // dialog cancelled
+        setCurrentFile(saved);
+        setLastSavedCode(code);
+        toast.success(savesByDownload ? `Downloaded ${saved.name}` : `Saved ${saved.name}`);
+      } catch (err: any) {
+        toast.error(err?.message || "Could not save the file");
+      }
+    },
+    [code, currentFile, savesByDownload]
+  );
+
+  const handleOpen = useCallback(async () => {
+    try {
+      const opened = await openCodeFile();
+      if (!opened) return; // dialog cancelled
+      setCode(opened.code);
+      setCurrentFile(opened.file);
+      setLastSavedCode(opened.code);
+      toast.success(`Opened ${opened.file.name}`);
+    } catch (err: any) {
+      toast.error(err?.message || "Could not open the file");
+    }
+  }, []);
+
+  const handleNewFile = () => {
+    setCode(getTemplate());
+    setCurrentFile(null);
+    setLastSavedCode(null);
+    toast.success("New file started from your template.");
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
+  };
+
+  const copyTerminal = async () => {
+    const text = terminal.map((l) => (l.type === "input" ? `> ${l.text}` : l.text)).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Output copied");
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
+  };
+
   const handleFullScreen = () => {
     if (screenfull.isEnabled) {
       screenfull.toggle();
@@ -166,25 +265,36 @@ export default function Compiler() {
     }
   };
 
-  // Ctrl+B run / Ctrl+Q stop. Capture phase so this fires before Monaco's
-  // own keydown handling swallows the event (Monaco stops propagation for a
-  // lot of key combos otherwise). Stop only does anything on the Console
-  // tab's live session - the I/O tab's single request/response has nothing
-  // to cancel once sent.
+  // Ctrl+B run / Ctrl+Q stop / Ctrl+S save / Ctrl+Shift+S save-as / Ctrl+O
+  // open. Capture phase so this fires before Monaco's own keydown handling
+  // swallows the event (Monaco stops propagation for a lot of key combos
+  // otherwise), and before the browser's own Save Page / Open File defaults.
+  // Stop only does anything on the Console tab's live session - the I/O
+  // tab's single request/response has nothing to cancel once sent.
+  //
+  // Suspended while the settings dialog is open, so Ctrl+S in the template
+  // editor in there doesn't save the main buffer to disk behind your back.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (!e.ctrlKey) return;
-      if (e.key.toLowerCase() === "b") {
+      if (!e.ctrlKey || isSettingsOpen) return;
+      const key = e.key.toLowerCase();
+      if (key === "b") {
         e.preventDefault();
         if (!running) handleRun();
-      } else if (e.key.toLowerCase() === "q") {
+      } else if (key === "q") {
         e.preventDefault();
         if (activeTab === "console" && terminalRunning) stopInteractive();
+      } else if (key === "s") {
+        e.preventDefault();
+        handleSave(e.shiftKey);
+      } else if (key === "o") {
+        e.preventDefault();
+        handleOpen();
       }
     };
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [running, handleRun, activeTab, terminalRunning]);
+  }, [running, handleRun, activeTab, terminalRunning, handleSave, handleOpen, isSettingsOpen]);
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
@@ -218,9 +328,31 @@ export default function Compiler() {
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={55} minSize={30}>
             <div className="flex flex-col h-full bg-background relative">
-              <div className="h-10 bg-muted/50 border-b flex items-center justify-between px-4">
-                <span className="text-xs font-semibold text-muted-foreground">Main.cpp</span>
-                <div className="flex items-center gap-3">
+              <div className="h-10 bg-muted/50 border-b flex items-center justify-between px-4 gap-2">
+                <span className="text-xs font-semibold text-muted-foreground truncate" title={currentFile?.path || currentFile?.name}>
+                  {currentFile?.name ?? "Main.cpp"}
+                  {isDirty && <span className="ml-1 text-primary" title="Unsaved changes">●</span>}
+                </span>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handleNewFile} title="Start a new file from your template">
+                    <FilePlus2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handleOpen} title="Open a file (Ctrl+O)">
+                    <FolderOpen className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs gap-1"
+                    onClick={() => handleSave(false)}
+                    title={savesByDownload ? "Download this code as a file (Ctrl+S)" : "Save to file (Ctrl+S) - Ctrl+Shift+S to save as"}
+                  >
+                    <Save className="h-3.5 w-3.5" /> Save
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={handleCopyCode} title="Copy all code">
+                    {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  </Button>
+                  <div className="h-4 w-px bg-border mx-1"></div>
                   <Settings className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" onClick={() => setIsSettingsOpen(true)} />
                   {isFullScreen ? (
                     <Minimize2 className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" onClick={handleFullScreen} />
@@ -244,7 +376,7 @@ export default function Compiler() {
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
                     padding: { top: 10 },
-                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                    wordBasedSuggestions: "currentDocument",
                   }}
                 />
               </div>
@@ -255,7 +387,7 @@ export default function Compiler() {
 
           <ResizablePanel defaultSize={45} minSize={25}>
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "console" | "io")} className="flex flex-col h-full bg-card border-l">
-              <div className="px-4 border-b flex-shrink-0">
+              <div className="px-4 border-b flex-shrink-0 flex items-center justify-between">
                 <TabsList className="h-10 bg-transparent gap-4">
                   <TabsTrigger value="console" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-10 px-0">
                     Console
@@ -264,6 +396,23 @@ export default function Compiler() {
                     I/O
                   </TabsTrigger>
                 </TabsList>
+                {activeTab === "console" && terminal.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" className="h-7 px-2" onClick={copyTerminal} title="Copy output">
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2"
+                      onClick={() => setTerminal([])}
+                      disabled={terminalRunning}
+                      title={terminalRunning ? "Stop the program first" : "Clear the terminal"}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* No `flex`/`block` display utility directly on TabsContent:
@@ -385,7 +534,14 @@ export default function Compiler() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} settings={editorSettings} onSettingsChange={setEditorSettings} />
+      <SettingsDialog
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={editorSettings}
+        onSettingsChange={handleEditorSettingsChange}
+        currentCode={code}
+        shortcuts={SHORTCUTS}
+      />
     </div>
   );
 }

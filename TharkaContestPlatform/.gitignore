@@ -6,3 +6,4 @@ dist-electron/
 !.env.example
 temp/
 release/
+apps/server/deploy/deploy.log
