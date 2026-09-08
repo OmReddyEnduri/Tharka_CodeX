@@ -39,6 +39,35 @@ Full original design plan (phasing, rationale for each architecture decision) is
   browser localStorage per contest, not global). This is identification, not
   authentication — no password, a student could type someone else's roll number.
   Clerk code was deliberately left behind in the old repo, not ported.
+- **Two ways to remove a student, deliberately different in kind.**
+  *Disqualify* (`PUT /api/contests/:contestId/disqualify`) is a reversible
+  toggle that keeps every submission for audit and just flags/sorts the
+  student last on the leaderboard. *Delete* (`DELETE
+  /api/contests/:contestId/participants/:roll`, or
+  `DELETE /api/contests/participants/:roll` to purge from **every** contest)
+  is permanent: participant row + disqualification row + every
+  `ContestSubmission` they made, gone. Because it is the only irreversible
+  admin action, it needs a **second secret on top of the admin token** —
+  `STUDENT_DELETE_PASSWORD` in `apps/server/.env`, checked by
+  `lib/deletePassword.js`, sent as an `x-student-delete-password` header or a
+  `password` body field (never a query param — that leaks into logs). The
+  reasoning for a *separate* secret: `ADMIN_BYPASS_TOKEN` is baked into the
+  built admin dashboard, so it effectively means "whoever has the tab open";
+  this one is never shipped to any client, so an unattended open admin tab
+  can't wipe a student's history. It **fails closed** — an unset password
+  means nobody may delete, never everybody. Wrong passwords are throttled
+  per IP (5 failures → 15-minute 429 lockout, in-memory, so a service
+  restart clears it), and every delete writes a `PERMANENT DELETE:` audit
+  line to `daemon/tharkacontestserver.out.log` — the only remaining record
+  that the data existed. Deleting a roll number that isn't there is a 404,
+  not a silent success, so a typo can't read as "done".
+  In the dashboard it's the red **Delete** button next to Disqualify on
+  each Live Results row (`AdminResults.tsx`), which opens a dialog with a
+  This contest / Every contest scope toggle and a password field. Wrong-
+  password and lockout errors render inline in that dialog rather than as
+  a toast, so the admin can retry without reopening - which is why
+  `apiClient.ts`'s `apiFetch` now attaches `status` and the parsed `body`
+  to the Error it throws (`ApiError`) instead of only a message string.
 - **Judging**: C++ only (g++ confirmed on all lab machines). "Basic isolation" only —
   subprocess + time/memory limits + a static keyword/include blocklist. No OS-level
   sandboxing (nsjail, containers, VMs) — this is a trusted, non-adversarial lab.
@@ -138,6 +167,41 @@ cd apps/server; node install-service.js       # (re)install it
 ```
 After editing any server-side code (`apps/server/**`, `packages/judge-cpp/**`),
 restart the service to pick up the change — it does not hot-reload.
+
+**The admin dashboard is a second service**: `TharkaAdminWeb` (shows as
+`tharkaadminweb.exe`), installed via `apps/admin-web/install-service.cjs`.
+It runs `vite preview` — the built `dist/`, not the dev server — on port
+5174, so `http://localhost:5174/` (and `http://192.168.1.101:5174/` from the
+LAN) is up whenever the machine is. Because it serves a *build*, editing
+`apps/admin-web/src/**` changes nothing until you re-run
+`npm run build --workspace=admin-web` and restart the service.
+
+Note the real service **Name**s are `tharkacontestserver.exe` /
+`tharkaadminweb.exe`; `TharkaContestServer` / `TharkaAdminWeb` are DisplayNames.
+`Get-Service` accepts either, but raw `sc.exe` needs the `.exe` Name.
+
+Two things `node-windows` can't configure, applied with `sc.exe` by the two
+install scripts (and re-applied on reinstall — don't drop these):
+- `TharkaContestServer` **depends on `MongoDB`**. Both are auto-start, so
+  without the dependency Windows races them on boot. `server.js` only *logs*
+  a failed `mongoose.connect()` rather than exiting, and mongoose does not
+  retry once the initial connect rejects — so losing that race yields a
+  server that answers HTTP but fails every DB query, i.e. looks healthy to
+  any port check while the whole lab is broken. admin-web deliberately has
+  **no** dependency: it should still load when the backend is down.
+- **Windows-level recovery** on both (`sc failure ... restart/60000` ×3).
+  `node-windows`'s `maxRetries: 60` only restarts the *child node process*
+  from inside the wrapper; if the wrapper `.exe` itself dies, nothing
+  recovers it. Both services were found stopped with exit 1067 for exactly
+  this reason before recovery actions were added.
+
+**Known hazard**: node-windows generates each daemon `.exe` in a `daemon/`
+folder next to its `script`. For admin-web that `script` is
+`node_modules/vite/bin/vite.js`, so its service binary lives *inside
+node_modules* — a plain `npm install`/`npm ci` deletes it, leaving a service
+that is still registered and still set to auto-start but can never start
+again. After any dependency reinstall, re-run
+`node uninstall-service.cjs && node install-service.cjs` in `apps/admin-web`.
 
 ## Current phase / status
 

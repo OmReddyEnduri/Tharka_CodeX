@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2, BarChart3, FileCode, Upload } from "lucide-react";
+import { Pencil, Plus, Trash2, BarChart3, FileCode, Upload, GripVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,12 +19,44 @@ export default function ContestDetail() {
   const [editingProblem, setEditingProblem] = useState<ContestProblem | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [selectedProblems, setSelectedProblems] = useState<Set<number>>(new Set());
+  const [orderedProblems, setOrderedProblems] = useState<ContestProblem[]>([]);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
 
   const { data: contest, isLoading } = useQuery({
     queryKey: ["contest", contestId],
     queryFn: () => apiClient.getContest(contestId!),
     enabled: !!contestId,
   });
+
+  // Local copy so a drag can reorder instantly, without waiting on a
+  // round-trip - kept in sync whenever the server data changes (initial
+  // load, or after our own reorder mutation invalidates the query).
+  useEffect(() => {
+    if (contest) setOrderedProblems(contest.problems);
+  }, [contest]);
+
+  const reorderMutation = useMutation({
+    mutationFn: (problemIds: number[]) => apiClient.reorderProblems(contestId!, problemIds),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contest", contestId] }),
+    onError: (err: Error) => {
+      toast.error(err.message);
+      queryClient.invalidateQueries({ queryKey: ["contest", contestId] });
+    },
+  });
+
+  const handleDrop = (targetId: number) => {
+    if (draggingId === null || draggingId === targetId) return;
+    const fromIndex = orderedProblems.findIndex((p) => p.id === draggingId);
+    const toIndex = orderedProblems.findIndex((p) => p.id === targetId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const next = [...orderedProblems];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    setOrderedProblems(next);
+    setDraggingId(null);
+    reorderMutation.mutate(next.map((p) => p.id));
+  };
 
   const deleteProblemMutation = useMutation({
     mutationFn: (problemId: number) => apiClient.deleteProblem(contestId!, problemId),
@@ -150,12 +182,23 @@ export default function ContestDetail() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {contest.problems.length === 0 && (
+          {orderedProblems.length === 0 && (
             <p className="text-muted-foreground text-center py-4">No problems yet.</p>
           )}
-          {contest.problems.map((problem) => (
-            <div key={problem.id} className="flex items-center justify-between p-3 border rounded-lg">
+          {orderedProblems.map((problem) => (
+            <div
+              key={problem.id}
+              draggable
+              onDragStart={() => setDraggingId(problem.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDrop(problem.id)}
+              onDragEnd={() => setDraggingId(null)}
+              className={`flex items-center justify-between p-3 border rounded-lg ${
+                draggingId === problem.id ? "opacity-50" : ""
+              }`}
+            >
               <div className="flex items-center gap-3">
+                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
                 <input
                   type="checkbox"
                   className="h-4 w-4"

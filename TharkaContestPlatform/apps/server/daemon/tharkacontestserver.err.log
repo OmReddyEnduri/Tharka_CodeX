@@ -5,3 +5,11 @@ ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memo
 ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
 ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
 ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
+Rejected student-delete: wrong password from ::1 (failure 1/5)
+Rejected student-delete: wrong password from ::1 (failure 1/5)
+Rejected student-delete: wrong password from ::1 (failure 1/5)
+Rejected student-delete: wrong password from ::1 (failure 2/5)
+Rejected student-delete: wrong password from ::1 (failure 3/5)
+Rejected student-delete: wrong password from ::1 (failure 4/5)
+Rejected student-delete: wrong password from ::1 (failure 5/5, now locked out)
+Rejected student-delete: wrong password from ::1 (failure 1/5)

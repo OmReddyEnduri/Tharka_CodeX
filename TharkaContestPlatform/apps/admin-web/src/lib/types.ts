@@ -148,3 +148,28 @@ export interface BulkContestResult {
   reason?: string | null;
   problems?: BulkProblemResult[];
 }
+
+// Response from the permanent student-delete routes (see
+// apiClient.deleteStudent / apps/server/routes/contestRoutes.js). The
+// per-contest route returns the single-contest shape flattened at the top
+// level; the all-contests route returns the same shape once per affected
+// contest in `results`, plus the roll-up counts.
+export interface StudentDeleteResult {
+  msg: string;
+  studentRollNumber: string;
+  scope: "this-contest" | "all-contests";
+  // this-contest only
+  contestName?: string;
+  participantRemoved?: boolean;
+  disqualificationRemoved?: boolean;
+  submissionsDeleted?: number;
+  // all-contests only
+  contestsAffected?: number;
+  results?: {
+    contestId: string;
+    contestName: string;
+    participantRemoved: boolean;
+    disqualificationRemoved: boolean;
+    submissionsDeleted: number;
+  }[];
+}

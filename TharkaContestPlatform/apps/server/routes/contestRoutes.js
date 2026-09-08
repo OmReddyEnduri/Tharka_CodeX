@@ -9,6 +9,7 @@ const judge = require("judge-cpp");
 const { computeLeaderboard } = require("../lib/leaderboard");
 const { getJudgeSettings } = require("../lib/judgeSettings");
 const { isAdminRequest, requireAdmin } = require("../lib/adminAuth");
+const { requireDeletePassword } = require("../lib/deletePassword");
 const { stripHiddenTestCaseIO } = require("../lib/hiddenTestCases");
 
 // `checker` picks how a problem's output is compared - "token"
@@ -273,9 +274,16 @@ router.post("/bulk", requireAdmin, async (req, res) => {
 });
 
 // @route   PUT /api/contests/:contestId
+// @desc    Edit contest name/times/description/settings. Does NOT touch
+// problem membership or order - that's POST/DELETE .../problems and PUT
+// .../reorder below. (It used to also accept `problemIds` here and write it
+// straight to contest.problemIds, but that left contest.problems - the
+// ObjectId array GET actually populates and returns - silently out of sync
+// with it. Nothing in the admin UI ever sent problemIds through this route,
+// so removing it closes a latent bug without changing any real behavior.)
 router.put("/:contestId", requireAdmin, async (req, res) => {
   try {
-    const { name, startTime, endTime, description, problemIds, settings } = req.body;
+    const { name, startTime, endTime, description, settings } = req.body;
 
     const contest = await Contest.findById(req.params.contestId);
     if (!contest) return res.status(404).json({ msg: "Contest not found" });
@@ -284,11 +292,54 @@ router.put("/:contestId", requireAdmin, async (req, res) => {
     contest.startTime = startTime ?? contest.startTime;
     contest.endTime = endTime ?? contest.endTime;
     contest.description = description ?? contest.description;
-    contest.problemIds = problemIds ?? contest.problemIds;
     if (settings) contest.settings = { ...contest.settings?.toObject?.() ?? contest.settings, ...settings };
 
     await contest.save();
     res.json(contest);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route   PUT /api/contests/:contestId/reorder
+// @desc    Persist a new display order for this contest's problems (admin
+// drag-and-drop). Body is { problemIds: [...] } - every problem id currently
+// in the contest, in the desired new order. This is order-only: the set of
+// ids must exactly match the contest's current problemIds, or it's rejected -
+// use the add/remove problem routes to actually change membership.
+// contest.problems (ObjectId refs, what GET /:contestId populates and
+// returns) and contest.problemIds (parallel Number array) are always kept in
+// the same order elsewhere in this file, so both are permuted together here
+// too - reordering only problemIds would silently desync them.
+router.put("/:contestId/reorder", requireAdmin, async (req, res) => {
+  try {
+    const { problemIds } = req.body;
+    if (!Array.isArray(problemIds)) {
+      return res.status(400).json({ msg: "Body must be { problemIds: [...] }" });
+    }
+
+    const contest = await Contest.findById(req.params.contestId);
+    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+
+    const current = contest.problemIds;
+    const sameSet =
+      current.length === problemIds.length &&
+      current.every((id) => problemIds.includes(id)) &&
+      problemIds.every((id) => current.includes(id));
+    if (!sameSet) {
+      return res
+        .status(400)
+        .json({ msg: "problemIds must be a reordering of this contest's existing problems (same set, new order)" });
+    }
+
+    const objectIdByProblemId = new Map(current.map((id, i) => [id, contest.problems[i]]));
+    contest.problemIds = problemIds;
+    contest.problems = problemIds.map((id) => objectIdByProblemId.get(id));
+
+    await contest.save();
+    const populated = await contest.populate("problems");
+    res.json(populated);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });
@@ -317,6 +368,153 @@ router.put("/:contestId/disqualify", requireAdmin, async (req, res) => {
 
     await contest.save();
     res.json({ disqualifiedStudents: contest.disqualifiedStudents });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// Erases every trace of one student from one contest: their participant row
+// (so they vanish from the live "who's here" list and the zero-score
+// leaderboard seed), any disqualification row, and every submission they
+// made in that contest. Mutates `contest` in memory and saves it.
+//
+// Deliberately NOT wrapped in a transaction: this deployment runs a
+// standalone mongod, not a replica set, so `session.startTransaction()`
+// would throw here. The order below is therefore chosen so that a crash
+// mid-way leaves the *safe* kind of inconsistency - submissions go first,
+// and only then is the participant row removed. A crash between the two
+// leaves a participant with no submissions (visible, obviously wrong, and
+// fixable by re-running the delete), rather than orphaned submissions for a
+// student who no longer appears anywhere in the contest.
+async function purgeStudentFromContest(contest, studentRollNumber) {
+  const participantsBefore = contest.participants.length;
+  const disqualifiedBefore = contest.disqualifiedStudents.length;
+
+  const { deletedCount } = await ContestSubmission.deleteMany({
+    contest: contest._id,
+    studentRollNumber,
+  });
+
+  contest.participants = contest.participants.filter(
+    (p) => p.studentRollNumber !== studentRollNumber
+  );
+  contest.disqualifiedStudents = contest.disqualifiedStudents.filter(
+    (d) => d.studentRollNumber !== studentRollNumber
+  );
+
+  const participantRemoved = contest.participants.length !== participantsBefore;
+  const disqualificationRemoved = contest.disqualifiedStudents.length !== disqualifiedBefore;
+  const submissionsDeleted = deletedCount || 0;
+
+  if (participantRemoved || disqualificationRemoved) await contest.save();
+
+  return {
+    contestId: String(contest._id),
+    contestName: contest.name,
+    participantRemoved,
+    disqualificationRemoved,
+    submissionsDeleted,
+    found: participantRemoved || disqualificationRemoved || submissionsDeleted > 0,
+  };
+}
+
+// @route   DELETE /api/contests/participants/:studentRollNumber
+// @desc    PERMANENT + IRREVERSIBLE. Erase a student from *every* contest at
+// once - the "this person should not exist in this system" case, as opposed
+// to removing one bad contest entry. Requires the admin token AND the
+// separate STUDENT_DELETE_PASSWORD (see lib/deletePassword.js).
+//
+// Registered before the /:contestId/... routes purely for readability - it
+// can't actually be shadowed by them, since "/participants/:roll" is two
+// path segments and DELETE /:contestId is one.
+router.delete("/participants/:studentRollNumber", requireAdmin, requireDeletePassword, async (req, res) => {
+  try {
+    const { studentRollNumber } = req.params;
+    if (!studentRollNumber) return res.status(400).json({ msg: "studentRollNumber is required" });
+
+    // Only contests that actually reference this student are loaded and
+    // saved, so a purge doesn't rewrite (and bump `updatedAt` on) every
+    // contest in the database.
+    const contestIdsWithSubmissions = await ContestSubmission.distinct("contest", { studentRollNumber });
+    const contests = await Contest.find({
+      $or: [
+        { _id: { $in: contestIdsWithSubmissions } },
+        { "participants.studentRollNumber": studentRollNumber },
+        { "disqualifiedStudents.studentRollNumber": studentRollNumber },
+      ],
+    });
+
+    if (contests.length === 0) {
+      return res.status(404).json({ msg: `No student with roll number "${studentRollNumber}" found in any contest` });
+    }
+
+    const results = [];
+    for (const contest of contests) {
+      results.push(await purgeStudentFromContest(contest, studentRollNumber));
+    }
+
+    const submissionsDeleted = results.reduce((n, r) => n + r.submissionsDeleted, 0);
+    // Irreversible and manual, so it gets an audit line in the service log
+    // (apps/server/daemon/tharkacontestserver.out.log) - without it there is
+    // no record anywhere that the data ever existed.
+    console.log(
+      `PERMANENT DELETE: student "${studentRollNumber}" purged from ALL ${results.length} contest(s), ` +
+      `${submissionsDeleted} submission(s) erased, by ${req.ip}`
+    );
+
+    res.json({
+      msg: `Permanently deleted student "${studentRollNumber}" from ${results.length} contest(s)`,
+      studentRollNumber,
+      scope: "all-contests",
+      contestsAffected: results.length,
+      submissionsDeleted,
+      results,
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+// @route   DELETE /api/contests/:contestId/participants/:studentRollNumber
+// @desc    PERMANENT + IRREVERSIBLE. Erase a student from THIS contest:
+// participant row, disqualification row, and all their submissions here.
+// This is the escalation from PUT .../disqualify above - disqualifying keeps
+// the submissions for audit and is a reversible toggle, this destroys them -
+// so on top of the admin token it also requires STUDENT_DELETE_PASSWORD,
+// supplied as an `x-student-delete-password` header or a `password` field in
+// the JSON body (never a query param - that would leak into logs).
+router.delete("/:contestId/participants/:studentRollNumber", requireAdmin, requireDeletePassword, async (req, res) => {
+  try {
+    const { studentRollNumber } = req.params;
+    if (!studentRollNumber) return res.status(400).json({ msg: "studentRollNumber is required" });
+
+    // .catch(() => null) so a malformed contestId is a clean 404 rather than
+    // an unhandled CastError 500 - same guard the bulk-delete route uses.
+    const contest = await Contest.findById(req.params.contestId).catch(() => null);
+    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+
+    const result = await purgeStudentFromContest(contest, studentRollNumber);
+
+    // Nothing matched: almost always a mistyped roll number, and silently
+    // reporting success would let the admin believe a student was removed
+    // when they are still in the contest.
+    if (!result.found) {
+      return res.status(404).json({ msg: `No student with roll number "${studentRollNumber}" found in this contest` });
+    }
+
+    console.log(
+      `PERMANENT DELETE: student "${studentRollNumber}" purged from contest "${contest.name}" (${contest._id}), ` +
+      `${result.submissionsDeleted} submission(s) erased, by ${req.ip}`
+    );
+
+    res.json({
+      msg: `Permanently deleted student "${studentRollNumber}" from this contest`,
+      studentRollNumber,
+      scope: "this-contest",
+      ...result,
+    });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });

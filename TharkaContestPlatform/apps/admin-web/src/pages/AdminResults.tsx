@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ShieldOff, ShieldCheck } from "lucide-react";
+import { ShieldOff, ShieldCheck, Trash2, AlertTriangle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,14 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/apiClient";
+import type { ApiError } from "@/lib/apiClient";
 import type { LeaderboardEntry } from "@/lib/types";
 
 interface ViewingCell {
@@ -69,6 +73,70 @@ export default function AdminResults() {
       studentName: entry.studentName,
       disqualified: next,
       reason,
+    });
+  };
+
+  // Permanent delete is a different kind of action from disqualify, so it
+  // gets a real dialog rather than disqualify's stacked window.confirm()s:
+  // it needs a password field (which confirm() can't render), it has to
+  // spell out exactly what is about to be destroyed, and on a wrong password
+  // it has to stay open showing the error instead of throwing the admin back
+  // to the start.
+  const [deleting, setDeleting] = useState<LeaderboardEntry | null>(null);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteScope, setDeleteScope] = useState<"contest" | "all">("contest");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const closeDelete = () => {
+    setDeleting(null);
+    // Never leave the typed password sitting in component state after the
+    // dialog closes.
+    setDeletePassword("");
+    setDeleteScope("contest");
+    setDeleteError(null);
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: (vars: { rollNumber: string; password: string; scope: "contest" | "all" }) =>
+      apiClient.deleteStudent(contestId!, vars.rollNumber, vars.password, vars.scope),
+    onSuccess: (data) => {
+      // A cross-contest purge changes every contest's leaderboard, not only
+      // this one, so invalidate the whole "results" key rather than just
+      // ["results", contestId].
+      queryClient.invalidateQueries({ queryKey: ["results"] });
+      const contests = data.scope === "all-contests" ? (data.contestsAffected ?? 0) : 1;
+      const subs =
+        data.scope === "all-contests"
+          ? (data.results?.reduce((total, r) => total + r.submissionsDeleted, 0) ?? 0)
+          : (data.submissionsDeleted ?? 0);
+      toast.success(
+        `Deleted ${data.studentRollNumber} from ${contests} contest${contests === 1 ? "" : "s"}` +
+          ` (${subs} submission${subs === 1 ? "" : "s"} erased)`
+      );
+      closeDelete();
+    },
+    onError: (err: ApiError) => {
+      // Shown inline in the dialog rather than as a toast, so the admin can
+      // correct the password without reopening, and so the countdown to
+      // lockout sits right next to the field it applies to.
+      const remaining = err.body?.attemptsRemaining;
+      const retry = err.body?.retryAfterSeconds;
+      let msg = err.message;
+      if (typeof remaining === "number") {
+        msg += ` - ${remaining} attempt${remaining === 1 ? "" : "s"} left before a 15-minute lockout.`;
+      } else if (typeof retry === "number") {
+        msg += ` - locked out for about ${Math.ceil(retry / 60)} more minute(s).`;
+      }
+      setDeleteError(msg);
+    },
+  });
+
+  const submitDelete = () => {
+    if (!deleting || !deletePassword || deleteMutation.isPending) return;
+    deleteMutation.mutate({
+      rollNumber: deleting.studentRollNumber,
+      password: deletePassword,
+      scope: deleteScope,
     });
   };
 
@@ -152,7 +220,7 @@ export default function AdminResults() {
                     );
                   })}
                   <TableCell className="text-right font-semibold">{entry.totalScore}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right whitespace-nowrap">
                     <Button
                       size="sm"
                       variant="outline"
@@ -162,6 +230,21 @@ export default function AdminResults() {
                     >
                       {entry.disqualified ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldOff className="h-3.5 w-3.5" />}
                       {entry.disqualified ? "Re-qualify" : "Disqualify"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="ml-2 gap-2 text-destructive hover:text-destructive"
+                      title="Permanently delete this student and all their submissions"
+                      onClick={() => {
+                        setDeleting(entry);
+                        setDeletePassword("");
+                        setDeleteScope("contest");
+                        setDeleteError(null);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -218,6 +301,102 @@ export default function AdminResults() {
               </div>
             ))}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleting} onOpenChange={(open) => !open && closeDelete()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Permanently delete student
+            </DialogTitle>
+            <DialogDescription>
+              This cannot be undone. Use <span className="font-medium">Disqualify</span> instead if you only
+              want to remove them from the rankings but keep their work for review.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+              <p className="font-medium">
+                {deleting?.studentName}{" "}
+                <span className="text-muted-foreground">({deleting?.studentRollNumber})</span>
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                Erases their entry, any disqualification, and every submission they made.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Remove from</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={deleteScope === "contest" ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={() => setDeleteScope("contest")}
+                >
+                  This contest
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={deleteScope === "all" ? "destructive" : "outline"}
+                  className="flex-1"
+                  onClick={() => setDeleteScope("all")}
+                >
+                  Every contest
+                </Button>
+              </div>
+              {deleteScope === "all" && (
+                <p className="text-xs text-destructive">
+                  Wipes this student from every contest on the server, not just this one.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="delete-password">Delete password</Label>
+              <Input
+                id="delete-password"
+                type="password"
+                autoComplete="off"
+                autoFocus
+                placeholder="Required to confirm"
+                value={deletePassword}
+                onChange={(e) => {
+                  setDeletePassword(e.target.value);
+                  setDeleteError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitDelete();
+                }}
+              />
+              {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeDelete} disabled={deleteMutation.isPending}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="gap-2"
+              disabled={!deletePassword || deleteMutation.isPending}
+              onClick={submitDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+              {deleteMutation.isPending
+                ? "Deleting..."
+                : deleteScope === "all"
+                  ? "Delete everywhere"
+                  : "Delete permanently"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>

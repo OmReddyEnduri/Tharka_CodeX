@@ -8,9 +8,15 @@ import type {
   BulkProblemResult,
   Submission,
   JudgeSettings,
+  StudentDeleteResult,
 } from "./types";
 
 const SERVER_URL_KEY = "contest_server_url";
+
+export type ApiError = Error & {
+  status?: number;
+  body?: { msg?: string; attemptsRemaining?: number; retryAfterSeconds?: number; [k: string]: any };
+};
 
 // Not real security - this is a no-auth, non-adversarial LAN app. This is
 // just a UX gate that lets the admin preview a contest before it starts and
@@ -52,7 +58,14 @@ async function apiFetch<T = any>(path: string, opts: RequestInit = {}): Promise<
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}) as any);
-    throw new Error(body.msg || body.message || `Request failed: ${res.status}`);
+    // Keep the status and the parsed body on the Error, not just its
+    // message: the permanent-delete route returns structured detail the UI
+    // needs to show (attemptsRemaining on a wrong password, retryAfterSeconds
+    // on a lockout), and a bare Error(message) throws all of that away.
+    const err = new Error(body.msg || body.message || `Request failed: ${res.status}`) as ApiError;
+    err.status = res.status;
+    err.body = body;
+    throw err;
   }
   return res.json();
 }
@@ -88,6 +101,11 @@ export const apiClient = {
       `/api/contests/${contestId}/problems/bulk`,
       { method: "DELETE", body: JSON.stringify({ problemIds }) }
     ),
+  reorderProblems: (contestId: string, problemIds: number[]) =>
+    apiFetch<Contest>(`/api/contests/${contestId}/reorder`, {
+      method: "PUT",
+      body: JSON.stringify({ problemIds }),
+    }),
 
   bulkCreateContests: (contests: BulkContestInput[]) =>
     apiFetch<{ results: BulkContestResult[] }>("/api/contests/bulk", {
@@ -115,6 +133,30 @@ export const apiClient = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+
+  // PERMANENT + IRREVERSIBLE, unlike setDisqualified above (a reversible
+  // toggle that keeps submissions for audit). Erases the student's
+  // participant row, disqualification row, and every submission they made -
+  // from this contest, or from every contest when scope is "all".
+  //
+  // The password goes in the JSON body rather than the
+  // x-student-delete-password header the server also accepts: header values
+  // must be ISO-8859-1, so an admin who sets a password containing any
+  // non-ASCII character would make fetch() throw before the request is even
+  // sent. A JSON body is UTF-8 and has no such limit. It must never go in
+  // the query string - that lands in server/proxy logs and browser history.
+  deleteStudent: (
+    contestId: string,
+    studentRollNumber: string,
+    password: string,
+    scope: "contest" | "all" = "contest"
+  ) =>
+    apiFetch<StudentDeleteResult>(
+      scope === "all"
+        ? `/api/contests/participants/${encodeURIComponent(studentRollNumber)}`
+        : `/api/contests/${contestId}/participants/${encodeURIComponent(studentRollNumber)}`,
+      { method: "DELETE", body: JSON.stringify({ password }) }
+    ),
 
   getSyncVersion: () =>
     apiFetch<{ version: number; lastSyncedAt: string | null; connectedClients: number; serverTime: string }>(

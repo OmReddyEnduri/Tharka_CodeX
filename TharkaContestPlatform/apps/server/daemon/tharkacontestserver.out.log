@@ -110,3 +110,40 @@ Server listening on port 3001
 Connected to MongoDB
 Server listening on port 3001
 Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+PERMANENT DELETE: student "ZZ-001" purged from contest "ZZ Delete-Test" (6a9fc5d3412e334ecd273b64), 1 submission(s) erased, by ::1
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+PERMANENT DELETE: student "ZZ-002" purged from ALL 1 contest(s), 1 submission(s) erased, by ::1
+Server listening on port 3001
+Connected to MongoDB
+PERMANENT DELETE: student "ZZ-UI" purged from contest "ZZ UI-Path Test" (6a9fd57297fbac09a9d116ae), 0 submission(s) erased, by ::1
+Server listening on port 3001
+Connected to MongoDB
+PERMANENT DELETE: student "asdf" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 1 submission(s) erased, by ::1
+PERMANENT DELETE: student "ZZ-PW" purged from contest "ZZ PW Test" (6a9fd5dca010a0f745c7c799), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "bnv" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "ww" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "asdfasdf" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "334" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "qqw" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "245" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "88" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "77" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "221" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "332" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "33" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "44" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "32" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+PERMANENT DELETE: student "22" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
