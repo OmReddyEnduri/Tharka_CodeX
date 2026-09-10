@@ -940,3 +940,41 @@ Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInter
 2026-09-08 15:00:50 - Finished tharkacontestserver.exe
 2026-09-08 15:00:50 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
 2026-09-08 15:00:50 - Started 12508
+2026-09-08 15:18:00 - Stopping tharkacontestserver.exe
+2026-09-08 15:18:00 - ProcessKill 12508
+2026-09-08 15:18:01 - Shutdown exception
+Message:Class not registered
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-08 15:18:37 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-08 15:18:37 - Started 7256
+2026-09-09 08:10:37 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-09 08:10:37 - Started 7820
+2026-09-09 11:43:41 - Stopping tharkacontestserver.exe
+2026-09-09 11:43:41 - ProcessKill 7820
+2026-09-09 11:43:42 - Shutdown exception
+Message:A system shutdown is in progress.
+
+Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   at System.Management.ManagementScope.InitializeGuts(Object o)
+   at System.Management.ManagementScope.Initialize()
+   at System.Management.ManagementObjectSearcher.Initialize()
+   at System.Management.ManagementObjectSearcher.Get()
+   at winsw.WrapperService.GetChildPids(Int32 pid)
+   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   at winsw.WrapperService.StopIt()
+   at winsw.WrapperService.OnShutdown()
+2026-09-09 11:44:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-09 11:44:16 - Started 8372
+2026-09-09 13:47:36 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-09 13:47:37 - Started 8764
+2026-09-10 08:30:30 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-10 08:30:30 - Started 7388

@@ -147,3 +147,14 @@ PERMANENT DELETE: student "33" purged from contest "Beginner Contest 1" (6a9e85f
 PERMANENT DELETE: student "44" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
 PERMANENT DELETE: student "32" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
 PERMANENT DELETE: student "22" purged from contest "Beginner Contest 1" (6a9e85f5815c0df44fb18d7c), 0 submission(s) erased, by ::1
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+Server listening on port 3001
+Connected to MongoDB
+PERMANENT DELETE: student "88" purged from contest "C++ Contest — Level 3: Loops & Repetition (for loop)" (6aa0d36e5869554055fa500a), 0 submission(s) erased, by ::1
+Server listening on port 3001
+Connected to MongoDB
