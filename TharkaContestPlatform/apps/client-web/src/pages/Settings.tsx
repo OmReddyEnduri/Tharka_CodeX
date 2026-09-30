@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { DownloadCloud, FileText } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getServerUrl, setServerUrl } from "@/lib/apiClient";
+import { getServerUrl, setServerUrl, isElectron, getAppVersion, checkForUpdate, openUpdateLog } from "@/lib/apiClient";
 
 // The server URL has a sane baked-in default (apiClient.ts) and isn't
 // exposed for editing on the main contest-finding flow - this is the one
@@ -17,6 +18,39 @@ export default function Settings() {
   const save = () => {
     setServerUrl(serverUrlInput);
     toast.success("Server URL saved. Reload any open pages to pick it up.");
+  };
+
+  // Electron only - the plain browser build has nothing to update.
+  const [appVersion, setAppVersion] = useState<string | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  useEffect(() => {
+    if (isElectron()) {
+      getAppVersion().then(setAppVersion);
+    }
+  }, []);
+
+  const handleCheckForUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const result = await checkForUpdate();
+      if (result && !result.ok) {
+        toast.error(result.reason || "Could not check for updates.");
+      } else {
+        toast.success("Checking for updates...", {
+          description: "Progress shows in the top bar. This may restart the app.",
+        });
+      }
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const handleOpenUpdateLog = async () => {
+    const result = await openUpdateLog();
+    if (result && !result.ok) {
+      toast.error(result.reason || "Could not open the update log.");
+    }
   };
 
   return (
@@ -44,6 +78,26 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+
+        {isElectron() && (
+          <Card>
+            <CardHeader>
+              <CardTitle>App Update</CardTitle>
+              <CardDescription>
+                {appVersion ? `Current version: ${appVersion}. ` : ""}
+                Updates only happen when you click this - never automatically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-2">
+              <Button variant="ghost" onClick={handleOpenUpdateLog} title="Every check/download/install step, in order">
+                <FileText className="h-4 w-4" /> View Log
+              </Button>
+              <Button onClick={handleCheckForUpdate} disabled={checkingUpdate}>
+                <DownloadCloud className="h-4 w-4" /> {checkingUpdate ? "Checking..." : "Check for Updates"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppShell>
   );

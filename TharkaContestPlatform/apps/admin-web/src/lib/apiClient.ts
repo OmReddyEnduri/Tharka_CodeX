@@ -46,15 +46,36 @@ export function setServerUrl(url: string) {
   localStorage.setItem(SERVER_URL_KEY, url.replace(/\/+$/, ""));
 }
 
+// Plain fetch() never times out on its own - if the server is mid-restart or
+// unreachable, a request just hangs forever with no error, which left every
+// mutation/query here (Sync, Push Update, contest CRUD) spinning
+// indefinitely with nothing for the admin to act on. See client-web's
+// apiClient.ts for the matching fix and fuller rationale.
+const REQUEST_TIMEOUT_MS = 15000;
+
 async function apiFetch<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${getServerUrl()}${path}`, {
-    ...opts,
-    headers: {
-      "Content-Type": "application/json",
-      "x-contest-admin": ADMIN_BYPASS_TOKEN,
-      ...(opts.headers || {}),
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${getServerUrl()}${path}`, {
+      ...opts,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "x-contest-admin": ADMIN_BYPASS_TOKEN,
+        ...(opts.headers || {}),
+      },
+    });
+  } catch (err: any) {
+    const message =
+      err?.name === "AbortError"
+        ? "Couldn't reach the server (timed out). Check the server is running and try again."
+        : "Couldn't reach the server. Check the server is running and try again.";
+    throw new Error(message) as ApiError;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}) as any);
@@ -170,4 +191,32 @@ export const apiClient = {
   getJudgeSettings: () => apiFetch<JudgeSettings>("/api/judge-settings"),
   updateJudgeSettings: (data: Partial<JudgeSettings>) =>
     apiFetch<JudgeSettings>("/api/judge-settings", { method: "PUT", body: JSON.stringify(data) }),
+
+  getCurrentAppUpdate: () =>
+    apiFetch<{ version: string; fileName: string; size: number; publishedAt: string } | null>(
+      "/api/app-update/current"
+    ),
+  // Not routed through apiFetch - that helper always sets
+  // Content-Type: application/json, which would stop the browser from
+  // picking a correct multipart boundary for this one binary upload. The
+  // server computes the checksum itself and stamps the version from the
+  // publish moment (appUpdateRoutes.js's publishTimeVersion()) - nothing
+  // else needs to come along with the exe.
+  publishAppUpdate: async (file: File) => {
+    const form = new FormData();
+    form.append("exe", file);
+    const res = await fetch(`${getServerUrl()}/api/app-update/publish`, {
+      method: "POST",
+      headers: { "x-contest-admin": ADMIN_BYPASS_TOKEN },
+      body: form,
+    });
+    const body = await res.json().catch(() => ({}) as any);
+    if (!res.ok) {
+      const err = new Error(body.msg || `Request failed: ${res.status}`) as ApiError;
+      err.status = res.status;
+      err.body = body;
+      throw err;
+    }
+    return body as { version: string; publishedAt: string; notifiedClients: number };
+  },
 };

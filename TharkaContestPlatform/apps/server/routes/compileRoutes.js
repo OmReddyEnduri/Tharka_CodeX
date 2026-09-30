@@ -7,12 +7,12 @@ const { getJudgeSettings } = require("../lib/judgeSettings");
 // @desc    Freeform "online compiler" - no contest/problem context, just
 // compiles and runs C++ against whatever stdin the user typed in.
 router.post("/run", async (req, res) => {
-  const { code, input } = req.body;
+  const { code, input, defineLocal } = req.body;
   if (!code) return res.status(400).json({ status: "Error", message: "No code provided" });
 
   try {
     const judgeSettings = await getJudgeSettings();
-    const result = await judge.runOnce({ sourceCode: code, input: input || "", judgeSettings });
+    const result = await judge.runOnce({ sourceCode: code, input: input || "", judgeSettings, defineLocal });
     res.json(result);
   } catch (err) {
     console.error("Compiler run error:", err);

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SyncButton } from "@/components/SyncButton";
+import { PushUpdateCard } from "@/components/PushUpdateCard";
 import { BulkImportDialog } from "@/components/BulkImportDialog";
 import { apiClient } from "@/lib/apiClient";
 
@@ -57,6 +58,7 @@ export default function AdminContestsList() {
   return (
     <div className="space-y-6">
       <SyncButton />
+      <PushUpdateCard />
 
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Contests</h1>

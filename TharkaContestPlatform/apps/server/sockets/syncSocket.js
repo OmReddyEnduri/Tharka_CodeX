@@ -21,8 +21,17 @@ function broadcastSync(version) {
   sharedIO.emit("sync:push", { version });
 }
 
+// Deliberately a separate event from sync:push - this only means "a new app
+// build is available," not "contest data changed," so a client hearing it
+// just calls checkForAppUpdate() instead of re-pulling the full contest
+// snapshot (which sync:push triggers and which would be wasted work here).
+function broadcastAppUpdate(version) {
+  if (!sharedIO) return;
+  sharedIO.emit("app-update:push", { version });
+}
+
 function getConnectedCount() {
   return connectedCount;
 }
 
-module.exports = { initSyncSocket, broadcastSync, getConnectedCount };
+module.exports = { initSyncSocket, broadcastSync, broadcastAppUpdate, getConnectedCount };

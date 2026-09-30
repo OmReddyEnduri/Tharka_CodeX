@@ -1,0 +1,222 @@
+HANDOFF - TharkaContestPlatform session, 2026-09-19
+=====================================================
+Stopped mid-task at the user's request ("stop whatever, keep all the change and
+our current place in a txt file for next ai to read"). Nothing is left in a
+broken/half-edited state - see "IN PROGRESS, NOT YET DONE" below for exactly
+what's still open.
+
+Approved plan for this session is at:
+  C:\Users\Administrator\.claude\plans\quirky-finding-cray.md
+Read that first for full context/rationale. Original ask (paraphrased from a
+garbled voice-to-text message, clarified with the user via AskUserQuestion):
+  1. Audit apps/client-web (incl. sync) for UI bugs, fix real ones.
+  2. One-click app-update push: admin picks one built .exe in admin-web,
+     clicks a button, every connected lab laptop's Electron client
+     auto-updates. ("Doubts" in the original message was confirmed to be
+     garbled phrasing about this same flow - NOT a separate student-question
+     feature. Do not build a "doubts/ask a question" feature unless the user
+     explicitly asks again.)
+  3. Compiler page: add "reset current code to template" (done, see below).
+
+=====================================================
+DONE AND VERIFIED THIS SESSION
+=====================================================
+
+1. Compiler "reset to template" (apps/client-web/src/pages/Compiler.tsx)
+   - Added `handleResetToTemplate` (confirm -> clearCompilerDraft() -> setCode(getTemplate()) -> toast),
+     mirroring the existing pattern in ContestProblem.tsx's `handleResetCode`.
+   - Added a toolbar "Reset" button (RotateCcw icon) next to New/Open/Save.
+   - Typechecked clean (`npx tsc --noEmit`).
+
+2. One-click Electron app-update push - FULLY BUILT AND SERVER-SIDE TESTED:
+   - apps/server/models/AppUpdateState.js - new singleton doc (version, fileName, sha512, size, publishedAt).
+   - apps/server/routes/appUpdateRoutes.js - new route file:
+       GET  /api/app-update/current  (requireAdmin)
+       POST /api/app-update/publish  (requireAdmin, multer single-file field "exe" + "version" body field)
+     Computes sha512 (base64, streamed - not loaded fully into memory), writes
+     the exe to apps/server/updates/Tharka Codex.exe (fixed filename matching
+     client-electron's nsis artifactName), hand-writes a matching latest.yml
+     (electron-updater generic-provider format, url percent-encoded), upserts
+     AppUpdateState, and calls the new broadcastAppUpdate(version).
+   - apps/server/sockets/syncSocket.js - added `broadcastAppUpdate(version)`,
+     emits a NEW event `app-update:push` (deliberately separate from
+     `sync:push` so a build push doesn't force every client to re-pull full
+     contest data).
+   - apps/server/server.js - mounted the route at /api/app-update, and added
+     `app.use("/updates", express.static(...))` (public, unauthenticated -
+     same trust model as the rest of this LAN app) to serve latest.yml + the
+     installer.
+   - apps/server/package.json - added `multer` dependency (already npm
+     installed in this workspace).
+   - .gitignore - added `apps/server/updates/`.
+   - apps/client-electron/package.json - changed `build.publish` from GitHub
+     Releases to `{ provider: "generic", url: "http://192.168.1.101:3001/updates/", channel: "latest" }`.
+   - apps/client-electron/main.js - added a `socket.on("app-update:push", ...)`
+     listener next to the existing `sync:push` handler that calls the
+     ALREADY-EXISTING `checkForAppUpdate()` (electron-updater auto-update
+     logic, safe-install gating on "no contest currently live", etc. was all
+     already built before this session - only the feed needed to move off
+     GitHub). Updated the stale "published to GitHub Releases" comment block.
+   - apps/admin-web/src/lib/apiClient.ts - added `getCurrentAppUpdate()` and
+     `publishAppUpdate(file, version)` (raw fetch with FormData, NOT routed
+     through apiFetch since that forces Content-Type: application/json which
+     would break the multipart boundary).
+   - apps/admin-web/src/components/PushUpdateCard.tsx - NEW component: version
+     text input + <input type=file accept=".exe"> + "Push Update" button,
+     shows currently-published version, toasts result. Wired into
+     apps/admin-web/src/pages/AdminContestsList.tsx next to the existing
+     <SyncButton />.
+   - MANUAL STEP THAT STILL EXISTS (documented in the plan, not a gap): the
+     admin still has to run `npm run build --workspace=client-electron`
+     themselves to produce the exe before uploading it. This feature only
+     removes "how do I get it onto every laptop."
+   - TESTED END TO END against a live local server + real MongoDB:
+     - POST /api/app-update/publish with a dummy 50KB "exe" -> 200, correct
+       latest.yml + file written, sha512/size correct (base64, matches what
+       electron-updater expects).
+     - GET /updates/latest.yml and GET /updates/Tharka%20Codex.exe both serve
+       correctly (space in filename handled via percent-encoding + Express's
+       default URL-decoding of static paths).
+     - GET /api/app-update/current returns the right state.
+     - Negative tests: no admin token -> 403, missing version -> 400,
+       non-.exe upload -> 400 "exe file is required" (fileFilter silently
+       drops it, route correctly reports it as missing). Server did NOT
+       crash on any of these (checked via /api liveness after each).
+     - Cleaned up all test artifacts afterward (deleted the dummy exe/
+       latest.yml from apps/server/updates/, deleted the test AppUpdateState
+       Mongo doc). apps/server/updates/ should be empty/nonexistent right now.
+   - NOT YET TESTED: the actual Electron packaged-app update flow (build a
+     real installer, publish it, watch a packaged app pick it up and install).
+     This needs `npm run build --workspace=client-electron` (electron-builder)
+     which takes a while and wasn't run this session - do this before
+     considering the feature fully proven, per the plan's Verification section.
+   - Both apps/admin-web and apps/client-web typecheck clean
+     (`npx tsc --noEmit -p tsconfig.json` in each, no errors).
+
+3. Root-caused and partially fixed a REAL bug matching the user's live reports
+   this session ("sometimes the client is stuck / getting a database-ish
+   error", "sometimes getting sync error"):
+   - ROOT CAUSE: `apiFetch` in BOTH apps/client-web/src/lib/apiClient.ts and
+     apps/admin-web/src/lib/apiClient.ts called plain `fetch()` with NO
+     timeout. Browser fetch() never times out on its own - if the LAN server
+     is mid-restart, unreachable, or the Wi-Fi silently drops packets instead
+     of resetting the connection, the request hangs FOREVER. Every caller
+     (React Query queries, plain awaits) then just sits in an infinite
+     loading state with no error ever firing - this is almost certainly what
+     "the client gets stuck" and "sync error" refer to.
+   - FIXED: both apiClient.ts files now wrap their fetch() in an
+     AbortController with a 15-second timeout, throwing a clear "Couldn't
+     reach the server..." Error on abort/network failure instead of hanging.
+     (admin-web's `publishAppUpdate` deliberately was NOT given this timeout -
+     it's a large file upload that can legitimately take longer than 15s.)
+   - Both files typecheck clean after this change.
+
+=====================================================
+IN PROGRESS, NOT YET DONE (next AI should pick up here)
+=====================================================
+
+The timeout fix above stops the *hang*, but two UI-level gaps mean an error
+will now surface faster while still being poorly communicated to the student.
+Was about to fix these when told to stop - NO edits made yet to either file,
+both are still in their original state:
+
+1. apps/client-web/src/pages/Home.tsx (contest list page) - `useQuery` only
+   destructures `{ data: contests, isLoading }`, no `isError`/`error` at all.
+   On a network failure the query settles into an error state that's never
+   checked, so the page falls through to the "No contests found. Check with
+   your admin." empty-state message - misleading (implies genuinely empty,
+   not "couldn't reach the server"). Fix: add `isError, error, refetch` from
+   useQuery and a branch like Contest.tsx already has (see below) - ideally
+   with a "Try again" button calling `refetch()`.
+
+2. apps/client-web/src/pages/ContestProblem.tsx line ~308: `if (error) return
+   null;` - on any fetch error this renders a completely BLANK screen (no
+   message, no way back except browser back button). This is the single
+   worst offender for "feels stuck" since it's the page students spend the
+   most time on mid-contest. Fix: replace with a real error UI - message +
+   a "Try again" (refetch()) button + a link back to the contest page.
+   Mirror the pattern already used in apps/client-web/src/pages/Contest.tsx
+   lines 51-57 (`isError` -> `<div className="container p-8">Error:
+   {(error as Error).message}</div>`), but make it nicer (button, not just
+   text) since this page is higher-stakes.
+
+Contest.tsx itself already handles isError reasonably (line 37-57) and did
+NOT need changes - it was used as the reference pattern for the two fixes
+above.
+
+=====================================================
+NEW BUG REPORT FROM USER THIS SESSION - NOT YET INVESTIGATED AT ALL
+=====================================================
+
+User's own words (garbled, dictated): "also getting problem submitting wrongs
+answer problem and the checking format like token, exact, token is not nice"
+
+Best interpretation: something is wrong with the per-problem output-checker
+feature (git log shows "Add per-problem output checker + points" as a
+relatively recent commit - eec198d). That feature likely has multiple
+comparison modes (e.g. "exact" vs "token"-based comparison), and the user is
+reporting either (a) correct answers being marked Wrong Answer under one of
+these modes, or (b) the token-comparison mode's behavior/UI is confusing or
+not well designed ("is not nice"). COMPLETELY UNINVESTIGATED - next AI should:
+  1. Find the checker-mode implementation - likely in packages/judge-cpp
+     (check index.js / a checker.js / wherever normalizeOutput lives per
+     CLAUDE.md's notes on output normalization) and/or the ContestProblem
+     admin-editor UI where "output checker" + "points" were added.
+  2. Ask the user for specifics if the report stays this vague: which
+     problem, what input/expected/actual output, which checker mode was
+     selected - "token vs exact is not nice" alone isn't enough to safely
+     change judging behavior (this is exactly the kind of judge-correctness
+     area where CLAUDE.md documents a past real incident - the trim()
+     leading-whitespace bug - so don't guess-and-fix without reproducing it).
+  3. This is UNRELATED to anything already fixed this session - do not
+     conflate with the sync/timeout fix above.
+
+=====================================================
+ENVIRONMENT NOTES FOR THE NEXT AI
+=====================================================
+
+- This machine does NOT have the TharkaContestServer / TharkaAdminWeb Windows
+  services installed (checked via `Get-Service *tharka*` - empty). This
+  appears to be a dev/test sandbox, not the literal lab server described in
+  CLAUDE.md's "Server runs as a Windows Service now" section. Don't assume
+  `Restart-Service` will work here - check `Get-Service` first.
+- MongoDB IS running locally as a Windows service (port 27017) and has real
+  data in it already.
+- Before I stopped: a `node apps/server/server.js` process (mine, for testing)
+  and a `npx vite` client-web dev server (mine, port 5173) were both running -
+  I killed both before writing this file. The USER then asked to have the
+  server running again, so as of the end of this session `node
+  apps/server/server.js` IS running again in the background (port 3001,
+  confirmed healthy + MongoDB-connected via GET /api/sync/version). The
+  client-web dev server (5173) was NOT restarted - only the server itself.
+- A separate admin-web Vite DEV server (not a preview/build) was ALREADY
+  running on port 5174 (PID 14200) before this session started - I did NOT
+  touch it, it's not mine to kill, and it should already be showing the new
+  PushUpdateCard live via HMR since Vite dev servers hot-reload.
+- apps/server/.env and apps/admin-web/.env both exist locally with real
+  ADMIN_BYPASS_TOKEN values already in place (matching each other) - no setup
+  needed there.
+- git status at start of this session already showed pre-existing uncommitted
+  changes to apps/client-electron/judge-cpp/index.js,
+  apps/client-web/src/pages/ContestProblem.tsx, packages/judge-cpp/index.js,
+  and some daemon/*.log files, PLUS some untracked files (seed_level_contests.js,
+  test_admin_web.js, test_judge_all_problems.js, CFImporter/, .freebuff/,
+  tosyncgit.txt) - none of these were made by me and I have not touched or
+  investigated them. Worth asking the user what these are before assuming
+  they're safe to ignore/revert, especially the judge-cpp changes given the
+  new "wrong answer / checker format" bug report above might already be
+  related to whatever that uncommitted judge-cpp change is.
+
+=====================================================
+QUICK RESUME CHECKLIST
+=====================================================
+[ ] Finish Home.tsx isError branch (see above)
+[ ] Finish ContestProblem.tsx error-state UI (see above)
+[ ] Investigate the token/exact checker complaint (get specifics from user first)
+[ ] Look at the pre-existing uncommitted judge-cpp / ContestProblem.tsx diff -
+    it may already be related to the checker complaint
+[ ] Eventually: real end-to-end test of the Electron auto-update (build a
+    real installer via electron-builder, publish via the new admin UI, watch
+    a packaged app update itself)
+[ ] Nothing needs reverting - all changes described as "DONE" above are safe,
+    tested (where noted), and typecheck clean

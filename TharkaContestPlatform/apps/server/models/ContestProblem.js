@@ -21,14 +21,16 @@ const contestProblemSchema = new mongoose.Schema({
   timeLimit: { type: Number, required: true, default: 1000, min: 100 },
   memoryLimit: { type: Number, required: true, default: 256, min: 16 },
   // How output is compared - "token" (whitespace-insensitive - the default,
-  // right for almost all competitive-programming problems) or "exact"
+  // right for almost all competitive-programming problems), "exact"
   // (line/spacing-sensitive - only needed for pattern-printing/formatting
-  // problems where leading spaces and line breaks are part of the answer).
-  // See packages/judge-cpp/index.js's compareOutput() for the checkers
+  // problems where leading spaces and line breaks are part of the answer),
+  // or "om" (line-by-line, spacing-insensitive within a line - line count/
+  // order matters but spacing on each line doesn't). See
+  // packages/judge-cpp/index.js's compareOutput() for the checkers
   // themselves. Applies platform-wide to any problem, old or new - a
   // problem saved before this field existed reads back as "token" too, same
   // as one created today without touching this dropdown.
-  checker: { type: String, enum: ["token", "exact"], default: "token" },
+  checker: { type: String, enum: ["token", "exact", "om"], default: "token" },
   // How many leaderboard points an Accepted verdict on this problem is
   // worth - not every problem has to be worth the same amount (a Hard
   // problem can outweigh three Easy ones). See lib/leaderboard.js, which

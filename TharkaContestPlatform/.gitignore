@@ -7,3 +7,4 @@ dist-electron/
 temp/
 release/
 apps/server/deploy/deploy.log
+apps/server/updates/

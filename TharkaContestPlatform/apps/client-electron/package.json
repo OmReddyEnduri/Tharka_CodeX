@@ -1,16 +1,17 @@
 {
   "name": "tharka-codex",
-  "version": "1.0.0",
+  "version": "2026.265.39128",
   "description": "LAN contest platform - student desktop client",
   "author": "Tharka Lab Contest",
   "private": true,
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "prebuild": "node ../../scripts/check-judge-cpp-drift.js",
+    "prebuild": "node scripts/stamp-version.js && node ../../scripts/check-judge-cpp-drift.js",
     "build": "electron-builder"
   },
   "dependencies": {
+    "electron-log": "^5.2.4",
     "electron-updater": "^6.3.9",
     "pidusage": "^4.0.1",
     "socket.io-client": "^4.8.3",
@@ -30,9 +31,13 @@
     "files": [
       "main.js",
       "preload.js",
+      "relauncher.ps1",
       "db.js",
       "judge-cpp/**",
       "node_modules/**"
+    ],
+    "asarUnpack": [
+      "relauncher.ps1"
     ],
     "extraResources": [
       {
@@ -41,12 +46,14 @@
       }
     ],
     "publish": {
-      "provider": "github",
-      "owner": "OmReddyEnduri",
-      "repo": "Tharka_CodeX"
+      "provider": "generic",
+      "url": "http://192.168.1.101:3001/updates/",
+      "channel": "latest"
     },
     "win": {
-      "target": ["nsis"]
+      "target": [
+        "nsis"
+      ]
     },
     "nsis": {
       "artifactName": "${productName}.exe",
@@ -54,7 +61,8 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Tharka Codex"
+      "shortcutName": "Tharka Codex",
+      "include": "installer.nsh"
     }
   }
 }

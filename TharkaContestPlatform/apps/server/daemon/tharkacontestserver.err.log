@@ -1,15 +1,2 @@
-Cast to ObjectId failed for value "91cf7f73" (type string) at path "_id" for model "Contest"
-Cast to ObjectId failed for value "91cf7f73" (type string) at path "_id" for model "Contest"
-WARNING: SYNC_DEVICE_TOKEN not set in .env - GET /api/sync/full will be unreachable by Electron clients.
-ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
-ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
-ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
-ContestProblem validation failed: timeLimit: Path `timeLimit` is required., memoryLimit: Path `memoryLimit` is required.
-Rejected student-delete: wrong password from ::1 (failure 1/5)
-Rejected student-delete: wrong password from ::1 (failure 1/5)
-Rejected student-delete: wrong password from ::1 (failure 1/5)
-Rejected student-delete: wrong password from ::1 (failure 2/5)
-Rejected student-delete: wrong password from ::1 (failure 3/5)
-Rejected student-delete: wrong password from ::1 (failure 4/5)
-Rejected student-delete: wrong password from ::1 (failure 5/5, now locked out)
-Rejected student-delete: wrong password from ::1 (failure 1/5)
+Cast to Number failed for value "does-not-exist" (type string) at path "id" for model "ContestProblem"
+Failed to write publish log to Downloads: ENOENT: no such file or directory, open 'C:\WINDOWS\system32\config\systemprofile\Downloads\TharkaUpdatePublish.log'

@@ -64,29 +64,55 @@ export function fileAccessMode(): "native" | "picker" | "download" {
 // running in a tab can see), so every export here is a no-op/empty result
 // outside Electron - callers feature-detect with hasWorkspace().
 
-export interface WorkspaceFile {
+export interface WorkspaceEntry {
   name: string;
+  isDirectory: boolean;
   mtimeMs: number;
 }
 
 export function hasWorkspace(): boolean {
-  return !!electronAPI()?.listWorkspaceFiles;
+  return !!electronAPI()?.listWorkspaceEntries;
 }
 
-export async function listWorkspaceFiles(): Promise<WorkspaceFile[]> {
+/** Lists the immediate children of `relDir` (relative to the workspace root, "" for the root itself). */
+export async function listWorkspaceEntries(relDir: string): Promise<WorkspaceEntry[]> {
   const api = electronAPI();
-  if (!api?.listWorkspaceFiles) return [];
-  const res = await api.listWorkspaceFiles();
+  if (!api?.listWorkspaceEntries) return [];
+  const res = await api.listWorkspaceEntries(relDir);
   if (!Array.isArray(res)) return []; // { error } shape - treat as empty rather than throwing on every poll
   return res;
 }
 
-export async function openWorkspaceFile(name: string): Promise<OpenedFile | null> {
+export async function openWorkspaceFile(relPath: string): Promise<OpenedFile | null> {
   const api = electronAPI();
   if (!api?.openWorkspaceFile) return null;
-  const res = await api.openWorkspaceFile(name);
+  const res = await api.openWorkspaceFile(relPath);
   if (!res || res.error) throw new Error(res?.error || "Could not open the file");
   return { file: { name: res.name, path: res.path }, code: res.content };
+}
+
+/** Creates an empty file at `relPath` (relative to the workspace root). Fails if it already exists. */
+export async function createWorkspaceFile(relPath: string): Promise<void> {
+  const api = electronAPI();
+  if (!api?.createWorkspaceFile) throw new Error("Not available outside the desktop app");
+  const res = await api.createWorkspaceFile(relPath);
+  if (!res || res.error) throw new Error(res?.error || "Could not create the file");
+}
+
+/** Creates a folder at `relPath` (relative to the workspace root). Fails if it already exists. */
+export async function createWorkspaceFolder(relPath: string): Promise<void> {
+  const api = electronAPI();
+  if (!api?.createWorkspaceFolder) throw new Error("Not available outside the desktop app");
+  const res = await api.createWorkspaceFolder(relPath);
+  if (!res || res.error) throw new Error(res?.error || "Could not create the folder");
+}
+
+/** Drag-and-drop: moves `fromRelPath` into the folder at `toDirRelPath` ("" for the workspace root). */
+export async function moveWorkspaceEntry(fromRelPath: string, toDirRelPath: string): Promise<void> {
+  const api = electronAPI();
+  if (!api?.moveWorkspaceEntry) throw new Error("Not available outside the desktop app");
+  const res = await api.moveWorkspaceEntry({ from: fromRelPath, toDir: toDirRelPath });
+  if (!res || res.error) throw new Error(res?.error || "Could not move it");
 }
 
 export async function getWorkspaceDir(): Promise<string | null> {
@@ -153,9 +179,14 @@ export async function openCodeFile(): Promise<OpenedFile | null> {
 }
 
 /**
- * Writes `code` to disk. With `saveAs` false and a `file` that carries a path
- * or handle, it overwrites silently; otherwise it prompts. Returns the file it
- * wrote to, or null if the user cancelled the dialog.
+ * Writes `code` to disk. With `saveAs` false, this never prompts: a `file`
+ * that already carries a path/handle is overwritten silently, and a brand
+ * new file (no path/handle yet) is created silently too - in Electron, into
+ * the workspace folder; via the File System Access API, the browser still
+ * requires one picker to mint the very first write handle (unavoidable -
+ * see module docs above). `saveAs: true` always prompts, since choosing a
+ * new location/name is the point of Save As. Returns the file it wrote to,
+ * or null if the user cancelled a dialog.
  */
 export async function saveCodeFile(
   code: string,
@@ -167,7 +198,7 @@ export async function saveCodeFile(
 
   const api = electronAPI();
   if (api?.saveFile) {
-    const res = await api.saveFile({ content: code, path: target?.path, suggestedName: nameHint });
+    const res = await api.saveFile({ content: code, path: target?.path, suggestedName: nameHint, saveAs });
     if (!res || res.canceled) return null;
     if (res.error) throw new Error(res.error);
     return { name: res.name, path: res.path };

@@ -17,14 +17,19 @@ const DEFAULT_TIMEOUT_MS = 10000;
 // process running at full CPU forever, invisible to the judge, with no
 // verdict ever returned. spawn() with an argv array also sidesteps shell
 // string-building entirely, same pattern already used in execute.js.
-function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS) {
+// `defines` (e.g. ['LOCAL']) becomes `-D<name>` compiler flags - used only by
+// the standalone Compiler page's "Define LOCAL" setting (see runOnce/
+// InteractiveSession.start), never by contest judging, which must always
+// compile exactly as a real judge would.
+function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS, defines = []) {
   return new Promise((resolve, reject) => {
     const sourcePath = path.join(workDir, 'sub.cpp');
     const execPath = path.join(workDir, process.platform === 'win32' ? 'sub.exe' : 'sub');
 
     fs.writeFileSync(sourcePath, sourceCode);
 
-    const child = spawn('g++', [sourcePath, '-O2', '-o', execPath], { windowsHide: true });
+    const defineArgs = defines.map((d) => `-D${d}`);
+    const child = spawn('g++', [sourcePath, ...defineArgs, '-O2', '-o', execPath], { windowsHide: true });
 
     let stderr = '';
     let settled = false;

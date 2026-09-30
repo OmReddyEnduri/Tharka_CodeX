@@ -20,7 +20,17 @@ const { app } = require("electron");
 // durability with zero native-compile risk.
 let cache = null;
 
+// Documents, not AppData\Roaming - the whole point of this file is to be
+// something a non-technical lab admin can actually find and look at, and
+// AppData is hidden by default in Explorer.
 function filePath() {
+  return path.join(app.getPath("documents"), "Tharka Codex", "contest-store.json");
+}
+
+// Where this file used to live, before it moved to Documents. Only read
+// once, to migrate an existing laptop's data on its first run after
+// updating - never written to again.
+function legacyFilePath() {
   return path.join(app.getPath("userData"), "contest-store.json");
 }
 
@@ -30,11 +40,16 @@ function defaultStore() {
 
 function load() {
   if (cache) return cache;
+  const target = filePath();
   try {
+    if (!fs.existsSync(target) && fs.existsSync(legacyFilePath())) {
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.copyFileSync(legacyFilePath(), target);
+    }
     // Strip a leading UTF-8 BOM if present (e.g. a hand-edited file saved by
     // an editor/tool that adds one) - JSON.parse rejects it outright
     // otherwise, and that failure would silently look like "no data yet".
-    const raw = fs.readFileSync(filePath(), "utf8").replace(/^﻿/, "");
+    const raw = fs.readFileSync(target, "utf8").replace(/^﻿/, "");
     cache = JSON.parse(raw);
     // Back-fill fields added after this store file may have been written.
     if (!cache.pendingSubmissions) cache.pendingSubmissions = [];

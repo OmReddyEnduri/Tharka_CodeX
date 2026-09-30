@@ -4,9 +4,9 @@
 	<description>Tharka LAN Contest Platform - backend server (contests, sync, judging API). Auto-starts on boot.</description>
 	<executable>C:\Program Files\nodejs\node.exe</executable>
 	<argument>--harmony</argument>
-	<argument>C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js</argument>
+	<argument>C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js</argument>
 	<argument>--file</argument>
-	<argument>C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js</argument>
+	<argument>C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js</argument>
 	<argument>--scriptoptions=</argument>
 	<argument>--log</argument>
 	<argument>TharkaContestServer wrapper</argument>
@@ -25,9 +25,9 @@
 	<logmode>rotate</logmode>
 	<stoptimeout>30sec</stoptimeout>
 	<serviceaccount>
-		<domain>THARKA-PC-01</domain>
+		<domain>THARKA-PC-R4-1</domain>
 		<user>LocalSystem</user>
 		<password></password>
 	</serviceaccount>
-	<workingdirectory>C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server</workingdirectory>
+	<workingdirectory>C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server</workingdirectory>
 </service>

@@ -30,7 +30,7 @@ const contestProblemSchema = z.object({
   timeLimit: z.coerce.number().min(100),
   memoryLimit: z.coerce.number().min(1),
   points: z.coerce.number().min(1),
-  checker: z.enum(["token", "exact"]),
+  checker: z.enum(["token", "exact", "om"]),
   inputFormat: z.string().optional(),
   outputFormat: z.string().optional(),
   constraints: z.string().optional(),
@@ -153,7 +153,13 @@ export function ContestProblemEditorSheet({
       // happens to be.
       form.reset(
         isEditMode && editingProblem
-          ? { ...(editingProblem as ContestProblemFormData), checker: editingProblem.checker === "exact" ? "exact" : "token" }
+          ? {
+              ...(editingProblem as ContestProblemFormData),
+              checker:
+                editingProblem.checker === "exact" || editingProblem.checker === "om"
+                  ? editingProblem.checker
+                  : "token",
+            }
           : defaultValues()
       );
       setActiveTab("details");
@@ -265,10 +271,13 @@ export function ContestProblemEditorSheet({
                 >
                   <option value="token">Token</option>
                   <option value="exact">Exact</option>
+                  <option value="om">Om (line-by-line)</option>
                 </select>
                 <p className="text-xs text-muted-foreground">
                   {form.watch("checker") === "exact"
                     ? "Line structure and meaningful spaces are preserved. Only harmless trailing whitespace and line-ending differences are ignored. Use for pattern-printing and formatting-sensitive problems."
+                    : form.watch("checker") === "om"
+                    ? "Compared line by line - line count and order matter, but spaces/tabs within each line are ignored. Use when an answer has multiple meaningful lines but spacing within a line is just formatting."
                     : "Whitespace between tokens and line breaks are ignored. Use for normal competitive-programming problems."}
                 </p>
               </div>

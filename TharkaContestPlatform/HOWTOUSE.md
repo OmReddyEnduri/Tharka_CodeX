@@ -150,10 +150,12 @@ array of problem objects (same shape as the `problems` entries above), or
   `{ "input": ..., "output": ... }` pairs as the single-problem editor —
   omit either array (or leave it empty) for a problem with no test cases yet.
 - `checker` is `"token"` (whitespace-insensitive - right for almost all
-  problems, and the default if omitted) or `"exact"` (line/spacing-sensitive
+  problems, and the default if omitted), `"exact"` (line/spacing-sensitive
   - only needed for pattern-printing problems where leading spaces and line
-  breaks are part of the answer). Any other value is rejected and that row
-  is skipped with a reason, rather than silently guessing.
+  breaks are part of the answer), or `"om"` (line-by-line - line count and
+  order matter, but spaces/tabs within each line are ignored). Any other
+  value is rejected and that row is skipped with a reason, rather than
+  silently guessing.
 - `points` is how much an Accepted verdict on this problem is worth on the
   leaderboard. Omit it for `100` - problems don't have to be worth the same
   amount, so a harder problem can be set higher to outweigh easier ones.

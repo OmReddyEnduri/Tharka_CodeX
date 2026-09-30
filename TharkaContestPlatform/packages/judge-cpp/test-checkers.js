@@ -53,5 +53,16 @@ check(
 );
 check('matching pattern with leading spaces passes', 'exact', '    *\n   ***', '    *\n   ***', true);
 
+console.log('\nOm checker:');
+check('identical', 'om', '1 2 3', '1 2 3', true);
+check('spacing within a line is ignored', 'om', '5*2=10', '5 * 2 = 10', true);
+check('extra internal spaces ignored', 'om', 'a  b   c', 'abc', true);
+check('leading/trailing blank lines ignored', 'om', '\n\n1 2 3\n\n', '1 2 3', true);
+check('CRLF normalized to LF', 'om', '\r\nab\r\ncd\r\n', 'ab\ncd', true);
+check('line order matters', 'om', 'ab\ncd', 'cd\nab', false);
+check('line count matters (unlike token mode)', 'om', 'ab\ncd', 'abcd', false);
+check('wrong content on a line', 'om', 'ab\ncd', 'ab\nce', false);
+check('both empty', 'om', '', '', true);
+
 console.log(`\n${passCount} passed, ${failCount} failed`);
 if (failCount > 0) process.exit(1);

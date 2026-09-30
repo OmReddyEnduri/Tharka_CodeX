@@ -26,11 +26,34 @@ export function setServerUrl(url: string): void {
   getContestAPI()?.setServerUrl?.(clean);
 }
 
+// A student laptop on a classroom LAN sometimes ends up talking to a server
+// that's mid-restart, or a Wi-Fi hop that silently drops packets instead of
+// resetting the connection - either way, plain fetch() never times out on
+// its own, so the request just hangs forever. Before this, that meant every
+// caller's React Query isLoading stayed true indefinitely with no error ever
+// firing - "the app is just stuck" with nothing to tell the student why, and
+// nothing for isError branches below to ever catch. 15s is generous for a
+// same-LAN request but short enough that a real hang surfaces quickly.
+const REQUEST_TIMEOUT_MS = 15000;
+
 async function apiFetch<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${getServerUrl()}${path}`, {
-    ...opts,
-    headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${getServerUrl()}${path}`, {
+      ...opts,
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
+    });
+  } catch (err: any) {
+    if (err?.name === "AbortError") {
+      throw new Error("Couldn't reach the contest server (timed out). Check your network connection and try again.");
+    }
+    throw new Error("Couldn't reach the contest server. Check your network connection and try again.");
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.msg || body.message || `Request failed: ${res.status}`);
@@ -89,6 +112,38 @@ export function onSyncStatus(callback: (state: { status: string; version: number
   return unsubscribe ?? (() => {});
 }
 
+export interface UpdateStatus {
+  status: "checking" | "available" | "up-to-date" | "downloading" | "downloaded" | "installing" | "error";
+  percent?: number;
+  version?: string;
+  message?: string;
+}
+
+export function onUpdateStatus(callback: (status: UpdateStatus) => void) {
+  const unsubscribe = getContestAPI()?.onUpdateStatus?.(callback);
+  return unsubscribe ?? (() => {});
+}
+
+export function getAppVersion(): Promise<string | null> {
+  const contestAPI = getContestAPI();
+  return contestAPI?.getAppVersion ? contestAPI.getAppVersion() : Promise.resolve(null);
+}
+
+// No automatic checks anywhere - this is the only thing that ever triggers
+// one (see main.js's check-for-update IPC handler). Progress after this
+// call resolves comes separately through onUpdateStatus above.
+export function checkForUpdate(): Promise<{ ok: boolean; reason?: string } | null> {
+  const contestAPI = getContestAPI();
+  return contestAPI?.checkForUpdate ? contestAPI.checkForUpdate() : Promise.resolve(null);
+}
+
+// Opens TharkaCodexUpdate.log (every check/download/install/relaunch step,
+// in order) in the OS's default text viewer.
+export function openUpdateLog(): Promise<{ ok: boolean; reason?: string } | null> {
+  const contestAPI = getContestAPI();
+  return contestAPI?.openUpdateLog ? contestAPI.openUpdateLog() : Promise.resolve(null);
+}
+
 // --- Run / submit -------------------------------------------------------
 
 interface RunArgs {
@@ -131,13 +186,13 @@ export async function submitCode({ contestId, problemId, code, studentName, stud
 
 // --- Standalone compiler (no contest/problem context) ---------------------
 
-export async function runStandalone({ code, input }: { code: string; input: string }) {
+export async function runStandalone({ code, input, defineLocal }: { code: string; input: string; defineLocal?: boolean }) {
   const contestAPI = getContestAPI();
   if (contestAPI?.runStandalone) {
-    return contestAPI.runStandalone({ code, input });
+    return contestAPI.runStandalone({ code, input, defineLocal });
   }
   return apiFetch("/api/compile/run", {
     method: "POST",
-    body: JSON.stringify({ code, input }),
+    body: JSON.stringify({ code, input, defineLocal }),
   });
 }

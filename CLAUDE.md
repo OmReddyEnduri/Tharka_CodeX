@@ -272,6 +272,32 @@ pointed at the Vite dev server (`app.isPackaged` is false in that mode). The
 packaged-mode code path (`loadFile` from `extraResources`) is written but
 untested. Phase 7 (real multi-laptop LAN pilot) also still not started.
 
+**Known temporary workaround - revisit later**: the packaged app's
+auto-update no longer uses NSIS/electron-updater's own built-in
+"--force-run" relaunch (`autoUpdater.quitAndInstall(true, false)` now, not
+`(true, true)`). That built-in relaunch goes through `ExecShellAsUser`'s
+"open" verb on a shortcut, inside a separate installer process whose output
+electron-updater discards (`spawnLog()` uses `stdio:"ignore"`) - a total
+black box that gave zero diagnostic trail when the app updated but never
+came back. Root cause found on the dev machine via
+`Get-MpThreatDetection`: Windows Defender was deleting the freshly-installed,
+**unsigned** exe as `Trojan:Win32/Phonzy.A!ml` (a ML heuristic false
+positive, not a real threat) - a well-known issue for unsigned Electron
+apps. Fixed for now with a Defender exclusion
+(`Add-MpPreference -ExclusionPath ...tharka-codex, ...tharka-codex-updater`,
+needs to be applied on every lab laptop, not just this dev machine) **and**
+by replacing NSIS's relaunch with our own (`relauncher.js`, spawned detached
+before `quitAndInstall`, direct `CreateProcess` instead of a shell "open"
+verb, retries for ~40s logging every attempt/error to
+`~/Downloads/TharkaCodexUpdate.log`).
+This custom relauncher is a workaround for both the Defender false-positive
+*and* NSIS's unloggable relaunch - not a permanent design decision. Once the
+app is either (a) code-signed (removes the Defender false-positive class
+entirely) or (b) confirmed stable across a real multi-laptop pilot, revisit
+whether the custom relauncher is still needed or whether reverting to
+electron-updater's own `--force-run` (simpler, one less file to maintain) is
+fine again.
+
 ## Editor persistence, code template, and file save/open (client-web)
 
 Three small localStorage-backed libs, all per-laptop and deliberately never synced:

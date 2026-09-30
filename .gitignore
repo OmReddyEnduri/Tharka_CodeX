@@ -1,3 +1,11 @@
 # Playwright MCP browser-session debris (console logs + page snapshots)
 # written into the repo root during UI testing. Never part of the project.
 .playwright-mcp/
+
+# logs / scratch
+*.log
+.freebuff/
+error.txt
+output.txt
+Codex.exe
+tosyncgit.txt

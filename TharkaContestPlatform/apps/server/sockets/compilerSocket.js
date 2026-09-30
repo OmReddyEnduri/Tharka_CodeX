@@ -10,7 +10,7 @@ function initCompilerSocket(io) {
   nsp.on("connection", (socket) => {
     let session = null;
 
-    socket.on("run", async ({ code }) => {
+    socket.on("run", async ({ code, defineLocal }) => {
       if (session) session.stop();
       session = new InteractiveSession();
       const judgeSettings = await getJudgeSettings();
@@ -28,6 +28,7 @@ function initCompilerSocket(io) {
           maxSessionMs: judgeSettings.interactiveSessionMaxMs,
           maxOutputBytes: judgeSettings.maxOutputBytes,
           blockedKeywords: judgeSettings.blockedKeywords,
+          defineLocal,
         }
       );
     });

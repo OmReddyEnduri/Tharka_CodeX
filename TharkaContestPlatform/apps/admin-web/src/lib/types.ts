@@ -15,9 +15,10 @@ export interface ContestProblem {
   timeLimit: number;
   memoryLimit: number;
   // How output is compared - "token" (whitespace-insensitive, right for
-  // almost all problems) or "exact" (line/spacing-sensitive, for
-  // pattern-printing problems). See packages/judge-cpp/index.js.
-  checker: "token" | "exact";
+  // almost all problems), "exact" (line/spacing-sensitive, for
+  // pattern-printing problems), or "om" (line-by-line, spacing-insensitive
+  // within a line). See packages/judge-cpp/index.js.
+  checker: "token" | "exact" | "om";
   // Leaderboard points an Accepted verdict on this problem is worth - not
   // every problem has to be worth the same amount. See lib/leaderboard.js.
   points: number;
@@ -117,7 +118,7 @@ export interface BulkProblemInput {
   memoryLimit?: number;
   // Omit for "token" (the default for a new problem). An unrecognized value
   // is rejected with a validation error, not silently guessed.
-  checker?: "token" | "exact";
+  checker?: "token" | "exact" | "om";
   // Omit for 100 (the default). Set higher for a harder problem that should
   // outweigh easier ones on the leaderboard.
   points?: number;

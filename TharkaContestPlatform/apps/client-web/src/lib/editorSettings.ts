@@ -10,6 +10,17 @@ export interface EditorSettings {
   theme: string;
   fontSize: number;
   keybinding: string;
+  /** Compiler page only: an extra "Debug" tab that shows just stderr (cerr)
+   *  output, separate from stdout. Off by default - most runs don't write
+   *  to stderr, so the extra tab would just be visual noise for them. */
+  debugPanelEnabled: boolean;
+  /** Compiler page only: compiles with -DLOCAL, for templates that gate
+   *  debug-print macros (e.g. `#ifdef LOCAL`) behind it. On by default per
+   *  explicit user request - note this can collide with a template that
+   *  also does `#ifdef LOCAL { freopen(...) }`, redirecting stdout/stderr
+   *  to files instead of this app's live pipes; that's a property of the
+   *  student's own code, not something this setting can detect or avoid. */
+  defineLocalMacro: boolean;
 }
 
 const STORAGE_KEY = "contest_editor_settings";
@@ -18,6 +29,8 @@ export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   theme: "vs-dark",
   fontSize: 14,
   keybinding: "default",
+  debugPanelEnabled: false,
+  defineLocalMacro: true,
 };
 
 export function getEditorSettings(): EditorSettings {

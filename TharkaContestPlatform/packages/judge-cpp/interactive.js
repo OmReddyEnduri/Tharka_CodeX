@@ -46,6 +46,10 @@ class InteractiveSession {
       memoryLimitMb = DEFAULT_MEMORY_LIMIT_MB,
       maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES,
       blockedKeywords,
+      // Opt-in -DLOCAL, from the Compiler page's settings - see index.js's
+      // runOnce for why this only ever applies to this playground, not
+      // contest judging.
+      defineLocal,
     } = settings;
 
     // Settle exactly once: a killed process's own 'close' event can still
@@ -69,7 +73,7 @@ class InteractiveSession {
 
     let execPath;
     try {
-      ({ execPath } = await compile(sourceCode, this.workDir));
+      ({ execPath } = await compile(sourceCode, this.workDir, undefined, defineLocal ? ['LOCAL'] : []));
     } catch (err) {
       settle({ status: 'Compilation Error', message: err.stderr });
       this._cleanup();

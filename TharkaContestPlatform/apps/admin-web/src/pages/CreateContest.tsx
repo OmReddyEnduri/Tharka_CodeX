@@ -119,12 +119,14 @@ export default function CreateContest() {
             />
             <div className="space-y-1">
               <Label htmlFor="hideHiddenTestCasesWhileLive" className="cursor-pointer">
-                Hide hidden test case I/O while contest is live
+                Hide hidden test case I/O
               </Label>
               <p className="text-xs text-muted-foreground">
                 While ON, a Wrong Answer/TLE/etc. result only shows the verdict and test number - not the actual
-                input/expected/got - until the contest ends. Applies on every laptop, browser or the Electron app,
-                the next time it syncs. Turn OFF only for practice/open-book contests.
+                input/expected/got. This is fully manual: it does not automatically turn off when the contest ends,
+                so the answer key stays hidden until you flip it OFF yourself (e.g. to reuse these problems in a
+                later contest). Applies on every laptop, browser or the Electron app, the next time it syncs. Turn
+                OFF for practice/open-book contests, or once you're ready to let students review their results.
               </p>
             </div>
           </div>

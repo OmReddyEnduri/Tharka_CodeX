@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CF Importer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Codeforces → TharkaContestPlatform</h1>
+    <p class="sub">Paste the actual problem text (Codeforces blocks server-side fetching now), get bulk-import JSON out. Sample tests are transcribed exactly; hidden tests are AI-guessed only if you ask for them.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>0. One-click grab (do this on each Codeforces problem page first)</h2>
+      <p class="hint">
+        Drag this to your bookmarks bar once: <a id="bookmarklet" class="bookmarklet" href="#">📋 Copy CF Problem</a>.
+        Then, on any Codeforces problem page, click it — the whole problem gets copied to your clipboard,
+        formatted and ready to paste below. Click it again on the next problem, then paste each one under the last with <code>===PROBLEM===</code> between them (the paste button below does that for you).
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>1. Problems</h2>
+      <div class="results-actions">
+        <button id="pasteBtn" type="button" class="secondary">Paste from clipboard (append)</button>
+      </div>
+      <label for="refs">Paste one full problem statement (title, statement, input/output format, examples). For more than one, separate each with a line containing exactly <code>===PROBLEM===</code>.</label>
+      <textarea id="refs" rows="14" placeholder="A. Theatre Square
+The Theatre Square in the capital city of Berland has a rectangular shape...
+
+Input
+The input contains three positive integer numbers...
+
+Output
+Write the needed number of flagstones.
+
+Example
+Input
+6 6 4
+Output
+4
+
+===PROBLEM===
+B. Next problem's title
+..."></textarea>
+    </section>
+
+    <section class="card">
+      <h2>2. AI provider</h2>
+      <div class="row">
+        <div class="field">
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="omniroute">OmniRoute (local gateway)</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="gemini">Google Gemini</option>
+          </select>
+        </div>
+        <div class="field" id="baseUrlField">
+          <label for="baseUrl">Base URL</label>
+          <input id="baseUrl" type="text" placeholder="http://localhost:20128/v1" />
+        </div>
+        <div class="field">
+          <label for="model">Model</label>
+          <input id="model" type="text" placeholder="e.g. claude-sonnet-5" />
+        </div>
+        <div class="field">
+          <label for="apiKey">API key</label>
+          <input id="apiKey" type="password" placeholder="paste key" />
+        </div>
+      </div>
+      <label class="checkbox">
+        <input type="checkbox" id="generateHidden" />
+        Also let the AI guess hidden test cases (unverified — check before using in a live contest)
+      </label>
+      <p class="hint" id="providerHint"></p>
+      <button id="convertBtn">Convert</button>
+      <span id="convertStatus" class="status"></span>
+    </section>
+
+    <section class="card" id="resultsSection" hidden>
+      <h2>3. Results</h2>
+      <div class="results-actions">
+        <button id="copyAllBtn">Copy all as JSON array</button>
+      </div>
+      <div id="results"></div>
+    </section>
+
+    <section class="card" id="sendSection" hidden>
+      <h2>4. Send to a contest</h2>
+      <div class="row">
+        <div class="field">
+          <label for="contestSelect">Contest</label>
+          <select id="contestSelect"></select>
+        </div>
+        <button id="refreshContestsBtn" type="button">Refresh list</button>
+        <button id="sendBtn">Send successful problems to contest</button>
+      </div>
+      <div id="sendResult"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

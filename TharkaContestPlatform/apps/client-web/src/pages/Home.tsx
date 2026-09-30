@@ -5,6 +5,7 @@ import { TrophyIcon, Search } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { getContests } from "@/lib/apiClient";
 
 type ContestStatus = "live" | "upcoming" | "ended";
@@ -67,7 +68,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const { data: contests, isLoading } = useQuery({
+  const { data: contests, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["contests"],
     queryFn: getContests,
   });
@@ -96,15 +97,30 @@ export default function Home() {
 
         {isLoading && <p className="text-muted-foreground text-sm">Loading...</p>}
 
-        {!isLoading && filtered.length === 0 && (
+        {isError && (
+          <div className="text-center py-8 space-y-3">
+            <p className="text-sm text-destructive">
+              Couldn't reach the server: {(error as Error).message}
+            </p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {!isLoading && !isError && filtered.length === 0 && (
           <p className="text-muted-foreground text-sm text-center py-8">
             {contests && contests.length > 0 ? "No contests match your search." : "No contests found. Check with your admin."}
           </p>
         )}
 
-        <ContestSection title="Live" contests={live} />
-        <ContestSection title="Upcoming" contests={upcoming} />
-        <ContestSection title="Previous" contests={ended} />
+        {!isError && (
+          <>
+            <ContestSection title="Live" contests={live} />
+            <ContestSection title="Upcoming" contests={upcoming} />
+            <ContestSection title="Previous" contests={ended} />
+          </>
+        )}
       </div>
     </AppShell>
   );

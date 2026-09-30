@@ -1,138 +1,124 @@
-2026-09-01 12:06:15 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 12:06:15 - Started 15808
-2026-09-01 14:28:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 14:28:16 - Started 6024
-2026-09-01 14:29:09 - Stopping tharkacontestserver.exe
-2026-09-01 14:29:09 - ProcessKill 6024
-2026-09-01 14:29:09 - Shutdown exception
-Message:Class not registered
-
-Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
-   at System.Management.ManagementScope.InitializeGuts(Object o)
-   at System.Management.ManagementScope.Initialize()
-   at System.Management.ManagementObjectSearcher.Initialize()
-   at System.Management.ManagementObjectSearcher.Get()
-   at winsw.WrapperService.GetChildPids(Int32 pid)
-   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
-   at winsw.WrapperService.StopIt()
-   at winsw.WrapperService.OnShutdown()
-2026-09-01 14:29:31 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 14:29:31 - Started 5804
-2026-09-01 14:51:39 - Stopping tharkacontestserver.exe
-2026-09-01 14:51:39 - ProcessKill 5804
-2026-09-01 14:51:39 - Shutdown exception
-Message:Class not registered
-
-Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
-   at System.Management.ManagementScope.InitializeGuts(Object o)
-   at System.Management.ManagementScope.Initialize()
-   at System.Management.ManagementObjectSearcher.Initialize()
-   at System.Management.ManagementObjectSearcher.Get()
-   at winsw.WrapperService.GetChildPids(Int32 pid)
-   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
-   at winsw.WrapperService.StopIt()
-   at winsw.WrapperService.OnShutdown()
-2026-09-01 14:52:05 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 14:52:05 - Started 5660
-2026-09-01 15:09:15 - Stopping tharkacontestserver.exe
-2026-09-01 15:09:15 - ProcessKill 5660
-2026-09-01 15:09:15 - Found child process: 5676 Name: conhost.exe
-2026-09-01 15:09:15 - Found child process: 668 Name: node.exe
-2026-09-01 15:09:15 - Stopping process 5676
-2026-09-01 15:09:15 - Send SIGINT 5676
-2026-09-01 15:09:15 - SIGINT to 5676 failed - Killing as fallback
-2026-09-01 15:09:15 - Stopping process 668
-2026-09-01 15:09:15 - Send SIGINT 668
-2026-09-01 15:09:15 - SIGINT to 668 failed - Killing as fallback
-2026-09-01 15:09:15 - Stopping process 5660
-2026-09-01 15:09:15 - Send SIGINT 5660
-2026-09-01 15:09:15 - SIGINT to 5660 failed - Killing as fallback
-2026-09-01 15:09:15 - Finished tharkacontestserver.exe
-2026-09-01 15:09:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 15:09:16 - Started 6992
-2026-09-01 16:14:09 - Stopping tharkacontestserver.exe
-2026-09-01 16:14:09 - ProcessKill 6992
-2026-09-01 16:14:09 - Shutdown exception
-Message:Class not registered
-
-Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
-   at System.Management.ManagementScope.InitializeGuts(Object o)
-   at System.Management.ManagementScope.Initialize()
-   at System.Management.ManagementObjectSearcher.Initialize()
-   at System.Management.ManagementObjectSearcher.Get()
-   at winsw.WrapperService.GetChildPids(Int32 pid)
-   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
-   at winsw.WrapperService.StopIt()
-   at winsw.WrapperService.OnShutdown()
-2026-09-01 16:14:35 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 16:14:35 - Started 5820
-2026-09-01 18:34:55 - Stopping tharkacontestserver.exe
-2026-09-01 18:34:55 - ProcessKill 5820
-2026-09-01 18:34:55 - Found child process: 5840 Name: conhost.exe
-2026-09-01 18:34:55 - Found child process: 7156 Name: node.exe
-2026-09-01 18:34:55 - Stopping process 5840
-2026-09-01 18:34:55 - Send SIGINT 5840
-2026-09-01 18:34:55 - SIGINT to 5840 failed - Killing as fallback
-2026-09-01 18:34:55 - Stopping process 7156
-2026-09-01 18:34:55 - Send SIGINT 7156
-2026-09-01 18:34:55 - SIGINT to 7156 failed - Killing as fallback
-2026-09-01 18:34:55 - Stopping process 5820
-2026-09-01 18:34:55 - Send SIGINT 5820
-2026-09-01 18:34:55 - SIGINT to 5820 failed - Killing as fallback
-2026-09-01 18:34:55 - Finished tharkacontestserver.exe
-2026-09-01 18:34:55 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 18:34:55 - Started 7864
-2026-09-01 18:44:14 - Stopping tharkacontestserver.exe
-2026-09-01 18:44:14 - ProcessKill 7864
-2026-09-01 18:44:14 - Found child process: 9052 Name: conhost.exe
-2026-09-01 18:44:14 - Found child process: 1348 Name: node.exe
-2026-09-01 18:44:14 - Stopping process 9052
-2026-09-01 18:44:14 - Send SIGINT 9052
-2026-09-01 18:44:14 - SIGINT to 9052 failed - Killing as fallback
-2026-09-01 18:44:14 - Stopping process 1348
-2026-09-01 18:44:14 - Send SIGINT 1348
-2026-09-01 18:44:14 - SIGINT to 1348 failed - Killing as fallback
-2026-09-01 18:44:14 - Stopping process 7864
-2026-09-01 18:44:14 - Send SIGINT 7864
-2026-09-01 18:44:14 - SIGINT to 7864 failed - Killing as fallback
-2026-09-01 18:44:14 - Finished tharkacontestserver.exe
-2026-09-01 18:44:15 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 18:44:15 - Started 6276
-2026-09-01 19:25:07 - Stopping tharkacontestserver.exe
-2026-09-01 19:25:07 - ProcessKill 6276
-2026-09-01 19:25:07 - Found child process: 5604 Name: conhost.exe
-2026-09-01 19:25:07 - Found child process: 2056 Name: node.exe
-2026-09-01 19:25:07 - Stopping process 5604
-2026-09-01 19:25:07 - Send SIGINT 5604
-2026-09-01 19:25:07 - SIGINT to 5604 failed - Killing as fallback
-2026-09-01 19:25:07 - Stopping process 2056
-2026-09-01 19:25:07 - Send SIGINT 2056
-2026-09-01 19:25:07 - SIGINT to 2056 failed - Killing as fallback
-2026-09-01 19:25:07 - Stopping process 6276
-2026-09-01 19:25:07 - Send SIGINT 6276
-2026-09-01 19:25:07 - SIGINT to 6276 failed - Killing as fallback
-2026-09-01 19:25:07 - Finished tharkacontestserver.exe
-2026-09-01 19:25:07 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 19:25:07 - Started 10148
-2026-09-01 19:48:21 - Stopping tharkacontestserver.exe
-2026-09-01 19:48:21 - ProcessKill 10148
-2026-09-01 19:48:22 - Shutdown exception
-Message:Class not registered
-
-Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
-   at System.Management.ManagementScope.InitializeGuts(Object o)
-   at System.Management.ManagementScope.Initialize()
-   at System.Management.ManagementObjectSearcher.Initialize()
-   at System.Management.ManagementObjectSearcher.Get()
-   at winsw.WrapperService.GetChildPids(Int32 pid)
-   at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
-   at winsw.WrapperService.StopIt()
-   at winsw.WrapperService.OnShutdown()
-2026-09-01 19:48:48 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-01 19:48:48 - Started 5796
-2026-09-02 09:30:52 - Stopping tharkacontestserver.exe
-2026-09-02 09:30:52 - ProcessKill 5796
-2026-09-02 09:30:52 - Shutdown exception
+2026-09-20 09:36:55 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-20 09:36:55 - Started 6048
+2026-09-20 10:59:54 - Stopping tharkacontestserver.exe
+2026-09-20 10:59:54 - ProcessKill 6048
+2026-09-20 10:59:54 - Found child process: 8508 Name: conhost.exe
+2026-09-20 10:59:54 - Found child process: 8092 Name: node.exe
+2026-09-20 10:59:54 - Stopping process 8508
+2026-09-20 10:59:54 - Send SIGINT 8508
+2026-09-20 10:59:54 - SIGINT to 8508 failed - Killing as fallback
+2026-09-20 10:59:54 - Stopping process 8092
+2026-09-20 10:59:54 - Send SIGINT 8092
+2026-09-20 10:59:54 - SIGINT to 8092 failed - Killing as fallback
+2026-09-20 10:59:54 - Stopping process 6048
+2026-09-20 10:59:54 - Send SIGINT 6048
+2026-09-20 10:59:54 - SIGINT to 6048 failed - Killing as fallback
+2026-09-20 10:59:54 - Finished tharkacontestserver.exe
+2026-09-20 10:59:54 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-20 10:59:54 - Started 11220
+2026-09-20 12:35:19 - Stopping tharkacontestserver.exe
+2026-09-20 12:35:19 - ProcessKill 11220
+2026-09-20 12:35:19 - Found child process: 4464 Name: conhost.exe
+2026-09-20 12:35:19 - Found child process: 17256 Name: node.exe
+2026-09-20 12:35:19 - Stopping process 4464
+2026-09-20 12:35:19 - Send SIGINT 4464
+2026-09-20 12:35:19 - SIGINT to 4464 failed - Killing as fallback
+2026-09-20 12:35:19 - Stopping process 17256
+2026-09-20 12:35:19 - Send SIGINT 17256
+2026-09-20 12:35:19 - SIGINT to 17256 failed - Killing as fallback
+2026-09-20 12:35:19 - Stopping process 11220
+2026-09-20 12:35:19 - Send SIGINT 11220
+2026-09-20 12:35:19 - SIGINT to 11220 failed - Killing as fallback
+2026-09-20 12:35:19 - Finished tharkacontestserver.exe
+2026-09-20 12:35:19 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-20 12:35:19 - Started 4612
+2026-09-21 13:20:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-21 13:20:28 - Started 7348
+2026-09-22 09:13:27 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 09:13:27 - Started 9060
+2026-09-22 10:40:48 - Stopping tharkacontestserver.exe
+2026-09-22 10:40:48 - ProcessKill 9060
+2026-09-22 10:40:49 - Found child process: 9068 Name: conhost.exe
+2026-09-22 10:40:49 - Found child process: 8428 Name: node.exe
+2026-09-22 10:40:49 - Stopping process 9068
+2026-09-22 10:40:49 - Send SIGINT 9068
+2026-09-22 10:40:49 - SIGINT to 9068 failed - Killing as fallback
+2026-09-22 10:40:49 - Stopping process 8428
+2026-09-22 10:40:49 - Send SIGINT 8428
+2026-09-22 10:40:49 - SIGINT to 8428 failed - Killing as fallback
+2026-09-22 10:40:49 - Stopping process 9060
+2026-09-22 10:40:49 - Send SIGINT 9060
+2026-09-22 10:40:49 - SIGINT to 9060 failed - Killing as fallback
+2026-09-22 10:40:49 - Finished tharkacontestserver.exe
+2026-09-22 10:40:50 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 10:40:50 - Started 8496
+2026-09-22 10:43:16 - Stopping tharkacontestserver.exe
+2026-09-22 10:43:16 - ProcessKill 8496
+2026-09-22 10:43:16 - Found child process: 7156 Name: conhost.exe
+2026-09-22 10:43:16 - Found child process: 2692 Name: node.exe
+2026-09-22 10:43:16 - Stopping process 7156
+2026-09-22 10:43:16 - Send SIGINT 7156
+2026-09-22 10:43:16 - SIGINT to 7156 failed - Killing as fallback
+2026-09-22 10:43:16 - Stopping process 2692
+2026-09-22 10:43:16 - Send SIGINT 2692
+2026-09-22 10:43:16 - SIGINT to 2692 failed - Killing as fallback
+2026-09-22 10:43:16 - Stopping process 8496
+2026-09-22 10:43:16 - Send SIGINT 8496
+2026-09-22 10:43:16 - SIGINT to 8496 failed - Killing as fallback
+2026-09-22 10:43:16 - Finished tharkacontestserver.exe
+2026-09-22 10:43:17 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 10:43:17 - Started 12364
+2026-09-22 10:52:33 - Stopping tharkacontestserver.exe
+2026-09-22 10:52:33 - ProcessKill 12364
+2026-09-22 10:52:33 - Found child process: 14704 Name: conhost.exe
+2026-09-22 10:52:33 - Found child process: 7384 Name: node.exe
+2026-09-22 10:52:33 - Stopping process 14704
+2026-09-22 10:52:33 - Send SIGINT 14704
+2026-09-22 10:52:33 - SIGINT to 14704 failed - Killing as fallback
+2026-09-22 10:52:33 - Stopping process 7384
+2026-09-22 10:52:33 - Send SIGINT 7384
+2026-09-22 10:52:33 - SIGINT to 7384 failed - Killing as fallback
+2026-09-22 10:52:33 - Stopping process 12364
+2026-09-22 10:52:33 - Send SIGINT 12364
+2026-09-22 10:52:33 - SIGINT to 12364 failed - Killing as fallback
+2026-09-22 10:52:33 - Finished tharkacontestserver.exe
+2026-09-22 10:52:34 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 10:52:34 - Started 10204
+2026-09-22 10:53:19 - Stopping tharkacontestserver.exe
+2026-09-22 10:53:19 - ProcessKill 10204
+2026-09-22 10:53:19 - Found child process: 7244 Name: conhost.exe
+2026-09-22 10:53:20 - Found child process: 8988 Name: node.exe
+2026-09-22 10:53:20 - Stopping process 7244
+2026-09-22 10:53:20 - Send SIGINT 7244
+2026-09-22 10:53:20 - SIGINT to 7244 failed - Killing as fallback
+2026-09-22 10:53:20 - Stopping process 8988
+2026-09-22 10:53:20 - Send SIGINT 8988
+2026-09-22 10:53:20 - SIGINT to 8988 failed - Killing as fallback
+2026-09-22 10:53:20 - Stopping process 10204
+2026-09-22 10:53:20 - Send SIGINT 10204
+2026-09-22 10:53:20 - SIGINT to 10204 failed - Killing as fallback
+2026-09-22 10:53:20 - Finished tharkacontestserver.exe
+2026-09-22 10:53:20 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 10:53:20 - Started 15668
+2026-09-22 10:55:44 - Stopping tharkacontestserver.exe
+2026-09-22 10:55:44 - ProcessKill 15668
+2026-09-22 10:55:44 - Found child process: 15644 Name: conhost.exe
+2026-09-22 10:55:44 - Found child process: 16156 Name: node.exe
+2026-09-22 10:55:44 - Stopping process 15644
+2026-09-22 10:55:44 - Send SIGINT 15644
+2026-09-22 10:55:44 - SIGINT to 15644 failed - Killing as fallback
+2026-09-22 10:55:44 - Stopping process 16156
+2026-09-22 10:55:44 - Send SIGINT 16156
+2026-09-22 10:55:44 - SIGINT to 16156 failed - Killing as fallback
+2026-09-22 10:55:44 - Stopping process 15668
+2026-09-22 10:55:44 - Send SIGINT 15668
+2026-09-22 10:55:44 - SIGINT to 15668 failed - Killing as fallback
+2026-09-22 10:55:44 - Finished tharkacontestserver.exe
+2026-09-22 10:55:44 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 10:55:44 - Started 5772
+2026-09-22 13:44:38 - Stopping tharkacontestserver.exe
+2026-09-22 13:44:38 - ProcessKill 5772
+2026-09-22 13:44:39 - Shutdown exception
 Message:A system shutdown is in progress.
 
 Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
@@ -144,799 +130,19 @@ Stacktrace:   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInter
    at winsw.WrapperService.StopProcessAndChildren(Int32 pid)
    at winsw.WrapperService.StopIt()
    at winsw.WrapperService.OnShutdown()
-2026-09-02 09:31:16 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-02 09:31:16 - Started 5820
-2026-09-02 12:32:55 - Stopping tharkacontestserver.exe
-2026-09-02 12:32:55 - ProcessKill 5820
-2026-09-02 12:32:55 - Found child process: 5836 Name: conhost.exe
-2026-09-02 12:32:55 - Found child process: 5536 Name: node.exe
-2026-09-02 12:32:55 - Stopping process 5836
-2026-09-02 12:32:55 - Send SIGINT 5836
-2026-09-02 12:32:55 - SIGINT to 5836 failed - Killing as fallback
-2026-09-02 12:32:55 - Stopping process 5536
-2026-09-02 12:32:55 - Send SIGINT 5536
-2026-09-02 12:32:55 - SIGINT to 5536 failed - Killing as fallback
-2026-09-02 12:32:55 - Stopping process 5820
-2026-09-02 12:32:55 - Send SIGINT 5820
-2026-09-02 12:32:55 - SIGINT to 5820 failed - Killing as fallback
-2026-09-02 12:32:55 - Finished tharkacontestserver.exe
-2026-09-02 12:32:55 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-02 12:32:56 - Started 14900
-2026-09-03 10:26:20 - Stopping tharkacontestserver.exe
-2026-09-03 10:26:20 - ProcessKill 14900
-2026-09-03 10:26:20 - Found child process: 12668 Name: conhost.exe
-2026-09-03 10:26:20 - Found child process: 15236 Name: node.exe
-2026-09-03 10:26:20 - Stopping process 12668
-2026-09-03 10:26:20 - Send SIGINT 12668
-2026-09-03 10:26:20 - SIGINT to 12668 failed - Killing as fallback
-2026-09-03 10:26:20 - Stopping process 15236
-2026-09-03 10:26:20 - Send SIGINT 15236
-2026-09-03 10:26:20 - SIGINT to 15236 failed - Killing as fallback
-2026-09-03 10:26:20 - Stopping process 14900
-2026-09-03 10:26:20 - Send SIGINT 14900
-2026-09-03 10:26:20 - SIGINT to 14900 failed - Killing as fallback
-2026-09-03 10:26:20 - Finished tharkacontestserver.exe
-2026-09-03 10:26:20 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-03 10:26:20 - Started 3120
-2026-09-03 10:32:06 - Stopping tharkacontestserver.exe
-2026-09-03 10:32:06 - ProcessKill 3120
-2026-09-03 10:32:06 - Found child process: 4684 Name: conhost.exe
-2026-09-03 10:32:06 - Found child process: 17412 Name: node.exe
-2026-09-03 10:32:06 - Stopping process 4684
-2026-09-03 10:32:06 - Send SIGINT 4684
-2026-09-03 10:32:06 - SIGINT to 4684 failed - Killing as fallback
-2026-09-03 10:32:07 - Stopping process 17412
-2026-09-03 10:32:07 - Send SIGINT 17412
-2026-09-03 10:32:07 - SIGINT to 17412 failed - Killing as fallback
-2026-09-03 10:32:07 - Stopping process 3120
-2026-09-03 10:32:07 - Send SIGINT 3120
-2026-09-03 10:32:07 - SIGINT to 3120 failed - Killing as fallback
-2026-09-03 10:32:07 - Finished tharkacontestserver.exe
-2026-09-03 10:32:07 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-03 10:32:07 - Started 17236
-2026-09-03 10:40:02 - Stopping tharkacontestserver.exe
-2026-09-03 10:40:02 - ProcessKill 17236
-2026-09-03 10:40:02 - Found child process: 22812 Name: conhost.exe
-2026-09-03 10:40:02 - Found child process: 4152 Name: node.exe
-2026-09-03 10:40:02 - Stopping process 22812
-2026-09-03 10:40:02 - Send SIGINT 22812
-2026-09-03 10:40:02 - SIGINT to 22812 failed - Killing as fallback
-2026-09-03 10:40:02 - Stopping process 4152
-2026-09-03 10:40:02 - Send SIGINT 4152
-2026-09-03 10:40:02 - SIGINT to 4152 failed - Killing as fallback
-2026-09-03 10:40:02 - Stopping process 17236
-2026-09-03 10:40:02 - Send SIGINT 17236
-2026-09-03 10:40:02 - SIGINT to 17236 failed - Killing as fallback
-2026-09-03 10:40:02 - Finished tharkacontestserver.exe
-2026-09-03 10:40:03 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-03 10:40:03 - Started 25576
-2026-09-05 08:51:48 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 08:51:48 - Started 28288
-2026-09-05 09:10:50 - Stopping tharkacontestserver.exe
-2026-09-05 09:10:50 - ProcessKill 28288
-2026-09-05 09:10:51 - Found child process: 26972 Name: conhost.exe
-2026-09-05 09:10:51 - Found child process: 22612 Name: node.exe
-2026-09-05 09:10:51 - Stopping process 26972
-2026-09-05 09:10:51 - Send SIGINT 26972
-2026-09-05 09:10:51 - SIGINT to 26972 failed - Killing as fallback
-2026-09-05 09:10:51 - Stopping process 22612
-2026-09-05 09:10:51 - Send SIGINT 22612
-2026-09-05 09:10:51 - SIGINT to 22612 failed - Killing as fallback
-2026-09-05 09:10:51 - Stopping process 28288
-2026-09-05 09:10:51 - Send SIGINT 28288
-2026-09-05 09:10:51 - SIGINT to 28288 failed - Killing as fallback
-2026-09-05 09:10:51 - Finished tharkacontestserver.exe
-2026-09-05 09:10:51 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 09:10:51 - Started 25704
-2026-09-05 10:27:37 - Stopping tharkacontestserver.exe
-2026-09-05 10:27:37 - ProcessKill 25704
-2026-09-05 10:27:38 - Found child process: 22180 Name: conhost.exe
-2026-09-05 10:27:38 - Found child process: 27632 Name: node.exe
-2026-09-05 10:27:38 - Stopping process 22180
-2026-09-05 10:27:38 - Send SIGINT 22180
-2026-09-05 10:27:38 - SIGINT to 22180 failed - Killing as fallback
-2026-09-05 10:27:38 - Stopping process 27632
-2026-09-05 10:27:38 - Send SIGINT 27632
-2026-09-05 10:27:38 - SIGINT to 27632 failed - Killing as fallback
-2026-09-05 10:27:38 - Stopping process 25704
-2026-09-05 10:27:38 - Send SIGINT 25704
-2026-09-05 10:27:38 - SIGINT to 25704 failed - Killing as fallback
-2026-09-05 10:27:38 - Finished tharkacontestserver.exe
-2026-09-05 10:27:38 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 10:27:38 - Started 3920
-2026-09-05 10:32:06 - Stopping tharkacontestserver.exe
-2026-09-05 10:32:06 - ProcessKill 3920
-2026-09-05 10:32:06 - Found child process: 1204 Name: conhost.exe
-2026-09-05 10:32:06 - Found child process: 15572 Name: node.exe
-2026-09-05 10:32:06 - Stopping process 1204
-2026-09-05 10:32:06 - Send SIGINT 1204
-2026-09-05 10:32:06 - SIGINT to 1204 failed - Killing as fallback
-2026-09-05 10:32:06 - Stopping process 15572
-2026-09-05 10:32:06 - Send SIGINT 15572
-2026-09-05 10:32:06 - SIGINT to 15572 failed - Killing as fallback
-2026-09-05 10:32:06 - Stopping process 3920
-2026-09-05 10:32:06 - Send SIGINT 3920
-2026-09-05 10:32:06 - SIGINT to 3920 failed - Killing as fallback
-2026-09-05 10:32:06 - Finished tharkacontestserver.exe
-2026-09-05 10:32:07 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 10:32:07 - Started 1240
-2026-09-05 10:39:14 - Stopping tharkacontestserver.exe
-2026-09-05 10:39:14 - ProcessKill 1240
-2026-09-05 10:39:15 - Found child process: 25460 Name: conhost.exe
-2026-09-05 10:39:15 - Found child process: 17836 Name: node.exe
-2026-09-05 10:39:15 - Stopping process 25460
-2026-09-05 10:39:15 - Send SIGINT 25460
-2026-09-05 10:39:15 - SIGINT to 25460 failed - Killing as fallback
-2026-09-05 10:39:15 - Stopping process 17836
-2026-09-05 10:39:15 - Send SIGINT 17836
-2026-09-05 10:39:15 - SIGINT to 17836 failed - Killing as fallback
-2026-09-05 10:39:15 - Stopping process 1240
-2026-09-05 10:39:15 - Send SIGINT 1240
-2026-09-05 10:39:15 - SIGINT to 1240 failed - Killing as fallback
-2026-09-05 10:39:15 - Finished tharkacontestserver.exe
-2026-09-05 10:39:15 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 10:39:15 - Started 3152
-2026-09-05 11:27:01 - Stopping tharkacontestserver.exe
-2026-09-05 11:27:01 - ProcessKill 3152
-2026-09-05 11:27:02 - Found child process: 8872 Name: conhost.exe
-2026-09-05 11:27:02 - Found child process: 18852 Name: node.exe
-2026-09-05 11:27:02 - Stopping process 8872
-2026-09-05 11:27:02 - Send SIGINT 8872
-2026-09-05 11:27:02 - SIGINT to 8872 failed - Killing as fallback
-2026-09-05 11:27:02 - Stopping process 18852
-2026-09-05 11:27:02 - Send SIGINT 18852
-2026-09-05 11:27:02 - SIGINT to 18852 failed - Killing as fallback
-2026-09-05 11:27:02 - Stopping process 3152
-2026-09-05 11:27:02 - Send SIGINT 3152
-2026-09-05 11:27:02 - SIGINT to 3152 failed - Killing as fallback
-2026-09-05 11:27:02 - Finished tharkacontestserver.exe
-2026-09-05 11:27:02 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 11:27:02 - Started 15836
-2026-09-05 11:36:02 - Stopping tharkacontestserver.exe
-2026-09-05 11:36:02 - ProcessKill 15836
-2026-09-05 11:36:02 - Found child process: 18356 Name: conhost.exe
-2026-09-05 11:36:02 - Found child process: 13212 Name: node.exe
-2026-09-05 11:36:02 - Stopping process 18356
-2026-09-05 11:36:03 - Send SIGINT 18356
-2026-09-05 11:36:03 - SIGINT to 18356 failed - Killing as fallback
-2026-09-05 11:36:03 - Stopping process 13212
-2026-09-05 11:36:03 - Send SIGINT 13212
-2026-09-05 11:36:03 - SIGINT to 13212 failed - Killing as fallback
-2026-09-05 11:36:03 - Stopping process 15836
-2026-09-05 11:36:03 - Send SIGINT 15836
-2026-09-05 11:36:03 - SIGINT to 15836 failed - Killing as fallback
-2026-09-05 11:36:03 - Finished tharkacontestserver.exe
-2026-09-05 11:36:03 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-05 11:36:03 - Started 24940
-2026-09-07 09:27:38 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 09:27:38 - Started 8
-2026-09-07 09:46:33 - Stopping tharkacontestserver.exe
-2026-09-07 09:46:33 - ProcessKill 8
-2026-09-07 09:46:33 - Found child process: 18964 Name: conhost.exe
-2026-09-07 09:46:33 - Found child process: 3112 Name: node.exe
-2026-09-07 09:46:33 - Stopping process 18964
-2026-09-07 09:46:33 - Send SIGINT 18964
-2026-09-07 09:46:33 - SIGINT to 18964 failed - Killing as fallback
-2026-09-07 09:46:33 - Stopping process 3112
-2026-09-07 09:46:33 - Send SIGINT 3112
-2026-09-07 09:46:33 - SIGINT to 3112 failed - Killing as fallback
-2026-09-07 09:46:33 - Stopping process 8
-2026-09-07 09:46:33 - Send SIGINT 8
-2026-09-07 09:46:33 - SIGINT to 8 failed - Killing as fallback
-2026-09-07 09:46:33 - Finished tharkacontestserver.exe
-2026-09-07 09:46:34 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 09:46:34 - Started 20716
-2026-09-07 13:27:04 - Stopping tharkacontestserver.exe
-2026-09-07 13:27:04 - ProcessKill 20716
-2026-09-07 13:27:04 - Found child process: 1716 Name: conhost.exe
-2026-09-07 13:27:04 - Found child process: 20020 Name: node.exe
-2026-09-07 13:27:04 - Stopping process 1716
-2026-09-07 13:27:04 - Send SIGINT 1716
-2026-09-07 13:27:04 - SIGINT to 1716 failed - Killing as fallback
-2026-09-07 13:27:04 - Stopping process 20020
-2026-09-07 13:27:04 - Send SIGINT 20020
-2026-09-07 13:27:04 - SIGINT to 20020 failed - Killing as fallback
-2026-09-07 13:27:04 - Stopping process 20716
-2026-09-07 13:27:04 - Send SIGINT 20716
-2026-09-07 13:27:04 - SIGINT to 20716 failed - Killing as fallback
-2026-09-07 13:27:04 - Finished tharkacontestserver.exe
-2026-09-07 13:27:04 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 13:27:04 - Started 1568
-2026-09-07 13:52:37 - Stopping tharkacontestserver.exe
-2026-09-07 13:52:37 - ProcessKill 1568
-2026-09-07 13:52:37 - Found child process: 17672 Name: conhost.exe
-2026-09-07 13:52:37 - Found child process: 9848 Name: node.exe
-2026-09-07 13:52:37 - Stopping process 17672
-2026-09-07 13:52:37 - Send SIGINT 17672
-2026-09-07 13:52:37 - SIGINT to 17672 failed - Killing as fallback
-2026-09-07 13:52:37 - Stopping process 9848
-2026-09-07 13:52:37 - Send SIGINT 9848
-2026-09-07 13:52:37 - SIGINT to 9848 failed - Killing as fallback
-2026-09-07 13:52:37 - Stopping process 1568
-2026-09-07 13:52:37 - Send SIGINT 1568
-2026-09-07 13:52:37 - SIGINT to 1568 failed - Killing as fallback
-2026-09-07 13:52:37 - Finished tharkacontestserver.exe
-2026-09-07 13:52:37 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 13:52:37 - Started 28584
-2026-09-07 13:55:25 - Stopping tharkacontestserver.exe
-2026-09-07 13:55:25 - ProcessKill 28584
-2026-09-07 13:55:25 - Found child process: 1448 Name: conhost.exe
-2026-09-07 13:55:25 - Found child process: 20500 Name: node.exe
-2026-09-07 13:55:25 - Stopping process 1448
-2026-09-07 13:55:25 - Send SIGINT 1448
-2026-09-07 13:55:25 - SIGINT to 1448 failed - Killing as fallback
-2026-09-07 13:55:25 - Stopping process 20500
-2026-09-07 13:55:25 - Send SIGINT 20500
-2026-09-07 13:55:25 - SIGINT to 20500 failed - Killing as fallback
-2026-09-07 13:55:25 - Stopping process 28584
-2026-09-07 13:55:25 - Send SIGINT 28584
-2026-09-07 13:55:25 - SIGINT to 28584 failed - Killing as fallback
-2026-09-07 13:55:25 - Finished tharkacontestserver.exe
-2026-09-07 13:55:25 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 13:55:25 - Started 29592
-2026-09-07 13:58:30 - Stopping tharkacontestserver.exe
-2026-09-07 13:58:30 - ProcessKill 29592
-2026-09-07 13:58:30 - Found child process: 13180 Name: conhost.exe
-2026-09-07 13:58:30 - Found child process: 17864 Name: node.exe
-2026-09-07 13:58:30 - Stopping process 13180
-2026-09-07 13:58:30 - Send SIGINT 13180
-2026-09-07 13:58:30 - SIGINT to 13180 failed - Killing as fallback
-2026-09-07 13:58:30 - Stopping process 17864
-2026-09-07 13:58:30 - Send SIGINT 17864
-2026-09-07 13:58:30 - SIGINT to 17864 failed - Killing as fallback
-2026-09-07 13:58:30 - Stopping process 29592
-2026-09-07 13:58:30 - Send SIGINT 29592
-2026-09-07 13:58:30 - SIGINT to 29592 failed - Killing as fallback
-2026-09-07 13:58:30 - Finished tharkacontestserver.exe
-2026-09-07 13:58:31 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 13:58:31 - Started 20968
-2026-09-07 14:01:25 - Stopping tharkacontestserver.exe
-2026-09-07 14:01:25 - ProcessKill 20968
-2026-09-07 14:01:25 - Found child process: 26056 Name: conhost.exe
-2026-09-07 14:01:25 - Found child process: 1420 Name: node.exe
-2026-09-07 14:01:25 - Stopping process 26056
-2026-09-07 14:01:25 - Send SIGINT 26056
-2026-09-07 14:01:25 - SIGINT to 26056 failed - Killing as fallback
-2026-09-07 14:01:25 - Stopping process 1420
-2026-09-07 14:01:25 - Send SIGINT 1420
-2026-09-07 14:01:25 - SIGINT to 1420 failed - Killing as fallback
-2026-09-07 14:01:25 - Stopping process 20968
-2026-09-07 14:01:25 - Send SIGINT 20968
-2026-09-07 14:01:25 - SIGINT to 20968 failed - Killing as fallback
-2026-09-07 14:01:25 - Finished tharkacontestserver.exe
-2026-09-07 14:01:26 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:01:26 - Started 19540
-2026-09-07 14:04:29 - Stopping tharkacontestserver.exe
-2026-09-07 14:04:29 - ProcessKill 19540
-2026-09-07 14:04:29 - Found child process: 28164 Name: conhost.exe
-2026-09-07 14:04:29 - Found child process: 19436 Name: node.exe
-2026-09-07 14:04:29 - Stopping process 28164
-2026-09-07 14:04:29 - Send SIGINT 28164
-2026-09-07 14:04:29 - SIGINT to 28164 failed - Killing as fallback
-2026-09-07 14:04:29 - Stopping process 19436
-2026-09-07 14:04:29 - Send SIGINT 19436
-2026-09-07 14:04:29 - SIGINT to 19436 failed - Killing as fallback
-2026-09-07 14:04:29 - Stopping process 19540
-2026-09-07 14:04:29 - Send SIGINT 19540
-2026-09-07 14:04:29 - SIGINT to 19540 failed - Killing as fallback
-2026-09-07 14:04:29 - Finished tharkacontestserver.exe
-2026-09-07 14:04:29 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:04:29 - Started 27732
-2026-09-07 14:07:22 - Stopping tharkacontestserver.exe
-2026-09-07 14:07:22 - ProcessKill 27732
-2026-09-07 14:07:22 - Found child process: 11992 Name: conhost.exe
-2026-09-07 14:07:22 - Found child process: 25664 Name: node.exe
-2026-09-07 14:07:22 - Stopping process 11992
-2026-09-07 14:07:22 - Send SIGINT 11992
-2026-09-07 14:07:22 - SIGINT to 11992 failed - Killing as fallback
-2026-09-07 14:07:22 - Stopping process 25664
-2026-09-07 14:07:22 - Send SIGINT 25664
-2026-09-07 14:07:22 - SIGINT to 25664 failed - Killing as fallback
-2026-09-07 14:07:22 - Stopping process 27732
-2026-09-07 14:07:22 - Send SIGINT 27732
-2026-09-07 14:07:22 - SIGINT to 27732 failed - Killing as fallback
-2026-09-07 14:07:22 - Finished tharkacontestserver.exe
-2026-09-07 14:07:23 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:07:23 - Started 27264
-2026-09-07 14:10:29 - Stopping tharkacontestserver.exe
-2026-09-07 14:10:29 - ProcessKill 27264
-2026-09-07 14:10:29 - Found child process: 1940 Name: conhost.exe
-2026-09-07 14:10:29 - Found child process: 21912 Name: node.exe
-2026-09-07 14:10:29 - Stopping process 1940
-2026-09-07 14:10:29 - Send SIGINT 1940
-2026-09-07 14:10:29 - SIGINT to 1940 failed - Killing as fallback
-2026-09-07 14:10:29 - Stopping process 21912
-2026-09-07 14:10:29 - Send SIGINT 21912
-2026-09-07 14:10:29 - SIGINT to 21912 failed - Killing as fallback
-2026-09-07 14:10:29 - Stopping process 27264
-2026-09-07 14:10:29 - Send SIGINT 27264
-2026-09-07 14:10:29 - SIGINT to 27264 failed - Killing as fallback
-2026-09-07 14:10:29 - Finished tharkacontestserver.exe
-2026-09-07 14:10:30 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:10:30 - Started 28776
-2026-09-07 14:13:23 - Stopping tharkacontestserver.exe
-2026-09-07 14:13:23 - ProcessKill 28776
-2026-09-07 14:13:23 - Found child process: 7932 Name: conhost.exe
-2026-09-07 14:13:23 - Found child process: 27036 Name: node.exe
-2026-09-07 14:13:23 - Stopping process 7932
-2026-09-07 14:13:23 - Send SIGINT 7932
-2026-09-07 14:13:23 - SIGINT to 7932 failed - Killing as fallback
-2026-09-07 14:13:23 - Stopping process 27036
-2026-09-07 14:13:23 - Send SIGINT 27036
-2026-09-07 14:13:23 - SIGINT to 27036 failed - Killing as fallback
-2026-09-07 14:13:23 - Stopping process 28776
-2026-09-07 14:13:23 - Send SIGINT 28776
-2026-09-07 14:13:23 - SIGINT to 28776 failed - Killing as fallback
-2026-09-07 14:13:23 - Finished tharkacontestserver.exe
-2026-09-07 14:13:23 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:13:23 - Started 16020
-2026-09-07 14:16:27 - Stopping tharkacontestserver.exe
-2026-09-07 14:16:27 - ProcessKill 16020
-2026-09-07 14:16:27 - Found child process: 19568 Name: conhost.exe
-2026-09-07 14:16:27 - Found child process: 13268 Name: node.exe
-2026-09-07 14:16:28 - Stopping process 19568
-2026-09-07 14:16:28 - Send SIGINT 19568
-2026-09-07 14:16:28 - SIGINT to 19568 failed - Killing as fallback
-2026-09-07 14:16:28 - Stopping process 13268
-2026-09-07 14:16:28 - Send SIGINT 13268
-2026-09-07 14:16:28 - SIGINT to 13268 failed - Killing as fallback
-2026-09-07 14:16:28 - Stopping process 16020
-2026-09-07 14:16:28 - Send SIGINT 16020
-2026-09-07 14:16:28 - SIGINT to 16020 failed - Killing as fallback
-2026-09-07 14:16:28 - Finished tharkacontestserver.exe
-2026-09-07 14:16:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:16:28 - Started 18392
-2026-09-07 14:19:27 - Stopping tharkacontestserver.exe
-2026-09-07 14:19:27 - ProcessKill 18392
-2026-09-07 14:19:27 - Found child process: 29056 Name: conhost.exe
-2026-09-07 14:19:27 - Found child process: 29292 Name: node.exe
-2026-09-07 14:19:27 - Stopping process 29056
-2026-09-07 14:19:27 - Send SIGINT 29056
-2026-09-07 14:19:27 - SIGINT to 29056 failed - Killing as fallback
-2026-09-07 14:19:27 - Stopping process 29292
-2026-09-07 14:19:27 - Send SIGINT 29292
-2026-09-07 14:19:27 - SIGINT to 29292 failed - Killing as fallback
-2026-09-07 14:19:27 - Stopping process 18392
-2026-09-07 14:19:27 - Send SIGINT 18392
-2026-09-07 14:19:27 - SIGINT to 18392 failed - Killing as fallback
-2026-09-07 14:19:27 - Finished tharkacontestserver.exe
-2026-09-07 14:19:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:19:28 - Started 17428
-2026-09-07 14:22:32 - Stopping tharkacontestserver.exe
-2026-09-07 14:22:32 - ProcessKill 17428
-2026-09-07 14:22:32 - Found child process: 6792 Name: conhost.exe
-2026-09-07 14:22:32 - Found child process: 14380 Name: node.exe
-2026-09-07 14:22:32 - Stopping process 6792
-2026-09-07 14:22:32 - Send SIGINT 6792
-2026-09-07 14:22:32 - SIGINT to 6792 failed - Killing as fallback
-2026-09-07 14:22:32 - Stopping process 14380
-2026-09-07 14:22:32 - Send SIGINT 14380
-2026-09-07 14:22:32 - SIGINT to 14380 failed - Killing as fallback
-2026-09-07 14:22:32 - Stopping process 17428
-2026-09-07 14:22:32 - Send SIGINT 17428
-2026-09-07 14:22:32 - SIGINT to 17428 failed - Killing as fallback
-2026-09-07 14:22:32 - Finished tharkacontestserver.exe
-2026-09-07 14:22:32 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:22:32 - Started 23480
-2026-09-07 14:25:28 - Stopping tharkacontestserver.exe
-2026-09-07 14:25:28 - ProcessKill 23480
-2026-09-07 14:25:28 - Found child process: 23548 Name: conhost.exe
-2026-09-07 14:25:28 - Found child process: 11336 Name: node.exe
-2026-09-07 14:25:28 - Stopping process 23548
-2026-09-07 14:25:28 - Send SIGINT 23548
-2026-09-07 14:25:28 - SIGINT to 23548 failed - Killing as fallback
-2026-09-07 14:25:28 - Stopping process 11336
-2026-09-07 14:25:28 - Send SIGINT 11336
-2026-09-07 14:25:28 - SIGINT to 11336 failed - Killing as fallback
-2026-09-07 14:25:28 - Stopping process 23480
-2026-09-07 14:25:28 - Send SIGINT 23480
-2026-09-07 14:25:28 - SIGINT to 23480 failed - Killing as fallback
-2026-09-07 14:25:28 - Finished tharkacontestserver.exe
-2026-09-07 14:25:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:25:28 - Started 26444
-2026-09-07 14:28:27 - Stopping tharkacontestserver.exe
-2026-09-07 14:28:27 - ProcessKill 26444
-2026-09-07 14:28:27 - Found child process: 21700 Name: conhost.exe
-2026-09-07 14:28:27 - Found child process: 23780 Name: node.exe
-2026-09-07 14:28:27 - Stopping process 21700
-2026-09-07 14:28:27 - Send SIGINT 21700
-2026-09-07 14:28:27 - SIGINT to 21700 failed - Killing as fallback
-2026-09-07 14:28:27 - Stopping process 23780
-2026-09-07 14:28:27 - Send SIGINT 23780
-2026-09-07 14:28:27 - SIGINT to 23780 failed - Killing as fallback
-2026-09-07 14:28:27 - Stopping process 26444
-2026-09-07 14:28:27 - Send SIGINT 26444
-2026-09-07 14:28:27 - SIGINT to 26444 failed - Killing as fallback
-2026-09-07 14:28:27 - Finished tharkacontestserver.exe
-2026-09-07 14:28:27 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:28:27 - Started 13376
-2026-09-07 14:31:26 - Stopping tharkacontestserver.exe
-2026-09-07 14:31:26 - ProcessKill 13376
-2026-09-07 14:31:26 - Found child process: 24060 Name: conhost.exe
-2026-09-07 14:31:26 - Found child process: 29260 Name: node.exe
-2026-09-07 14:31:27 - Stopping process 24060
-2026-09-07 14:31:27 - Send SIGINT 24060
-2026-09-07 14:31:27 - SIGINT to 24060 failed - Killing as fallback
-2026-09-07 14:31:27 - Stopping process 29260
-2026-09-07 14:31:27 - Send SIGINT 29260
-2026-09-07 14:31:27 - SIGINT to 29260 failed - Killing as fallback
-2026-09-07 14:31:27 - Stopping process 13376
-2026-09-07 14:31:27 - Send SIGINT 13376
-2026-09-07 14:31:27 - SIGINT to 13376 failed - Killing as fallback
-2026-09-07 14:31:27 - Finished tharkacontestserver.exe
-2026-09-07 14:31:27 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:31:27 - Started 2016
-2026-09-07 14:36:28 - Stopping tharkacontestserver.exe
-2026-09-07 14:36:28 - ProcessKill 2016
-2026-09-07 14:36:29 - Found child process: 15632 Name: conhost.exe
-2026-09-07 14:36:29 - Found child process: 1020 Name: node.exe
-2026-09-07 14:36:29 - Stopping process 15632
-2026-09-07 14:36:29 - Send SIGINT 15632
-2026-09-07 14:36:29 - SIGINT to 15632 failed - Killing as fallback
-2026-09-07 14:36:29 - Stopping process 1020
-2026-09-07 14:36:29 - Send SIGINT 1020
-2026-09-07 14:36:29 - SIGINT to 1020 failed - Killing as fallback
-2026-09-07 14:36:29 - Stopping process 2016
-2026-09-07 14:36:29 - Send SIGINT 2016
-2026-09-07 14:36:29 - SIGINT to 2016 failed - Killing as fallback
-2026-09-07 14:36:29 - Finished tharkacontestserver.exe
-2026-09-07 14:36:30 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:36:30 - Started 26752
-2026-09-07 14:36:38 - Stopping tharkacontestserver.exe
-2026-09-07 14:36:38 - ProcessKill 26752
-2026-09-07 14:36:38 - Found child process: 1396 Name: conhost.exe
-2026-09-07 14:36:38 - Found child process: 8008 Name: node.exe
-2026-09-07 14:36:38 - Stopping process 1396
-2026-09-07 14:36:38 - Send SIGINT 1396
-2026-09-07 14:36:38 - SIGINT to 1396 failed - Killing as fallback
-2026-09-07 14:36:38 - Stopping process 8008
-2026-09-07 14:36:38 - Send SIGINT 8008
-2026-09-07 14:36:38 - SIGINT to 8008 failed - Killing as fallback
-2026-09-07 14:36:38 - Stopping process 26752
-2026-09-07 14:36:38 - Send SIGINT 26752
-2026-09-07 14:36:38 - SIGINT to 26752 failed - Killing as fallback
-2026-09-07 14:36:38 - Finished tharkacontestserver.exe
-2026-09-07 14:36:38 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:36:38 - Started 19276
-2026-09-07 14:37:22 - Stopping tharkacontestserver.exe
-2026-09-07 14:37:22 - ProcessKill 19276
-2026-09-07 14:37:22 - Found child process: 28108 Name: conhost.exe
-2026-09-07 14:37:22 - Found child process: 16204 Name: node.exe
-2026-09-07 14:37:22 - Stopping process 28108
-2026-09-07 14:37:22 - Send SIGINT 28108
-2026-09-07 14:37:23 - SIGINT to 28108 failed - Killing as fallback
-2026-09-07 14:37:23 - Stopping process 16204
-2026-09-07 14:37:23 - Send SIGINT 16204
-2026-09-07 14:37:23 - SIGINT to 16204 failed - Killing as fallback
-2026-09-07 14:37:23 - Stopping process 19276
-2026-09-07 14:37:23 - Send SIGINT 19276
-2026-09-07 14:37:23 - SIGINT to 19276 failed - Killing as fallback
-2026-09-07 14:37:23 - Finished tharkacontestserver.exe
-2026-09-07 14:37:23 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:37:23 - Started 12444
-2026-09-07 14:40:27 - Stopping tharkacontestserver.exe
-2026-09-07 14:40:27 - ProcessKill 12444
-2026-09-07 14:40:27 - Found child process: 18452 Name: conhost.exe
-2026-09-07 14:40:27 - Found child process: 28512 Name: node.exe
-2026-09-07 14:40:27 - Stopping process 18452
-2026-09-07 14:40:27 - Send SIGINT 18452
-2026-09-07 14:40:27 - SIGINT to 18452 failed - Killing as fallback
-2026-09-07 14:40:27 - Stopping process 28512
-2026-09-07 14:40:27 - Send SIGINT 28512
-2026-09-07 14:40:27 - SIGINT to 28512 failed - Killing as fallback
-2026-09-07 14:40:27 - Stopping process 12444
-2026-09-07 14:40:27 - Send SIGINT 12444
-2026-09-07 14:40:27 - SIGINT to 12444 failed - Killing as fallback
-2026-09-07 14:40:27 - Finished tharkacontestserver.exe
-2026-09-07 14:40:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:40:28 - Started 19072
-2026-09-07 14:43:34 - Stopping tharkacontestserver.exe
-2026-09-07 14:43:34 - ProcessKill 19072
-2026-09-07 14:43:34 - Found child process: 21900 Name: conhost.exe
-2026-09-07 14:43:34 - Found child process: 4768 Name: node.exe
-2026-09-07 14:43:34 - Stopping process 21900
-2026-09-07 14:43:34 - Send SIGINT 21900
-2026-09-07 14:43:34 - SIGINT to 21900 failed - Killing as fallback
-2026-09-07 14:43:34 - Stopping process 4768
-2026-09-07 14:43:34 - Send SIGINT 4768
-2026-09-07 14:43:34 - SIGINT to 4768 failed - Killing as fallback
-2026-09-07 14:43:34 - Stopping process 19072
-2026-09-07 14:43:34 - Send SIGINT 19072
-2026-09-07 14:43:34 - SIGINT to 19072 failed - Killing as fallback
-2026-09-07 14:43:34 - Finished tharkacontestserver.exe
-2026-09-07 14:43:34 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:43:34 - Started 23080
-2026-09-07 14:46:26 - Stopping tharkacontestserver.exe
-2026-09-07 14:46:26 - ProcessKill 23080
-2026-09-07 14:46:26 - Found child process: 26444 Name: conhost.exe
-2026-09-07 14:46:26 - Found child process: 19604 Name: node.exe
-2026-09-07 14:46:26 - Stopping process 26444
-2026-09-07 14:46:26 - Send SIGINT 26444
-2026-09-07 14:46:26 - SIGINT to 26444 failed - Killing as fallback
-2026-09-07 14:46:26 - Stopping process 19604
-2026-09-07 14:46:26 - Send SIGINT 19604
-2026-09-07 14:46:26 - SIGINT to 19604 failed - Killing as fallback
-2026-09-07 14:46:26 - Stopping process 23080
-2026-09-07 14:46:26 - Send SIGINT 23080
-2026-09-07 14:46:26 - SIGINT to 23080 failed - Killing as fallback
-2026-09-07 14:46:26 - Finished tharkacontestserver.exe
-2026-09-07 14:46:27 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:46:27 - Started 27092
-2026-09-07 14:49:31 - Stopping tharkacontestserver.exe
-2026-09-07 14:49:31 - ProcessKill 27092
-2026-09-07 14:49:31 - Found child process: 11172 Name: conhost.exe
-2026-09-07 14:49:31 - Found child process: 15252 Name: node.exe
-2026-09-07 14:49:31 - Stopping process 11172
-2026-09-07 14:49:31 - Send SIGINT 11172
-2026-09-07 14:49:31 - SIGINT to 11172 failed - Killing as fallback
-2026-09-07 14:49:31 - Stopping process 15252
-2026-09-07 14:49:31 - Send SIGINT 15252
-2026-09-07 14:49:31 - SIGINT to 15252 failed - Killing as fallback
-2026-09-07 14:49:31 - Stopping process 27092
-2026-09-07 14:49:31 - Send SIGINT 27092
-2026-09-07 14:49:31 - SIGINT to 27092 failed - Killing as fallback
-2026-09-07 14:49:31 - Finished tharkacontestserver.exe
-2026-09-07 14:49:31 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:49:31 - Started 18240
-2026-09-07 14:52:47 - Stopping tharkacontestserver.exe
-2026-09-07 14:52:47 - ProcessKill 18240
-2026-09-07 14:52:47 - Found child process: 22916 Name: conhost.exe
-2026-09-07 14:52:47 - Found child process: 22448 Name: node.exe
-2026-09-07 14:52:47 - Stopping process 22916
-2026-09-07 14:52:47 - Send SIGINT 22916
-2026-09-07 14:52:47 - SIGINT to 22916 failed - Killing as fallback
-2026-09-07 14:52:47 - Stopping process 22448
-2026-09-07 14:52:47 - Send SIGINT 22448
-2026-09-07 14:52:47 - SIGINT to 22448 failed - Killing as fallback
-2026-09-07 14:52:47 - Stopping process 18240
-2026-09-07 14:52:47 - Send SIGINT 18240
-2026-09-07 14:52:47 - SIGINT to 18240 failed - Killing as fallback
-2026-09-07 14:52:47 - Finished tharkacontestserver.exe
-2026-09-07 14:52:47 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:52:47 - Started 24760
-2026-09-07 14:55:36 - Stopping tharkacontestserver.exe
-2026-09-07 14:55:36 - ProcessKill 24760
-2026-09-07 14:55:37 - Found child process: 29680 Name: conhost.exe
-2026-09-07 14:55:37 - Found child process: 3228 Name: node.exe
-2026-09-07 14:55:37 - Stopping process 29680
-2026-09-07 14:55:37 - Send SIGINT 29680
-2026-09-07 14:55:37 - SIGINT to 29680 failed - Killing as fallback
-2026-09-07 14:55:37 - Stopping process 3228
-2026-09-07 14:55:37 - Send SIGINT 3228
-2026-09-07 14:55:37 - SIGINT to 3228 failed - Killing as fallback
-2026-09-07 14:55:37 - Stopping process 24760
-2026-09-07 14:55:37 - Send SIGINT 24760
-2026-09-07 14:55:37 - SIGINT to 24760 failed - Killing as fallback
-2026-09-07 14:55:37 - Finished tharkacontestserver.exe
-2026-09-07 14:55:37 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:55:37 - Started 11648
-2026-09-07 14:58:37 - Stopping tharkacontestserver.exe
-2026-09-07 14:58:37 - ProcessKill 11648
-2026-09-07 14:58:37 - Found child process: 14640 Name: conhost.exe
-2026-09-07 14:58:37 - Found child process: 12992 Name: node.exe
-2026-09-07 14:58:37 - Stopping process 14640
-2026-09-07 14:58:38 - Send SIGINT 14640
-2026-09-07 14:58:38 - SIGINT to 14640 failed - Killing as fallback
-2026-09-07 14:58:38 - Stopping process 12992
-2026-09-07 14:58:38 - Send SIGINT 12992
-2026-09-07 14:58:38 - SIGINT to 12992 failed - Killing as fallback
-2026-09-07 14:58:38 - Stopping process 11648
-2026-09-07 14:58:38 - Send SIGINT 11648
-2026-09-07 14:58:38 - SIGINT to 11648 failed - Killing as fallback
-2026-09-07 14:58:38 - Finished tharkacontestserver.exe
-2026-09-07 14:58:38 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 14:58:38 - Started 22364
-2026-09-07 15:01:33 - Stopping tharkacontestserver.exe
-2026-09-07 15:01:33 - ProcessKill 22364
-2026-09-07 15:01:33 - Found child process: 8064 Name: conhost.exe
-2026-09-07 15:01:33 - Found child process: 25480 Name: node.exe
-2026-09-07 15:01:33 - Stopping process 8064
-2026-09-07 15:01:33 - Send SIGINT 8064
-2026-09-07 15:01:33 - SIGINT to 8064 failed - Killing as fallback
-2026-09-07 15:01:33 - Stopping process 25480
-2026-09-07 15:01:33 - Send SIGINT 25480
-2026-09-07 15:01:33 - SIGINT to 25480 failed - Killing as fallback
-2026-09-07 15:01:33 - Stopping process 22364
-2026-09-07 15:01:33 - Send SIGINT 22364
-2026-09-07 15:01:33 - SIGINT to 22364 failed - Killing as fallback
-2026-09-07 15:01:33 - Finished tharkacontestserver.exe
-2026-09-07 15:01:33 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 15:01:33 - Started 13268
-2026-09-07 15:04:32 - Stopping tharkacontestserver.exe
-2026-09-07 15:04:32 - ProcessKill 13268
-2026-09-07 15:04:33 - Found child process: 15280 Name: conhost.exe
-2026-09-07 15:04:33 - Found child process: 1120 Name: node.exe
-2026-09-07 15:04:33 - Stopping process 15280
-2026-09-07 15:04:33 - Send SIGINT 15280
-2026-09-07 15:04:33 - SIGINT to 15280 failed - Killing as fallback
-2026-09-07 15:04:33 - Stopping process 1120
-2026-09-07 15:04:33 - Send SIGINT 1120
-2026-09-07 15:04:33 - SIGINT to 1120 failed - Killing as fallback
-2026-09-07 15:04:33 - Stopping process 13268
-2026-09-07 15:04:33 - Send SIGINT 13268
-2026-09-07 15:04:33 - SIGINT to 13268 failed - Killing as fallback
-2026-09-07 15:04:33 - Finished tharkacontestserver.exe
-2026-09-07 15:04:33 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 15:04:33 - Started 26768
-2026-09-07 15:08:05 - Stopping tharkacontestserver.exe
-2026-09-07 15:08:05 - ProcessKill 26768
-2026-09-07 15:08:05 - Found child process: 3096 Name: conhost.exe
-2026-09-07 15:08:05 - Found child process: 25744 Name: node.exe
-2026-09-07 15:08:05 - Stopping process 3096
-2026-09-07 15:08:05 - Send SIGINT 3096
-2026-09-07 15:08:05 - SIGINT to 3096 failed - Killing as fallback
-2026-09-07 15:08:05 - Stopping process 25744
-2026-09-07 15:08:05 - Send SIGINT 25744
-2026-09-07 15:08:05 - SIGINT to 25744 failed - Killing as fallback
-2026-09-07 15:08:05 - Stopping process 26768
-2026-09-07 15:08:05 - Send SIGINT 26768
-2026-09-07 15:08:05 - SIGINT to 26768 failed - Killing as fallback
-2026-09-07 15:08:05 - Finished tharkacontestserver.exe
-2026-09-07 15:08:05 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 15:08:05 - Started 23280
-2026-09-07 17:39:54 - Stopping tharkacontestserver.exe
-2026-09-07 17:39:54 - ProcessKill 23280
-2026-09-07 17:39:54 - Found child process: 16924 Name: conhost.exe
-2026-09-07 17:39:54 - Found child process: 6324 Name: node.exe
-2026-09-07 17:39:54 - Stopping process 16924
-2026-09-07 17:39:54 - Send SIGINT 16924
-2026-09-07 17:39:54 - SIGINT to 16924 failed - Killing as fallback
-2026-09-07 17:39:54 - Stopping process 6324
-2026-09-07 17:39:54 - Send SIGINT 6324
-2026-09-07 17:39:54 - SIGINT to 6324 failed - Killing as fallback
-2026-09-07 17:39:54 - Stopping process 23280
-2026-09-07 17:39:54 - Send SIGINT 23280
-2026-09-07 17:39:54 - SIGINT to 23280 failed - Killing as fallback
-2026-09-07 17:39:54 - Finished tharkacontestserver.exe
-2026-09-07 17:39:55 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 17:39:55 - Started 20240
-2026-09-07 17:43:20 - Stopping tharkacontestserver.exe
-2026-09-07 17:43:20 - ProcessKill 20240
-2026-09-07 17:43:21 - Found child process: 21192 Name: conhost.exe
-2026-09-07 17:43:21 - Found child process: 28436 Name: node.exe
-2026-09-07 17:43:21 - Stopping process 21192
-2026-09-07 17:43:21 - Send SIGINT 21192
-2026-09-07 17:43:21 - SIGINT to 21192 failed - Killing as fallback
-2026-09-07 17:43:21 - Stopping process 28436
-2026-09-07 17:43:21 - Send SIGINT 28436
-2026-09-07 17:43:21 - SIGINT to 28436 failed - Killing as fallback
-2026-09-07 17:43:21 - Stopping process 20240
-2026-09-07 17:43:21 - Send SIGINT 20240
-2026-09-07 17:43:21 - SIGINT to 20240 failed - Killing as fallback
-2026-09-07 17:43:21 - Finished tharkacontestserver.exe
-2026-09-07 17:43:21 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 17:43:21 - Started 16948
-2026-09-07 17:56:20 - Stopping tharkacontestserver.exe
-2026-09-07 17:56:20 - ProcessKill 16948
-2026-09-07 17:56:21 - Found child process: 25724 Name: conhost.exe
-2026-09-07 17:56:21 - Found child process: 15256 Name: node.exe
-2026-09-07 17:56:21 - Stopping process 25724
-2026-09-07 17:56:21 - Send SIGINT 25724
-2026-09-07 17:56:21 - SIGINT to 25724 failed - Killing as fallback
-2026-09-07 17:56:21 - Stopping process 15256
-2026-09-07 17:56:21 - Send SIGINT 15256
-2026-09-07 17:56:21 - SIGINT to 15256 failed - Killing as fallback
-2026-09-07 17:56:21 - Stopping process 16948
-2026-09-07 17:56:21 - Send SIGINT 16948
-2026-09-07 17:56:21 - SIGINT to 16948 failed - Killing as fallback
-2026-09-07 17:56:21 - Finished tharkacontestserver.exe
-2026-09-07 17:56:21 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 17:56:21 - Started 12844
-2026-09-07 18:12:27 - Stopping tharkacontestserver.exe
-2026-09-07 18:12:27 - ProcessKill 12844
-2026-09-07 18:12:27 - Found child process: 10708 Name: conhost.exe
-2026-09-07 18:12:27 - Found child process: 10296 Name: node.exe
-2026-09-07 18:12:27 - Stopping process 10708
-2026-09-07 18:12:27 - Send SIGINT 10708
-2026-09-07 18:12:27 - SIGINT to 10708 failed - Killing as fallback
-2026-09-07 18:12:27 - Stopping process 10296
-2026-09-07 18:12:27 - Send SIGINT 10296
-2026-09-07 18:12:27 - SIGINT to 10296 failed - Killing as fallback
-2026-09-07 18:12:27 - Stopping process 12844
-2026-09-07 18:12:27 - Send SIGINT 12844
-2026-09-07 18:12:27 - SIGINT to 12844 failed - Killing as fallback
-2026-09-07 18:12:27 - Finished tharkacontestserver.exe
-2026-09-07 18:12:28 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 18:12:28 - Started 1520
-2026-09-07 18:39:02 - Stopping tharkacontestserver.exe
-2026-09-07 18:39:02 - ProcessKill 1520
-2026-09-07 18:39:02 - Found child process: 8580 Name: conhost.exe
-2026-09-07 18:39:02 - Found child process: 16860 Name: node.exe
-2026-09-07 18:39:02 - Stopping process 8580
-2026-09-07 18:39:02 - Send SIGINT 8580
-2026-09-07 18:39:02 - SIGINT to 8580 failed - Killing as fallback
-2026-09-07 18:39:02 - Stopping process 16860
-2026-09-07 18:39:02 - Send SIGINT 16860
-2026-09-07 18:39:02 - SIGINT to 16860 failed - Killing as fallback
-2026-09-07 18:39:02 - Stopping process 1520
-2026-09-07 18:39:02 - Send SIGINT 1520
-2026-09-07 18:39:02 - SIGINT to 1520 failed - Killing as fallback
-2026-09-07 18:39:02 - Finished tharkacontestserver.exe
-2026-09-07 18:39:02 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-07 18:39:02 - Started 5852
-2026-09-08 08:58:48 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 08:58:48 - Started 6280
-2026-09-08 09:40:36 - Stopping tharkacontestserver.exe
-2026-09-08 09:40:36 - ProcessKill 6280
-2026-09-08 09:40:36 - Found child process: 6356 Name: conhost.exe
-2026-09-08 09:40:36 - Found child process: 7572 Name: node.exe
-2026-09-08 09:40:36 - Stopping process 6356
-2026-09-08 09:40:36 - Send SIGINT 6356
-2026-09-08 09:40:36 - SIGINT to 6356 failed - Killing as fallback
-2026-09-08 09:40:36 - Stopping process 7572
-2026-09-08 09:40:36 - Send SIGINT 7572
-2026-09-08 09:40:36 - SIGINT to 7572 failed - Killing as fallback
-2026-09-08 09:40:36 - Stopping process 6280
-2026-09-08 09:40:36 - Send SIGINT 6280
-2026-09-08 09:40:36 - SIGINT to 6280 failed - Killing as fallback
-2026-09-08 09:40:36 - Finished tharkacontestserver.exe
-2026-09-08 09:40:37 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 09:40:37 - Started 11292
-2026-09-08 13:43:46 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 13:43:46 - Started 24044
-2026-09-08 13:52:00 - Stopping tharkacontestserver.exe
-2026-09-08 13:52:00 - ProcessKill 24044
-2026-09-08 13:52:00 - Found child process: 9624 Name: conhost.exe
-2026-09-08 13:52:00 - Found child process: 21528 Name: node.exe
-2026-09-08 13:52:00 - Stopping process 9624
-2026-09-08 13:52:00 - Send SIGINT 9624
-2026-09-08 13:52:00 - SIGINT to 9624 failed - Killing as fallback
-2026-09-08 13:52:00 - Stopping process 21528
-2026-09-08 13:52:00 - Send SIGINT 21528
-2026-09-08 13:52:00 - SIGINT to 21528 failed - Killing as fallback
-2026-09-08 13:52:00 - Stopping process 24044
-2026-09-08 13:52:00 - Send SIGINT 24044
-2026-09-08 13:52:00 - SIGINT to 24044 failed - Killing as fallback
-2026-09-08 13:52:00 - Finished tharkacontestserver.exe
-2026-09-08 13:52:00 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 13:52:00 - Started 20768
-2026-09-08 13:53:39 - Stopping tharkacontestserver.exe
-2026-09-08 13:53:39 - ProcessKill 20768
-2026-09-08 13:53:39 - Found child process: 18052 Name: conhost.exe
-2026-09-08 13:53:39 - Found child process: 3532 Name: node.exe
-2026-09-08 13:53:39 - Stopping process 18052
-2026-09-08 13:53:39 - Send SIGINT 18052
-2026-09-08 13:53:39 - SIGINT to 18052 failed - Killing as fallback
-2026-09-08 13:53:39 - Stopping process 3532
-2026-09-08 13:53:39 - Send SIGINT 3532
-2026-09-08 13:53:39 - SIGINT to 3532 failed - Killing as fallback
-2026-09-08 13:53:39 - Stopping process 20768
-2026-09-08 13:53:39 - Send SIGINT 20768
-2026-09-08 13:53:39 - SIGINT to 20768 failed - Killing as fallback
-2026-09-08 13:53:39 - Finished tharkacontestserver.exe
-2026-09-08 13:53:39 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 13:53:39 - Started 14348
-2026-09-08 13:54:02 - Stopping tharkacontestserver.exe
-2026-09-08 13:54:02 - ProcessKill 14348
-2026-09-08 13:54:02 - Found child process: 19312 Name: conhost.exe
-2026-09-08 13:54:02 - Found child process: 22220 Name: node.exe
-2026-09-08 13:54:02 - Stopping process 19312
-2026-09-08 13:54:02 - Send SIGINT 19312
-2026-09-08 13:54:02 - SIGINT to 19312 failed - Killing as fallback
-2026-09-08 13:54:02 - Stopping process 22220
-2026-09-08 13:54:02 - Send SIGINT 22220
-2026-09-08 13:54:02 - SIGINT to 22220 failed - Killing as fallback
-2026-09-08 13:54:02 - Stopping process 14348
-2026-09-08 13:54:02 - Send SIGINT 14348
-2026-09-08 13:54:02 - SIGINT to 14348 failed - Killing as fallback
-2026-09-08 13:54:02 - Finished tharkacontestserver.exe
-2026-09-08 13:54:03 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 13:54:03 - Started 19736
-2026-09-08 14:54:07 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 14:54:07 - Started 2800
-2026-09-08 15:00:50 - Stopping tharkacontestserver.exe
-2026-09-08 15:00:50 - ProcessKill 2800
-2026-09-08 15:00:50 - Found child process: 22004 Name: conhost.exe
-2026-09-08 15:00:50 - Found child process: 22992 Name: node.exe
-2026-09-08 15:00:50 - Stopping process 22004
-2026-09-08 15:00:50 - Send SIGINT 22004
-2026-09-08 15:00:50 - SIGINT to 22004 failed - Killing as fallback
-2026-09-08 15:00:50 - Stopping process 22992
-2026-09-08 15:00:50 - Send SIGINT 22992
-2026-09-08 15:00:50 - SIGINT to 22992 failed - Killing as fallback
-2026-09-08 15:00:50 - Stopping process 2800
-2026-09-08 15:00:50 - Send SIGINT 2800
-2026-09-08 15:00:50 - SIGINT to 2800 failed - Killing as fallback
-2026-09-08 15:00:50 - Finished tharkacontestserver.exe
-2026-09-08 15:00:50 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
-2026-09-08 15:00:50 - Started 12508
+2026-09-22 13:45:32 - Starting C:\Program Files\nodejs\node.exe  --harmony C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\TharkaLabContest\TharkaContestPlatform\apps\server\server.js --scriptoptions= --log "TharkaContestServer wrapper" --grow 0.5 --wait 2 --maxrestarts 3 --abortonerror n --stopparentfirst undefined --maxretries 60
+2026-09-22 13:45:32 - Started 9464
+2026-09-24 10:28:42 - Stopping tharkacontestserver.exe
+2026-09-24 10:28:42 - ProcessKill 9464
+2026-09-24 10:28:42 - Found child process: 9480 Name: conhost.exe
+2026-09-24 10:28:42 - Found child process: 9656 Name: node.exe
+2026-09-24 10:28:42 - Stopping process 9480
+2026-09-24 10:28:42 - Send SIGINT 9480
+2026-09-24 10:28:42 - SIGINT to 9480 failed - Killing as fallback
+2026-09-24 10:28:42 - Stopping process 9656
+2026-09-24 10:28:42 - Send SIGINT 9656
+2026-09-24 10:28:42 - SIGINT to 9656 failed - Killing as fallback
+2026-09-24 10:28:42 - Stopping process 9464
+2026-09-24 10:28:42 - Send SIGINT 9464
+2026-09-24 10:28:42 - SIGINT to 9464 failed - Killing as fallback
+2026-09-24 10:28:42 - Finished tharkacontestserver.exe

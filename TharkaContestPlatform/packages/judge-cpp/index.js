@@ -38,6 +38,30 @@ const DEFAULT_MEMORY_LIMIT_MB = 256;
 //   `1 3 2` are not. This is the default: most competitive-programming
 //   problems don't care how an answer is laid out across whitespace, only
 //   which numbers/words appear in which order.
+//
+//   "om" - line-structure-sensitive but spacing-insensitive *within* a
+//   line: strips every space/tab out of each line, then compares line by
+//   line (so line count/order still matters, unlike "token", which also
+//   ignores newlines entirely). `5*2=10` and `5 * 2 = 10` are the same
+//   answer under "om" - only the non-space characters on each line matter,
+//   not how a student chose to space them out. Leading/trailing blank lines
+//   are ignored (same leniency as "exact"). Use this for problems whose
+//   answer genuinely has multiple lines worth keeping separate, but where
+//   spacing within a line is just a formatting choice, not part of the
+//   answer - "token" would be too lenient there (it would also accept the
+//   right numbers on the wrong lines) and "exact" too strict (it would fail
+//   over a single extra space).
+function normalizeOmOutput(s) {
+  return (s || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ''))
+    .join('\n')
+    .replace(/\n+$/, '')
+    .replace(/^\n+/, '');
+}
+
 function normalizeExactOutput(s) {
   return (s || '')
     .replace(/\r\n/g, '\n')
@@ -57,6 +81,23 @@ function tokenizeOutput(s) {
   return trimmed === '' ? [] : trimmed.split(/\s+/);
 }
 
+// Token-mode's pass/fail is whitespace-blind by design (see compareOutput
+// below), but the "Your Output" / "Expected" panel still needs to look like
+// what the student actually printed - a row-printing problem's `endl`s are
+// real structure to a human reader even though the checker ignores them for
+// grading. Keeps line breaks; only collapses runs of horizontal whitespace
+// within a line and drops blank lines (same leniency tokenizeOutput already
+// grants for verdicts, just not flattened onto one line).
+function normalizeTokenDisplay(s) {
+  return (s || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .map((line) => line.trim().replace(/\s+/g, ' '))
+    .filter((line) => line !== '')
+    .join('\n');
+}
+
 // Single place both judging (index.js) and anything that needs to show a
 // diff read the verdict from - returns the boolean plus the exact strings
 // that were compared, so a "Your Output" / "Expected" panel can show a
@@ -68,11 +109,20 @@ function compareOutput(actualRaw, expectedRaw, checkerMode) {
     const expected = normalizeExactOutput(expectedRaw);
     return { passed: actual === expected, actualDisplay: actual, expectedDisplay: expected };
   }
+  if (checkerMode === 'om') {
+    const actual = normalizeOmOutput(actualRaw);
+    const expected = normalizeOmOutput(expectedRaw);
+    return { passed: actual === expected, actualDisplay: actual, expectedDisplay: expected };
+  }
   const actualTokens = tokenizeOutput(actualRaw);
   const expectedTokens = tokenizeOutput(expectedRaw);
   const passed =
     actualTokens.length === expectedTokens.length && actualTokens.every((t, i) => t === expectedTokens[i]);
-  return { passed, actualDisplay: actualTokens.join(' '), expectedDisplay: expectedTokens.join(' ') };
+  return {
+    passed,
+    actualDisplay: normalizeTokenDisplay(actualRaw),
+    expectedDisplay: normalizeTokenDisplay(expectedRaw),
+  };
 }
 
 function makeWorkDir() {
@@ -85,17 +135,18 @@ function makeWorkDir() {
 // limits. Stops at the first failing test case (standard judge behavior).
 // Never throws for judging outcomes (WA/TLE/MLE/RE/CE) - only for
 // programmer errors (bad args). `checker` is the problem's own
-// `problem.checker` field ("token" | "exact"). Anything other than the
-// literal string "exact" - including undefined, for a problem saved before
-// this field existed - defaults to "token", the platform-wide default for
-// any problem, old or new. Only pattern-printing/formatting-sensitive
-// problems need to explicitly opt into "exact" via the admin problem editor.
+// `problem.checker` field ("token" | "exact" | "om"). Anything other than
+// the literal strings "exact"/"om" - including undefined, for a problem
+// saved before this field existed - defaults to "token", the platform-wide
+// default for any problem, old or new. Only pattern-printing/formatting-
+// sensitive problems need to explicitly opt into "exact"/"om" via the admin
+// problem editor.
 async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSettings, checker }) {
   if (!testCases || testCases.length === 0) {
     return { status: 'Error', message: 'No test cases found for this mode.' };
   }
 
-  const checkerMode = checker === 'exact' ? 'exact' : 'token';
+  const checkerMode = checker === 'exact' || checker === 'om' ? checker : 'token';
 
   const check = staticCheck(sourceCode, judgeSettings?.blockedKeywords);
   if (check.blocked) {
@@ -173,7 +224,11 @@ async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSetting
 //   { status, stdout, stderr, timeTaken, errorLog }
 // where status is 'Ran' | 'Compilation Error' | 'Time Limit Exceeded' |
 // 'Memory Limit Exceeded' | 'Runtime Error' | 'Error' (blocked by staticCheck).
-async function runOnce({ sourceCode, input, timeLimit, memoryLimit, judgeSettings }) {
+// `defineLocal` compiles with -DLOCAL - opt-in from the Compiler page's
+// settings (see editorSettings.ts's defineLocalMacro), for templates that
+// gate debug-print macros behind `#ifdef LOCAL`. Never used by contest
+// judging (run() above never accepts it) - only this freeform playground.
+async function runOnce({ sourceCode, input, timeLimit, memoryLimit, judgeSettings, defineLocal }) {
   const check = staticCheck(sourceCode, judgeSettings?.blockedKeywords);
   if (check.blocked) {
     return { status: 'Error', message: check.reason };
@@ -187,7 +242,7 @@ async function runOnce({ sourceCode, input, timeLimit, memoryLimit, judgeSetting
   try {
     let execPath;
     try {
-      ({ execPath } = await compile(sourceCode, workDir, judgeSettings?.compileTimeoutMs));
+      ({ execPath } = await compile(sourceCode, workDir, judgeSettings?.compileTimeoutMs, defineLocal ? ['LOCAL'] : []));
     } catch (compileError) {
       return { status: 'Compilation Error', message: compileError.stderr, errorLog: compileError.stderr };
     }

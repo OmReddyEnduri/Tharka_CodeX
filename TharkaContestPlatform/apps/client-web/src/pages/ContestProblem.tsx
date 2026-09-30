@@ -29,13 +29,21 @@ import { toast } from "sonner";
 import { SettingsDialog, type ShortcutHint } from "@/components/ContestSettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
+import { UpdateStatusIndicator } from "@/components/UpdateStatusIndicator";
 import { getContestProblem, runCode, submitCode } from "@/lib/apiClient";
 import { getIdentity } from "@/lib/identity";
 import { addLocalSubmission, getLocalSubmissions, type LocalSubmission } from "@/lib/localSubmissions";
 import { registerCustomMonacoThemes } from "@/lib/monacoThemes";
+import { registerSnippetProvider } from "@/lib/monacoSnippets";
+import { registerCustomKeybindings } from "@/lib/monacoSetup";
 import { getTemplate } from "@/lib/codeTemplate";
 import { clearDraft, getDraft, saveDraft } from "@/lib/codeDrafts";
 import { getEditorSettings, saveEditorSettings, type EditorSettings } from "@/lib/editorSettings";
+
+function registerProblemEditorExtras(monaco: any): void {
+  registerCustomMonacoThemes(monaco);
+  registerSnippetProvider(monaco);
+}
 
 const CopyButton = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
@@ -64,6 +72,12 @@ const CopyButton = ({ text }: { text: string }) => {
 const SHORTCUTS: ShortcutHint[] = [
   { keys: "Ctrl+'", label: "Run sample tests" },
   { keys: "Ctrl+Enter", label: "Submit" },
+  { keys: "Ctrl+Shift+↓", label: "Move line down" },
+  { keys: "Ctrl+Shift+↑", label: "Move line up" },
+  { keys: "Ctrl+Click", label: "Add cursor" },
+  { keys: "Ctrl+Alt+↓", label: "Add cursor below" },
+  { keys: "Ctrl+D", label: "Select next occurrence" },
+  { keys: "Ctrl+Shift+L", label: "Select all occurrences" },
 ];
 
 const ContestProblem = () => {
@@ -113,7 +127,7 @@ const ContestProblem = () => {
     }
   };
 
-  const { data: problem, isLoading, error } = useQuery<any>({
+  const { data: problem, isLoading, isError, error, refetch } = useQuery<any>({
     queryKey: ["contestProblem", contestId, problemId],
     enabled: !!contestId && !!problemId && !!identity,
     queryFn: () => getContestProblem(contestId!, problemId!),
@@ -171,13 +185,6 @@ const ContestProblem = () => {
     setCode(getTemplate());
     toast.success("Editor reset to your template.");
   };
-
-  useEffect(() => {
-    if (error) {
-      toast.error("Failed to load problem.");
-      navigate(`/contest/${contestId}`);
-    }
-  }, [error, navigate, contestId]);
 
   // Read from this browser's local submission history - see lib/localSubmissions.ts.
   const fetchSubmissions = () => {
@@ -305,7 +312,20 @@ const ContestProblem = () => {
     );
   }
 
-  if (error) return null;
+  if (isError) {
+    return (
+      <div className="container px-4 py-16 text-center space-y-4">
+        <h1 className="text-3xl font-bold">Couldn't load this problem</h1>
+        <p className="text-muted-foreground">{(error as Error)?.message || "Failed to reach the server."}</p>
+        <div className="flex items-center justify-center gap-3">
+          <Button onClick={() => refetch()}>Try again</Button>
+          <Link to={`/contest/${contestId}`}>
+            <Button variant="outline">Back to contest</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!problem) {
     return (
@@ -355,6 +375,7 @@ const ContestProblem = () => {
             Submit
           </Button>
           <div className="h-4 w-px bg-border mx-1"></div>
+          <UpdateStatusIndicator />
           <SyncStatusIndicator />
           <ThemeToggle />
         </div>
@@ -427,14 +448,14 @@ const ContestProblem = () => {
                                 <span className="text-[10px] font-bold uppercase text-muted-foreground">Input</span>
                                 <CopyButton text={ex.input} />
                               </div>
-                              <pre className="text-xs bg-muted/50 p-2 rounded">{ex.input || "No input"}</pre>
+                              <pre className="text-xs bg-muted/50 p-2 rounded whitespace-pre-wrap break-words">{ex.input || "No input"}</pre>
                             </div>
                             <div>
                               <div className="flex justify-between items-center mb-1">
                                 <span className="text-[10px] font-bold uppercase text-muted-foreground">Output</span>
                                 <CopyButton text={ex.output} />
                               </div>
-                              <pre className="text-xs bg-muted/50 p-2 rounded">{ex.output}</pre>
+                              <pre className="text-xs bg-muted/50 p-2 rounded whitespace-pre-wrap break-words">{ex.output}</pre>
                             </div>
                           </div>
                         </div>
@@ -593,7 +614,8 @@ const ContestProblem = () => {
                     height="100%"
                     defaultLanguage="cpp"
                     theme={editorSettings.theme}
-                    beforeMount={registerCustomMonacoThemes}
+                    beforeMount={registerProblemEditorExtras}
+                    onMount={registerCustomKeybindings}
                     value={code}
                     onChange={(value) => setCode(value || "")}
                     options={{
@@ -604,6 +626,7 @@ const ContestProblem = () => {
                       automaticLayout: true,
                       padding: { top: 10 },
                       wordBasedSuggestions: "currentDocument",
+                      multiCursorModifier: "ctrlCmd",
                     }}
                   />
                 </div>
@@ -721,7 +744,7 @@ const ContestProblem = () => {
                                         Input/output for this test case will be shown once the contest ends.
                                       </p>
                                     )}
-                                    {res.input && (
+                                    {res.input !== undefined && (
                                       <div className="grid grid-cols-1 gap-1 text-xs">
                                         <div className="flex flex-col gap-1">
                                           <span className="text-[10px] uppercase text-muted-foreground">Input</span>

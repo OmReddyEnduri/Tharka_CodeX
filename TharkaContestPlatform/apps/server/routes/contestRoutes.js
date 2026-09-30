@@ -13,18 +13,19 @@ const { requireDeletePassword } = require("../lib/deletePassword");
 const { stripHiddenTestCaseIO } = require("../lib/hiddenTestCases");
 
 // `checker` picks how a problem's output is compared - "token"
-// (whitespace-insensitive, the default) or "exact" (line/spacing-sensitive,
-// for pattern-printing problems) - see packages/judge-cpp/index.js. Used by
-// every *creation* path (single-add, bulk-add, bulk-contest-import): a
-// missing value defaults to "token", same default judge-cpp's run() and the
-// schema itself both use for a problem that already exists with no value
-// stored. An explicitly-supplied but unrecognized value (a typo in a
-// bulk-import file, say) is a real mistake and must be rejected, not
-// silently guessed.
+// (whitespace-insensitive, the default), "exact" (line/spacing-sensitive,
+// for pattern-printing problems), or "om" (line-by-line, spacing-insensitive
+// within a line) - see packages/judge-cpp/index.js. Used by every *creation*
+// path (single-add, bulk-add, bulk-contest-import): a missing value defaults
+// to "token", same default judge-cpp's run() and the schema itself both use
+// for a problem that already exists with no value stored. An
+// explicitly-supplied but unrecognized value (a typo in a bulk-import file,
+// say) is a real mistake and must be rejected, not silently guessed.
+const VALID_CHECKERS = ["token", "exact", "om"];
 function resolveChecker(value) {
   if (value === undefined || value === null || value === "") return { checker: "token" };
-  if (value !== "token" && value !== "exact") {
-    return { error: `Invalid checker "${value}" - must be "token" or "exact"` };
+  if (!VALID_CHECKERS.includes(value)) {
+    return { error: `Invalid checker "${value}" - must be one of ${VALID_CHECKERS.map((c) => `"${c}"`).join(", ")}` };
   }
   return { checker: value };
 }
@@ -801,17 +802,16 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
       return res.json(result);
     }
 
-    // Hidden test cases are the "answer key" - while the contest is still
-    // running (and the admin hasn't disabled this via contest.settings),
-    // strip the actual input/expected/got values from a submit-mode result
-    // so a student can't read them off a failed submission, keeping just the
-    // verdict (Accepted/Wrong Answer/TLE/MLE/...) and which test number it
-    // stopped on. Sample-testcase Run results are never redacted (the
-    // student already has that I/O on the problem page), and once the
-    // contest ends the full diff is restored for review.
+    // Hidden test cases are the "answer key" - unless the admin has disabled
+    // this via contest.settings, strip the actual input/expected/got values
+    // from a submit-mode result so a student can't read them off a failed
+    // submission, keeping just the verdict (Accepted/Wrong Answer/TLE/MLE/...)
+    // and which test number it stopped on. Sample-testcase Run results are
+    // never redacted (the student already has that I/O on the problem page).
+    // This is controlled purely by the toggle, independent of whether the
+    // contest is running or has ended - see hiddenTestCases.js.
     const shouldHideHiddenIO = contest.settings?.hideHiddenTestCasesWhileLive !== false;
-    const contestStillRunning = contest.endTime && new Date(contest.endTime) > now;
-    if (mode !== "run" && shouldHideHiddenIO && contestStillRunning && Array.isArray(result.results)) {
+    if (mode !== "run" && shouldHideHiddenIO && Array.isArray(result.results)) {
       result.results = result.results.map((r) => ({ testCase: r.testCase, passed: r.passed, error: r.error }));
     }
 

@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld("contestAPI", {
   submitCode: (args) => ipcRenderer.invoke("submit-code", args),
   runStandalone: (args) => ipcRenderer.invoke("run-standalone", args),
 
-  startInteractive: (code) => ipcRenderer.invoke("interactive-start", code),
+  startInteractive: (code, defineLocal) => ipcRenderer.invoke("interactive-start", { code, defineLocal }),
   sendInteractiveInput: (data) => ipcRenderer.invoke("interactive-input", data),
   stopInteractive: () => ipcRenderer.invoke("interactive-stop"),
   onInteractiveStdout: (callback) => {
@@ -39,8 +39,11 @@ contextBridge.exposeInMainWorld("contestAPI", {
   saveFile: (args) => ipcRenderer.invoke("save-file", args),
 
   getWorkspaceDir: () => ipcRenderer.invoke("get-workspace-dir"),
-  listWorkspaceFiles: () => ipcRenderer.invoke("list-workspace-files"),
-  openWorkspaceFile: (name) => ipcRenderer.invoke("open-workspace-file", name),
+  listWorkspaceEntries: (relDir) => ipcRenderer.invoke("list-workspace-entries", relDir),
+  openWorkspaceFile: (relPath) => ipcRenderer.invoke("open-workspace-file", relPath),
+  createWorkspaceFile: (relPath) => ipcRenderer.invoke("create-workspace-file", relPath),
+  createWorkspaceFolder: (relPath) => ipcRenderer.invoke("create-workspace-folder", relPath),
+  moveWorkspaceEntry: (args) => ipcRenderer.invoke("move-workspace-entry", args),
 
   syncNow: () => ipcRenderer.invoke("sync-now"),
   getPendingSubmissionsCount: () => ipcRenderer.invoke("get-pending-submissions-count"),
@@ -55,4 +58,12 @@ contextBridge.exposeInMainWorld("contestAPI", {
     ipcRenderer.on("sync-status", handler);
     return () => ipcRenderer.removeListener("sync-status", handler);
   },
+  onUpdateStatus: (callback) => {
+    const handler = (event, status) => callback(status);
+    ipcRenderer.on("update-status", handler);
+    return () => ipcRenderer.removeListener("update-status", handler);
+  },
+  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
+  checkForUpdate: () => ipcRenderer.invoke("check-for-update"),
+  openUpdateLog: () => ipcRenderer.invoke("open-update-log"),
 });
