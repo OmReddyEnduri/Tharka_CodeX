@@ -9,3 +9,9 @@ error.txt
 output.txt
 Codex.exe
 tosyncgit.txt
+
+# secrets
+.env
+.env.*
+!.env.example
+**/.env
