@@ -58,12 +58,5 @@ contextBridge.exposeInMainWorld("contestAPI", {
     ipcRenderer.on("sync-status", handler);
     return () => ipcRenderer.removeListener("sync-status", handler);
   },
-  onUpdateStatus: (callback) => {
-    const handler = (event, status) => callback(status);
-    ipcRenderer.on("update-status", handler);
-    return () => ipcRenderer.removeListener("update-status", handler);
-  },
   getAppVersion: () => ipcRenderer.invoke("get-app-version"),
-  checkForUpdate: () => ipcRenderer.invoke("check-for-update"),
-  openUpdateLog: () => ipcRenderer.invoke("open-update-log"),
 });

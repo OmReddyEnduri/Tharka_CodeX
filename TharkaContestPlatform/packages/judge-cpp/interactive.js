@@ -4,7 +4,7 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const treeKill = require('tree-kill');
-const { getMemoryBytes, getJobRunner, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
+const { getMemoryBytes, getJobRunner, markJobRunnerBroken, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
 
 const { compile } = require('./compile');
 const { staticCheck } = require('./staticCheck');
@@ -171,6 +171,8 @@ class InteractiveSession {
       onStderr(d.toString());
     });
     this.child.on('error', (err) => {
+      // If the launcher itself failed to spawn, stop using it so the next run works.
+      if (runner) markJobRunnerBroken(err.message);
       settle({ status: 'Runtime Error', message: err.message });
       this._cleanup();
     });
@@ -178,7 +180,7 @@ class InteractiveSession {
       clearTimeout(this._sessionTimer);
       clearInterval(this._memoryTimer);
       if (runner && (code === JOBRUN_EXIT_MLE || sawBadAlloc)) settle({ status: 'Memory Limit Exceeded' });
-      else if (runner && code === JOBRUN_EXIT_HELPER) settle({ status: 'Error', message: 'Could not start the program.' });
+      else if (runner && code === JOBRUN_EXIT_HELPER) { markJobRunnerBroken('launcher exited with a helper failure'); settle({ status: 'Error', message: 'Could not start the program.' }); }
       else settle({ status: 'Exited', code });
       this._cleanup();
     });

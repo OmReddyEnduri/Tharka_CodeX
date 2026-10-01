@@ -37,7 +37,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SettingsDialog, type ShortcutHint } from "@/components/ContestSettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { UpdateStatusIndicator } from "@/components/UpdateStatusIndicator";
 import { runStandalone, getServerUrl } from "@/lib/apiClient";
 import { registerCustomMonacoThemes } from "@/lib/monacoThemes";
 import { registerSnippetProvider } from "@/lib/monacoSnippets";
@@ -890,7 +889,6 @@ export default function Compiler() {
           >
             <Bug className="h-4 w-4" />
           </Button>
-          <UpdateStatusIndicator />
           <ThemeToggle />
         </div>
       </div>

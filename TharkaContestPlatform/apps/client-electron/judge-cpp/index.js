@@ -198,7 +198,10 @@ async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSetting
           break;
         }
       } else {
-        results.push({ testCase: i + 1, passed: false, error: outcome.verdict, stderr: outcome.stderr });
+        // input/expectedOutput ride along so a sample "Run" that errors out (TLE, runtime error, ...)
+        // still shows the student the sample it ran on. Submit-mode callers redact results down to
+        // { testCase, passed, error } before anything reaches a student, so hidden cases stay hidden.
+        results.push({ testCase: i + 1, passed: false, error: outcome.verdict, stderr: outcome.stderr, input: tc.input, expectedOutput: tc.output });
         overallVerdict = outcome.verdict;
         break;
       }

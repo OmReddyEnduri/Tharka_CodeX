@@ -41,13 +41,23 @@ const fs = require('fs');
 const JOBRUN_EXIT_MLE = 0x7F4D4C45;
 const JOBRUN_EXIT_HELPER = 0x7F4A4F42;
 
+// If the launcher ever fails to start (missing file, blocked by antivirus,
+// job creation refused), stop using it for the rest of the session so runs
+// fall back to the polling memory check instead of every run failing.
+let jobRunnerBroken = false;
+function markJobRunnerBroken(why) {
+  if (!jobRunnerBroken) console.warn('[judge-cpp] jobrun.exe unusable, falling back to memory polling:', why);
+  jobRunnerBroken = true;
+}
+
 function getJobRunner() {
   if (process.platform !== 'win32') return null;
   // Inside Electron's asar the exe is unpacked next to it; spawn can't run from the archive.
-  const p = path.join(__dirname, 'jobrun.exe').replace(/app\.asar([\/])/, 'app.asar.unpacked$1');
-  return fs.existsSync(p) ? p : null;
+  const p = path.join(__dirname, 'jobrun.exe').split(path.sep + 'app.asar' + path.sep).join(path.sep + 'app.asar.unpacked' + path.sep);
+  return !jobRunnerBroken && fs.existsSync(p) ? p : null;
 }
 
 module.exports.getJobRunner = getJobRunner;
+module.exports.markJobRunnerBroken = markJobRunnerBroken;
 module.exports.JOBRUN_EXIT_MLE = JOBRUN_EXIT_MLE;
 module.exports.JOBRUN_EXIT_HELPER = JOBRUN_EXIT_HELPER;

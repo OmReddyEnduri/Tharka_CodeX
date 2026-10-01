@@ -1,6 +1,6 @@
 {
   "name": "tharka-codex",
-  "version": "2026.274.15573",
+  "version": "2026.274.16827",
   "description": "LAN contest platform - student desktop client",
   "author": "Tharka Lab Contest",
   "private": true,
@@ -33,6 +33,7 @@
       "preload.js",
       "relauncher.ps1",
       "db.js",
+      "diaglog.js",
       "judge-cpp/**",
       "node_modules/**"
     ],

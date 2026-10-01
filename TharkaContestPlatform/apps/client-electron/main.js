@@ -15,6 +15,19 @@ const { app, BrowserWindow, dialog, ipcMain, Menu, Notification, shell } = requi
 // previously these hooks (and every require() below) ran BEFORE this was
 // set up, so a require-time failure in any of them (a missing native dep, a
 // packaging issue) was completely invisible.
+// Full diagnostic log (hangs, crashes, freezes, slow operations) in
+// DocumentsTharkaCodexLogsdiagnostics.log - see diaglog.js. Loaded inside a
+// try so a problem in the logger itself can never stop the app from starting.
+let diag = { init() {}, start() {}, shutdown() {}, info() {}, warn() {}, error() {}, installIpcTiming() {}, installConsoleMirror() {}, watchWindow() {} };
+try {
+  diag = require("./diaglog");
+  diag.init(app);
+  diag.installIpcTiming(require("electron").ipcMain); // before any ipcMain.handle below
+  diag.installConsoleMirror();
+} catch (err) {
+  console.error("diaglog failed to load:", err?.message);
+}
+
 const UPDATE_LOG_PATH = path.join(app.getPath("downloads"), "TharkaCodexUpdate.log");
 function logToDownloads(line) {
   try {
@@ -26,14 +39,15 @@ function logToDownloads(line) {
 }
 process.on("uncaughtException", (err) => {
   logToDownloads(`FATAL uncaughtException: ${err?.stack || err}`);
+  diag.error(`FATAL uncaughtException: ${err?.stack || err}`);
 });
 process.on("unhandledRejection", (reason) => {
   logToDownloads(`FATAL unhandledRejection: ${reason?.stack || reason}`);
+  diag.error(`FATAL unhandledRejection: ${reason?.stack || reason}`);
 });
 
-let autoUpdater, log, ioClient, judge, InteractiveSession, db;
+let log, ioClient, judge, InteractiveSession, db;
 try {
-  ({ autoUpdater } = require("electron-updater"));
   log = require("electron-log");
   ({ io: ioClient } = require("socket.io-client"));
   // Vendored locally (not a workspace/npm dependency) so electron-builder can
@@ -80,12 +94,6 @@ let socket = null;
 
 function getServerUrl() {
   return db.getSetting("server_url", DEFAULT_SERVER_URL);
-}
-
-// Pushed to the renderer so the update process is actually visible instead
-// of silently happening in the background - see UpdateStatusIndicator.tsx.
-function broadcastUpdateStatus(status, extra = {}) {
-  mainWindow?.webContents.send("update-status", { status, ...extra });
 }
 
 const MIME_TYPES = {
@@ -194,6 +202,7 @@ async function createWindow() {
     mainWindow.loadURL(`http://127.0.0.1:${port}/`);
   }
 
+  diag.watchWindow(mainWindow);
   mainWindow.webContents.on("did-finish-load", () => console.log("[window] did-finish-load"));
   mainWindow.webContents.on("did-fail-load", (e, code, desc, url) => console.log("[window] did-fail-load", code, desc, url));
   mainWindow.webContents.on("console-message", (e, level, message) => console.log("[renderer console]", message));
@@ -254,276 +263,8 @@ async function checkStaleAndSync(logPrefix) {
   }
 }
 
-// --- Auto-update (packaged builds only, published to the LAN server) ------
-// electron-builder's `publish` config (package.json) points at a "generic"
-// feed served by this same contest server (see server.js's /updates static
-// mount and routes/appUpdateRoutes.js) rather than GitHub Releases - this is
-// a LAN-only deployment with no reliable internet access, and publishing is
-// just the admin uploading one exe through the admin dashboard. electron-
-// updater checks that feed's latest.yml for a newer version than
-// app.getVersion() and, if found, downloads it in the background
-// automatically, then installs it (restarting the app) as soon as the
-// download finishes - no "wait for a safe moment" gating. Simple by design:
-// an earlier version held installs back until no contest was live, but that
-// meant a laptop with a long-running contest synced (like a multi-day test
-// contest) would just sit on a downloaded update indefinitely with no
-// visible sign anything was wrong - worse than the brief restart itself.
-// Turns an ISO release date (electron-updater's info.releaseDate, which is
-// latest.yml's releaseDate - the moment the server's /api/app-update/publish
-// actually ran, not when the build was compiled) into a filesystem-safe
-// "YYYY-MM-DD HH-mm" string for the Downloads copy's filename. Colons aren't
-// valid in Windows filenames, hence the dashes instead of the usual ISO ':'.
-function formatPublishedAtForFilename(releaseDate) {
-  const d = releaseDate ? new Date(releaseDate) : new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}-${pad(d.getMinutes())}`;
-}
-
-// electron-updater's own checkForUpdates() decides update-available by
-// comparing latest.yml's version against app.getVersion() - the BUILD-time
-// stamp baked into package.json by stamp-version.js. The server's feed
-// version is a PUBLISH-time stamp instead (publishTimeVersion() in
-// appUpdateRoutes.js - deliberate, per "check publish date not build date").
-// Publish always happens strictly after build, so app.getVersion() can never
-// equal or exceed the feed's version - EVEN FOR THE EXACT BUILD CURRENTLY
-// RUNNING, so it always reports "update available". That's intentional, not
-// a bug: a manual Check for Updates click always fetches and installs
-// whatever's currently published, no version-comparison skip - explicit user
-// call ("just update, don't check versions"), and there's no harm in it
-// being unconditional since a human decided to click it. This is still
-// recorded (not compared against) purely so the running build's actual
-// publish-version can be displayed/logged.
-const INSTALLED_VERSION_STATE_PATH = path.join(app.getPath("userData"), "installed-update-version.json");
-function writeLastInstalledPublishVersion(version) {
-  try {
-    fs.mkdirSync(path.dirname(INSTALLED_VERSION_STATE_PATH), { recursive: true });
-    fs.writeFileSync(INSTALLED_VERSION_STATE_PATH, JSON.stringify({ publishVersion: version }));
-  } catch (err) {
-    logToDownloads(`Failed to persist installed publish-version (${version}): ${err.message}`);
-  }
-}
-
-function installDownloadedUpdate(version, releaseDate) {
-  writeLastInstalledPublishVersion(version);
-  log.info(`[autoUpdate] installing ${version} now`);
-  logToDownloads(`Downloaded v${version}. Installing now.`);
-  broadcastUpdateStatus("installing", { version });
-  try {
-    new Notification({
-      title: "Tharka Codex is updating",
-      body: `Restarting to install version ${version}...`,
-    }).show();
-  } catch {
-    // Notification unsupported/denied on this machine - proceed with the
-    // update anyway, it's a courtesy heads-up, not a required step.
-  }
-
-  // A visible copy in Downloads, purely for reference - electron-updater's
-  // own cache lives buried under AppData, which nobody in the lab would ever
-  // think to look in. Best-effort and non-blocking: if this fails, the real
-  // update below still proceeds unaffected.
-  const installerPath = autoUpdater.installerPath;
-  try {
-    if (installerPath) {
-      const visibleCopyPath = path.join(
-        app.getPath("downloads"),
-        `Tharka Codex ${formatPublishedAtForFilename(releaseDate)}.exe`
-      );
-      fs.copyFileSync(installerPath, visibleCopyPath);
-      logToDownloads(`Saved a copy of the v${version} installer to ${visibleCopyPath}.`);
-    }
-  } catch (err) {
-    logToDownloads(`Failed to save a visible installer copy to Downloads: ${err.message}`);
-  }
-
-  // NOT electron-updater's own quitAndInstall(). That was tried first (the
-  // standard approach every electron-builder/NSIS app uses) and traced,
-  // through direct reproduction with every other variable controlled for,
-  // to a real bug in the generated NSIS installer itself, unrelated to any
-  // of this app's own code: it reliably fails to complete whenever it runs
-  // against an install directory that ALREADY has files in it (regardless
-  // of /S, --updated, or --force-run) - self-extracts, sometimes visibly
-  // starts an "old-uninstaller.exe" step, then just stops, wiping the
-  // target directory with nothing left running and no error anywhere. A
-  // plain install into an EMPTY directory was 100% reliable in every test.
-  // relauncher.ps1's whole job now is exactly what standard quitAndInstall()
-  // can't do: clear the install directory's CONTENTS first (not the
-  // directory itself - the path stays the same, so whatever Defender
-  // exclusion already covers this app's install location still applies),
-  // then reinstall into it. An earlier version of this instead installed
-  // every update into a brand new, uniquely-named sibling directory - that
-  // avoided the same NSIS bug too, but a never-before-seen path can't be
-  // pre-excluded from antivirus real-time scanning, which made writes into
-  // it hang indefinitely on this machine (confirmed: a full 3-minute wait
-  // produced zero files). See relauncher.ps1's own top comment for the full
-  // story on both.
-  if (!installerPath) {
-    logToDownloads(`ERROR: no cached installer path available - cannot install v${version}.`);
-    return;
-  }
-
-  // A PLAIN POWERSHELL SCRIPT, not a Node script run via Electron's
-  // ELECTRON_RUN_AS_NODE=1 (which every earlier version of this used, since
-  // lab laptops have no standalone Node.js) - PowerShell is a normal,
-  // always-present Windows tool, simpler than routing through Electron's own
-  // binary as an interpreter.
-  //
-  // The actual root cause of every "relauncher dies silently a few seconds
-  // in, no matter what else changes" failure hit while building this,
-  // confirmed by a direct, controlled A/B test (spawning plain powershell.exe
-  // - no Electron involved at all - with and without `detached: true`, every
-  // other option identical): it's the `detached: true` option itself, on
-  // this Node/Windows combination. With it, the child was reliably killed a
-  // few seconds after spawning, completely independent of what the child
-  // even was (a Node script, PowerShell, ELECTRON_RUN_AS_NODE or not).
-  // WITHOUT it, the exact same child survived fine, including well past its
-  // own spawning process (this app) having already quit - so detached's
-  // supposed purpose (survive the parent) isn't even needed here to get that
-  // outcome; it was actively causing the opposite.
-  // .replace(...): relauncher.ps1 is configured as asarUnpack in package.json
-  // (build.asarUnpack), so it's a real file on disk at
-  // resources/app.asar.unpacked/relauncher.ps1, NOT inside app.asar itself -
-  // it has to be, since it's invoked by powershell.exe, a completely
-  // separate process with no knowledge of Electron's asar virtual
-  // filesystem (unlike Electron's own patched Node, which can transparently
-  // read files packed inside app.asar). __dirname here still resolves
-  // inside app.asar (that's where main.js itself lives), so the path needs
-  // this standard electron-builder substitution to find the real, unpacked
-  // copy instead.
-  const relauncherPath = path.join(__dirname, "relauncher.ps1").replace("app.asar", "app.asar.unpacked");
-  try {
-    // Routed through cmd.exe's "start" builtin, not a direct spawn of
-    // powershell.exe - Electron/Chromium sets up its own Windows Job Object
-    // for the whole app's process tree, and a direct child_process.spawn()
-    // from within this (still fully alive) Electron process gets swept into
-    // it regardless of Node's own `detached` option, which only controls
-    // Node's own opt-in job wrapping, not Chromium's underlying one. When
-    // this app's job gets torn down during quit, everything in it dies too
-    // - confirmed by a direct A/B test: the identical spawn, run from a
-    // plain standalone node.exe process (no Electron involved at all),
-    // survived fine; from inside this app, it kept dying after only its
-    // first log line. "start" hands process creation off to a NEW process
-    // outside this app's own tree entirely (the same reason relauncher.ps1
-    // itself now runs the actual installer the same way), so the relauncher
-    // survives independently of whatever happens to this process next.
-    const { spawn } = require("child_process");
-    const helper = spawn(
-      "cmd.exe",
-      [
-        "/c",
-        "start",
-        "",
-        "/B",
-        "powershell.exe",
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-WindowStyle",
-        "Hidden",
-        "-File",
-        relauncherPath,
-        "-ExePath",
-        process.execPath,
-        "-LogPath",
-        UPDATE_LOG_PATH,
-        "-InstallerPath",
-        installerPath,
-        "-ParentPid",
-        String(process.pid),
-      ],
-      { stdio: "ignore", windowsHide: true }
-    );
-    helper.unref();
-    logToDownloads(`Relauncher helper started (pid=${helper.pid}) - see [relauncher] lines below for exactly what happens next.`);
-  } catch (err) {
-    logToDownloads(`Failed to start relauncher helper: ${err.message}`);
-  }
-
-  // Just quit - the relauncher helper above now owns running the installer
-  // and relaunching, all only once we've actually exited.
-  app.quit();
-}
-
-// Persisted to app.getPath("userData")/logs/main.log by default - this app
-// is packaged with devTools disabled and no visible console, so without a
-// log file a failed update check/download leaves literally no trace
-// anywhere a teacher/admin could find after the fact.
+// Persisted to app.getPath("userData")/logs/main.log by default.
 log.transports.file.level = "info";
-autoUpdater.logger = log;
-
-// The feed URL electron-updater actually uses at runtime. Without this call,
-// it falls back to whatever was baked into app-update.yml from `build.publish`
-// at build time - a hardcoded LAN IP that everything else in this app (sync,
-// submissions) does NOT rely on, since those all read getServerUrl() fresh
-// every time. If the server's IP/port ever changes (or a laptop's build
-// predates a change) and only the runtime setting is updated via /settings,
-// the updater used to keep silently hitting the old baked-in URL forever.
-// Calling this before every check keeps the two in sync.
-function refreshUpdateFeedUrl() {
-  autoUpdater.setFeedURL({ provider: "generic", url: `${getServerUrl()}/updates/`, channel: "latest" });
-}
-
-function setupAutoUpdater() {
-  if (!app.isPackaged) return; // dev mode: there's no installed build for electron-updater to replace
-
-  // autoDownload left off and downloadUpdate() called by hand in
-  // "update-available" below instead of true - functionally the same
-  // (always downloads), just gives us a place to log/broadcast status
-  // around the call.
-  autoUpdater.autoDownload = false;
-  autoUpdater.autoInstallOnAppQuit = false; // we install explicitly on update-downloaded instead
-
-  autoUpdater.on("checking-for-update", () => {
-    log.info("[autoUpdate] checking for update against", getServerUrl());
-    logToDownloads(`Checking for update against ${getServerUrl()}...`);
-    broadcastUpdateStatus("checking");
-  });
-  // No version-comparison gate here, on purpose - a manual Check for
-  // Updates click always fetches and installs whatever build is currently
-  // published, unconditionally. There's no harm in that being unconditional
-  // since it's never automatic - a human decided to click it.
-  autoUpdater.on("update-available", (info) => {
-    log.info("[autoUpdate] update available:", info.version);
-    logToDownloads(`Update available: v${info.version}. Downloading...`);
-    broadcastUpdateStatus("available", { version: info.version });
-    autoUpdater.downloadUpdate().catch((err) => {
-      log.warn("[autoUpdate] download failed:", err.message);
-      logToDownloads(`ERROR starting download: ${err.message}`);
-      broadcastUpdateStatus("error", { message: err.message });
-    });
-  });
-  autoUpdater.on("update-not-available", () => {
-    log.info("[autoUpdate] already up to date");
-    logToDownloads(`Already up to date (running v${app.getVersion()}).`);
-    broadcastUpdateStatus("up-to-date");
-  });
-  autoUpdater.on("download-progress", (p) => {
-    const percent = Math.round(p.percent);
-    log.info(`[autoUpdate] downloading ${percent}%`);
-    broadcastUpdateStatus("downloading", { percent });
-  });
-  autoUpdater.on("error", (err) => {
-    log.warn("[autoUpdate] check/download failed:", err.message);
-    logToDownloads(`ERROR: ${err.message}`);
-    broadcastUpdateStatus("error", { message: err.message });
-  });
-  autoUpdater.on("update-downloaded", (info) => {
-    logToDownloads(`Download complete for v${info.version}.`);
-    broadcastUpdateStatus("downloaded", { version: info.version });
-    installDownloadedUpdate(info.version, info.releaseDate);
-  });
-}
-
-// Safe to call anytime (no-ops in dev mode). Deliberately only ever called
-// from the "Check for Updates" button in Settings (see the check-for-update
-// IPC handler) - no automatic trigger on app open, on a timer, or on an
-// admin sync/push. Updates only happen when someone in the lab explicitly
-// asks for one.
-function checkForAppUpdate(logPrefix) {
-  if (!app.isPackaged) return;
-  refreshUpdateFeedUrl();
-  autoUpdater.checkForUpdates().catch((err) => log.warn(`[${logPrefix}] update check failed:`, err.message));
-}
 
 function connectSyncSocket() {
   if (socket) socket.disconnect();
@@ -572,7 +313,8 @@ async function localJudge(problemId, code, mode) {
   const problem = db.getContestProblemById(problemId);
   if (!problem) return { status: "Error", message: "This problem hasn't been synced to this laptop yet." };
   const testCases = mode === "run" ? problem.sampleTestCases : problem.hiddenTestCases;
-  return judge.run({
+  const startedAt = Date.now();
+  const result = await judge.run({
     sourceCode: code,
     testCases,
     timeLimit: problem.timeLimit,
@@ -580,6 +322,11 @@ async function localJudge(problemId, code, mode) {
     judgeSettings: db.getJudgeSettings(),
     checker: problem.checker,
   });
+  const took = Date.now() - startedAt;
+  const line = `judge ${mode} problem=${problemId} verdict=${result.status} passed=${result.testCasesPassed}/${result.totalTestCases} took=${took}ms`;
+  if (result.status === "Memory Limit Exceeded" || result.status === "Time Limit Exceeded" || took > 15000) diag.warn(line);
+  else diag.info(line);
+  return result;
 }
 
 // Pushes one submission to the server for the leaderboard/admin view. On any
@@ -660,9 +407,31 @@ ipcMain.handle("set-server-url", (event, url) => {
   return true;
 });
 
-ipcMain.handle("get-contests", () => db.listContests());
-ipcMain.handle("get-contest", (event, contestId) => db.getContestById(contestId));
-ipcMain.handle("get-contest-problem", (event, contestId, problemId) => db.getContestProblemById(problemId));
+// The local store keeps hidden test cases UNREDACTED (localJudge below needs
+// the real input/expected output), but everything handed to the renderer must
+// not carry them - devtools/IPC would otherwise expose the whole answer key
+// even though the result UI hides it. Same rule as the server's
+// stripHiddenTestCaseIO(): replace each hidden case with {} (keeps the count)
+// unless the admin turned contest.settings.hideHiddenTestCasesWhileLive off.
+function redactContestForRenderer(contest) {
+  if (!contest) return contest;
+  if (contest.settings?.hideHiddenTestCasesWhileLive === false) return contest;
+  return {
+    ...contest,
+    problems: (contest.problems || []).map((p) =>
+      p && typeof p === "object" ? { ...p, hiddenTestCases: (p.hiddenTestCases || []).map(() => ({})) } : p
+    ),
+  };
+}
+
+ipcMain.handle("get-contests", () => db.listContests().map(redactContestForRenderer));
+ipcMain.handle("get-contest", (event, contestId) => redactContestForRenderer(db.getContestById(contestId)));
+ipcMain.handle("get-contest-problem", (event, contestId, problemId) => {
+  const contest = db.getContestById(contestId);
+  const problem = db.getContestProblemById(problemId);
+  if (!problem) return problem;
+  return redactContestForRenderer({ settings: contest?.settings, problems: [problem] }).problems[0];
+});
 // The leaderboard travels down as part of the full sync snapshot (see
 // server's syncRoutes.js /full) - reading it here is a local lookup, no
 // network, and it only ever changes when the admin presses Sync (not a
@@ -737,6 +506,7 @@ ipcMain.handle("interactive-start", async (event, { code, defineLocal } = {}) =>
       onStderr: (chunk) => isCurrent() && mainWindow?.webContents.send("interactive-stderr", chunk),
       onExit: (info) => {
         if (!isCurrent()) return;
+        diag.info(`interactive session ended: ${info.status}${info.code !== undefined ? " code=" + info.code : ""}`);
         mainWindow?.webContents.send("interactive-exit", info);
         interactiveSession = null;
       },
@@ -954,55 +724,17 @@ ipcMain.handle("get-pending-submissions-count", () => db.listPendingSubmissions(
 
 ipcMain.handle("get-app-version", () => app.getVersion());
 
-// Every check/download/install/relaunch step writes here (logToDownloads) -
-// this just opens it in the OS default text viewer so "check the log" is one
-// click from Settings instead of "go find TharkaCodexUpdate.log in Downloads
-// yourself."
-ipcMain.handle("open-update-log", async () => {
-  try {
-    fs.appendFileSync(UPDATE_LOG_PATH, ""); // ensure it exists even if nothing has logged yet
-    const err = await shell.openPath(UPDATE_LOG_PATH);
-    return err ? { ok: false, reason: err } : { ok: true };
-  } catch (e) {
-    return { ok: false, reason: e.message };
-  }
-});
-
-// The only place an update check is ever kicked off from now - see the
-// removed automatic triggers' comments in checkForAppUpdate/connectSyncSocket
-// above. Fire-and-forget: progress is reported separately via the
-// "update-status" broadcast (broadcastUpdateStatus), which the renderer
-// already listens for (UpdateStatusIndicator.tsx).
-ipcMain.handle("check-for-update", () => {
-  if (!app.isPackaged) {
-    logToDownloads("Check for Updates clicked, but this is a dev build - nothing to check against.");
-    return { ok: false, reason: "Updates aren't available in dev mode." };
-  }
-  logToDownloads("Check for Updates clicked.");
-  checkForAppUpdate("manual");
-  return { ok: true };
-});
 ipcMain.handle("get-sync-state", () => ({ ...db.getLocalVersion(), online: !!socket?.connected }));
 
 // --- App lifecycle ------------------------------------------------------
 
 app.whenReady().then(() => {
   console.log("[app] ready, userData =", app.getPath("userData"), "server url =", getServerUrl());
-  // The one line that actually answers "did the relaunch-after-update work?"
-  // - if an update install fires and this line never appears again
-  // afterward, the new process never started (an OS/installer-level
-  // problem, e.g. SmartScreen/antivirus blocking the silent relaunch), not
-  // a crash in this app's own code, which would show up separately above.
   logToDownloads(`App started - version ${app.getVersion()}, packaged=${app.isPackaged}`);
+  diag.start({ version: app.getVersion(), serverUrl: getServerUrl() });
   createWindow();
   connectSyncSocket();
   staleCheckOnOpen();
-  setupAutoUpdater();
-  // No automatic update checks (on open, periodically, or on an admin's
-  // sync/push) - only the "Check for Updates" button in Settings triggers
-  // one now, via the check-for-update IPC handler below. This was a
-  // deliberate ask: updates should only ever happen when someone in the lab
-  // explicitly clicks the button, not silently in the background.
 
   require("child_process").exec("g++ --version", (error) => {
     if (error) console.warn("WARNING: g++ is not installed or not in PATH. Local judging will fail.");
@@ -1019,10 +751,12 @@ app.on("window-all-closed", () => {
 // neither would otherwise leave any trace at all.
 app.on("render-process-gone", (event, webContents, details) => {
   logToDownloads(`Renderer process gone: reason=${details.reason} exitCode=${details.exitCode}`);
+  diag.error(`app render-process-gone: reason=${details.reason} exitCode=${details.exitCode}`);
   log.error("[fatal] render-process-gone:", details);
 });
 app.on("child-process-gone", (event, details) => {
   logToDownloads(`Child process gone: type=${details.type} reason=${details.reason}`);
+  diag.error(`child-process-gone: type=${details.type} name=${details.name || ""} reason=${details.reason} exitCode=${details.exitCode}`);
   log.error("[fatal] child-process-gone:", details);
 });
 
@@ -1032,6 +766,7 @@ app.on("child-process-gone", (event, details) => {
 // background on the shared lab machine for up to its own session-timeout
 // ceiling (5 minutes by default).
 app.on("before-quit", () => {
+  diag.shutdown("before-quit");
   interactiveSession?.stop();
   interactiveSession = null;
 });

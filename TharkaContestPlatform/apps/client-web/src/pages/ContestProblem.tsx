@@ -30,7 +30,6 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { SettingsDialog, type ShortcutHint } from "@/components/ContestSettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
-import { UpdateStatusIndicator } from "@/components/UpdateStatusIndicator";
 import { getContestProblem, runCode, submitCode } from "@/lib/apiClient";
 import { getIdentity } from "@/lib/identity";
 import { addLocalSubmission, getLocalSubmissions, type LocalSubmission } from "@/lib/localSubmissions";
@@ -381,7 +380,6 @@ const ContestProblem = () => {
             Submit
           </Button>
           <div className="h-4 w-px bg-border mx-1"></div>
-          <UpdateStatusIndicator />
           <SyncStatusIndicator />
           <ThemeToggle />
         </div>
@@ -750,8 +748,23 @@ const ContestProblem = () => {
                                     </div>
                                     {!res.passed && res.input === undefined && (
                                       <p className="text-[10px] text-muted-foreground italic">
-                                        Input/output for this test case will be shown once the contest ends.
+                                        This is a hidden test case - its input and expected output are not shown.
                                       </p>
+                                    )}
+                                    {res.input !== undefined && res.userOutput === undefined && res.expectedOutput !== undefined && (
+                                      <div className="grid grid-cols-1 gap-1 text-xs">
+                                        <div className="flex flex-col gap-1">
+                                          <span className="text-[10px] uppercase text-muted-foreground">Input</span>
+                                          <code className="bg-black/20 p-1.5 rounded font-mono break-words whitespace-pre-wrap">{res.input || "No input"}</code>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                          <span className="text-[10px] uppercase text-muted-foreground">Expected</span>
+                                          <code className="bg-black/20 p-1.5 rounded font-mono break-words whitespace-pre-wrap">{res.expectedOutput}</code>
+                                        </div>
+                                        {res.stderr && (
+                                          <pre className="bg-red-500/10 text-red-500 p-2 rounded font-mono whitespace-pre-wrap break-words">{res.stderr}</pre>
+                                        )}
+                                      </div>
                                     )}
                                     {res.input !== undefined && (
                                       <div className="grid grid-cols-1 gap-1 text-xs">

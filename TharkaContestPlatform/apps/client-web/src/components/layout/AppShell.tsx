@@ -3,7 +3,6 @@ import { Settings as SettingsIcon } from "lucide-react";
 import { getIdentity } from "@/lib/identity";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
-import { UpdateStatusIndicator } from "@/components/UpdateStatusIndicator";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { contestId } = useParams<{ contestId: string }>();
@@ -29,7 +28,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
         <div className="flex items-center gap-3">
-          <UpdateStatusIndicator />
           <SyncStatusIndicator />
           {identity && contestId && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

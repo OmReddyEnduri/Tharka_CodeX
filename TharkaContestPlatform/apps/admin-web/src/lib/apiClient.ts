@@ -191,32 +191,4 @@ export const apiClient = {
   getJudgeSettings: () => apiFetch<JudgeSettings>("/api/judge-settings"),
   updateJudgeSettings: (data: Partial<JudgeSettings>) =>
     apiFetch<JudgeSettings>("/api/judge-settings", { method: "PUT", body: JSON.stringify(data) }),
-
-  getCurrentAppUpdate: () =>
-    apiFetch<{ version: string; fileName: string; size: number; publishedAt: string } | null>(
-      "/api/app-update/current"
-    ),
-  // Not routed through apiFetch - that helper always sets
-  // Content-Type: application/json, which would stop the browser from
-  // picking a correct multipart boundary for this one binary upload. The
-  // server computes the checksum itself and stamps the version from the
-  // publish moment (appUpdateRoutes.js's publishTimeVersion()) - nothing
-  // else needs to come along with the exe.
-  publishAppUpdate: async (file: File) => {
-    const form = new FormData();
-    form.append("exe", file);
-    const res = await fetch(`${getServerUrl()}/api/app-update/publish`, {
-      method: "POST",
-      headers: { "x-contest-admin": ADMIN_BYPASS_TOKEN },
-      body: form,
-    });
-    const body = await res.json().catch(() => ({}) as any);
-    if (!res.ok) {
-      const err = new Error(body.msg || `Request failed: ${res.status}`) as ApiError;
-      err.status = res.status;
-      err.body = body;
-      throw err;
-    }
-    return body as { version: string; publishedAt: string; notifiedClients: number };
-  },
 };

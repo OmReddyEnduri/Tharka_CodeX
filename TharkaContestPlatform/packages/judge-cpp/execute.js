@@ -3,7 +3,7 @@ const os = require('os');
 const path = require('path');
 const treeKill = require('tree-kill');
 const fs = require('fs');
-const { getMemoryBytes, getJobRunner, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
+const { getMemoryBytes, getJobRunner, markJobRunnerBroken, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
 
 // Each memory sample spawns a tasklist.exe (see memory.js), which can take a
 // few hundred ms on a loaded machine. Polls never overlap (see the in-flight
@@ -26,7 +26,17 @@ function trimTrailing(s) {
 // for why that's an accepted tradeoff here). Resolves with a result object,
 // never rejects - callers branch on `verdict`. `maxOutputBytes` is
 // admin-configurable (see JudgeSettings) - defaults to 1MB.
-function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES }) {
+async function execute(execPath, input, opts) {
+  const result = await executeOnce(execPath, input, opts);
+  // The launcher itself could not start (not the student's program) - disable it and run again directly.
+  if (result.launcherFailed) {
+    markJobRunnerBroken(result.stderr);
+    return executeOnce(execPath, input, opts);
+  }
+  return result;
+}
+
+function executeOnce(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES }) {
   return new Promise((resolve) => {
     // cwd = the run's own temp dir, so relative-path file writes land in a folder that is deleted afterwards (not the app dir).
     // On Windows the program runs inside jobrun.exe's Job Object (hard OS memory cap, 1 process, dies with
@@ -147,7 +157,7 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
     });
 
     child.on('error', (err) => {
-      finish('Runtime Error', { stderr: err.message });
+      finish('Runtime Error', { stderr: err.message, launcherFailed: !!runner });
     });
 
     child.on('close', (code) => {
@@ -157,7 +167,7 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
         // jobrun saw the cap hit, or the program died on a refused allocation (std::bad_alloc), which a
         // single oversized request can do without tripping the job's limit notification.
         if (code === JOBRUN_EXIT_MLE || /bad_alloc/.test(stderr)) return finish('Memory Limit Exceeded');
-        if (code === JOBRUN_EXIT_HELPER) return finish('Runtime Error', { stderr: stderr || 'Could not start the program.' });
+        if (code === JOBRUN_EXIT_HELPER) return finish('Runtime Error', { stderr: stderr || 'Could not start the program.', launcherFailed: true });
       }
       finish(code === 0 ? 'Ran' : 'Runtime Error');
     });

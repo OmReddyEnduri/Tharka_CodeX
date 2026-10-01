@@ -112,36 +112,9 @@ export function onSyncStatus(callback: (state: { status: string; version: number
   return unsubscribe ?? (() => {});
 }
 
-export interface UpdateStatus {
-  status: "checking" | "available" | "up-to-date" | "downloading" | "downloaded" | "installing" | "error";
-  percent?: number;
-  version?: string;
-  message?: string;
-}
-
-export function onUpdateStatus(callback: (status: UpdateStatus) => void) {
-  const unsubscribe = getContestAPI()?.onUpdateStatus?.(callback);
-  return unsubscribe ?? (() => {});
-}
-
 export function getAppVersion(): Promise<string | null> {
   const contestAPI = getContestAPI();
   return contestAPI?.getAppVersion ? contestAPI.getAppVersion() : Promise.resolve(null);
-}
-
-// No automatic checks anywhere - this is the only thing that ever triggers
-// one (see main.js's check-for-update IPC handler). Progress after this
-// call resolves comes separately through onUpdateStatus above.
-export function checkForUpdate(): Promise<{ ok: boolean; reason?: string } | null> {
-  const contestAPI = getContestAPI();
-  return contestAPI?.checkForUpdate ? contestAPI.checkForUpdate() : Promise.resolve(null);
-}
-
-// Opens TharkaCodexUpdate.log (every check/download/install/relaunch step,
-// in order) in the OS's default text viewer.
-export function openUpdateLog(): Promise<{ ok: boolean; reason?: string } | null> {
-  const contestAPI = getContestAPI();
-  return contestAPI?.openUpdateLog ? contestAPI.openUpdateLog() : Promise.resolve(null);
 }
 
 // --- Run / submit -------------------------------------------------------
