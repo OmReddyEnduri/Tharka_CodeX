@@ -150,7 +150,7 @@ array of problem objects (same shape as the `problems` entries above), or
   `{ "input": ..., "output": ... }` pairs as the single-problem editor —
   omit either array (or leave it empty) for a problem with no test cases yet.
 - `checker` decides how a student's output is compared against the expected
-  output. Five options (also available as a dropdown in the problem editor,
+  output. Seven options (also available as a dropdown in the problem editor,
   which explains each one):
   - `"token"` (default if omitted) - spaces, tabs and line breaks are all
     ignored; only the sequence of words/numbers matters. Right for almost
@@ -171,6 +171,12 @@ array of problem objects (same shape as the `problems` entries above), or
     says "in any order".
   - `"custom"` - your own rule, built from the options in `checkerConfig`
     (see below). Use when none of the five fit.
+  - `"code"` - your own C++ function decides, given in `checkerCode`:
+    `bool checker(string expected, string user)` returning true when the
+    student's output is correct (`<bits/stdc++.h>` and `using namespace std;`
+    are already included). It sees only the expected and the student's
+    output, not the input. Code that doesn't compile is rejected on import
+    with the compiler's message. Use when many different outputs are correct.
 
   Any other value is rejected and that row is skipped with a reason, rather
   than silently guessing.
@@ -231,6 +237,12 @@ array of problem objects (same shape as the `problems` entries above), or
 - `points` is how much an Accepted verdict on this problem is worth on the
   leaderboard. Omit it for `100` - problems don't have to be worth the same
   amount, so a harder problem can be set higher to outweigh easier ones.
+- Problem text (`description`, `inputFormat`, `outputFormat`, `constraints`)
+  is shown to students as plain text - Markdown is NOT rendered, so `**N**`
+  shows up with the stars. Write plain sentences.
+- Ready-made prompts for having an AI write these files correctly (all fields,
+  2+ samples, 10+ double-checked hidden cases, the right checker) are in
+  `prompts/`.
 - Recommended, not enforced: give every problem a real `description`, at
   least 2 `sampleTestCases`, and around 10 `hiddenTestCases`. Nothing
   rejects a thinner problem than that, but a problem judged on too few

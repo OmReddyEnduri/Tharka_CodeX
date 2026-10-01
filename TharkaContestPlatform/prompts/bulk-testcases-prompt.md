@@ -1,79 +1,97 @@
-You are generating test case files for a programming contest platform. Your
-job is to output **two plain text blocks** - one for the input file, one for
-the matching output file - in the exact format described below. Do not wrap
-them in JSON. Do not add explanation inside the blocks themselves (put any
-notes for me outside the blocks, clearly separated).
+You are writing test cases for ONE problem on a school programming-contest
+platform (Tharka Codex). Students solve it in **C++**. The admin uploads your
+result as two .txt files in the problem editor's "Test Cases" tab (Sample or
+Hidden uploader): one file with all the inputs, one with all the matching
+outputs. A wrong expected output marks correct students as wrong in a real
+contest, so every output must be correct.
 
-## What this is for
+## Step 0 - ask first if anything is unclear
 
-This produces the content for **two `.txt` files** that get uploaded through
-the "Test Cases" tab of a single problem's editor (either the Sample Test
-Cases uploader or the Hidden Test Cases uploader - I will tell you which, or
-I may want both). Each file can hold **one or many test cases**.
+You need: the full problem statement, the input format, the output format, the
+constraints, and whether I want Sample cases, Hidden cases, or both. If ANY of
+this is missing or ambiguous (for example, what to print in a special case),
+reply ONLY with a short numbered list of questions and wait for my answers.
 
-## Format rules
+## How many
 
-- One file holds all the **inputs**, in order. The other file holds all the
-  matching **outputs**, in the same order. They must contain the same
-  number of test cases.
-- If there is more than one test case, separate them with a line containing
-  **exactly** this and nothing else on that line:
-  ```
-  ===TESTCASE===
-  ```
-  No extra spaces, no markdown, no numbering - just that literal line.
-- A file with **zero** `===TESTCASE===` lines is exactly one test case (the
-  whole file).
-- Do not add a trailing `===TESTCASE===` after the last test case - only put
-  it *between* test cases (N test cases need N-1 delimiter lines).
-- Trailing blank lines at the end are fine, they get trimmed automatically.
-- Match each output exactly to what the reference/correct solution would
-  print for that input (see "How to respond" below) - do not guess.
+- Sample: AT LEAST 2 (unless I say otherwise).
+- Hidden: AT LEAST 10 (unless I say otherwise).
+- All different. Never repeat a sample case among the hidden ones.
 
-## Example: 3 test cases, one input file + one output file
+## What the cases must cover (hidden)
 
-**Input file content:**
-```
-5 7
-===TESTCASE===
-100 200
-===TESTCASE===
--3 3
-```
+- the smallest allowed values,
+- the largest allowed values (choose ones whose answer you can still compute
+  exactly),
+- edge cases: 0, 1, negative numbers if allowed, equal values, duplicates,
+  already-sorted / reverse-sorted, a single element, empty-looking cases if
+  the statement allows them,
+- several normal mixed cases.
 
-**Output file content:**
-```
-12
-===TESTCASE===
-300
-===TESTCASE===
-0
-```
+Every input must follow the input format and the constraints exactly (right
+number of values, right order, values inside the limits).
 
-(That is a made-up "add two numbers" example - replace with real
-input/output for the actual problem below.)
+## File format
 
-## How to respond
+- The INPUT file holds all inputs in order; the OUTPUT file holds the matching
+  outputs in the SAME order. Both must contain the same number of test cases.
+- Separate test cases with a line containing exactly this, nothing else:
 
-1. Output exactly two labeled blocks, in this order, each in its own code
-   fence so I can tell where one ends and the other begins:
-   - `INPUT FILE:` followed by a code block with the input content.
-   - `OUTPUT FILE:` followed by a code block with the matching output
-     content.
-2. You must work out each output by actually solving the problem correctly
-   for that input (using a correct reference solution/reasoning) - never
-   fabricate a plausible-looking but wrong output. If you are not confident
-   an output is correct for a given input, say so outside the code blocks
-   instead of silently guessing.
-3. If I gave you the inputs but not a way to compute the outputs (e.g. no
-   reference solution and an ambiguous problem statement), ask me to
-   clarify rather than inventing outputs.
+      ===TESTCASE===
+
+- Put the separator only BETWEEN cases (N cases = N-1 separator lines), never
+  before the first or after the last.
+- Each output must be exactly what a correct C++ program prints: no labels
+  like "Output:", no extra spaces at the start of lines (unless the shape is
+  the answer), integers without ".0", exactly the decimal places the statement
+  asks for.
+- Plain text only. No markdown, no numbering, no comments inside the files.
+
+Example (3 cases of "add two numbers"):
+
+INPUT file:
+
+    5 7
+    ===TESTCASE===
+    100 200
+    ===TESTCASE===
+    -3 3
+
+OUTPUT file:
+
+    12
+    ===TESTCASE===
+    300
+    ===TESTCASE===
+    0
+
+## Double-check every case
+
+1. Write a short, correct C++ reference solution for the problem.
+2. Compute each output by following that solution step by step.
+3. Compute each output a SECOND time independently (another method, or redo
+   the arithmetic carefully). If the two results differ, find the mistake and
+   fix it.
+4. Count: the number of cases in the INPUT file equals the number in the
+   OUTPUT file.
+
+## How to reply
+
+Reply in exactly three parts:
+
+**Part 1 - CHECK** (plain text, short): the C++ reference solution, then one
+line per case: "Case k: input -> output (computed twice, same)".
+
+**Part 2 - INPUT FILE**: one code block with the complete input file content.
+
+**Part 3 - OUTPUT FILE**: one code block with the complete output file content.
+
+If I asked for both Sample and Hidden, give Parts 2-3 twice, clearly labeled
+"SAMPLE" and "HIDDEN".
 
 ---
 
-Now here is the problem and the test case inputs (and, if I have them,
-expected outputs) I want you to turn into this format. Tell me whether these
-are meant to be **Sample** (visible to students) or **Hidden** (judging
-only) test cases if it is not obvious:
+Here is the problem (statement, input format, output format, constraints) and
+which test cases I want (Sample / Hidden / both, and how many):
 
-[PASTE THE PROBLEM STATEMENT AND TEST CASE INPUTS/OUTPUTS HERE]
+[PASTE THE PROBLEM HERE]
