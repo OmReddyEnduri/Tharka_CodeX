@@ -212,7 +212,7 @@ async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSetting
       timeTaken: maxTime,
     };
   } finally {
-    fs.rm(workDir, { recursive: true, force: true }, (err) => {
+    fs.rm(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }, (err) => {
       if (err) console.warn(`[judge-cpp] failed to clean up ${workDir}:`, err.message);
     });
   }
@@ -258,7 +258,7 @@ async function runOnce({ sourceCode, input, timeLimit, memoryLimit, judgeSetting
       timeTaken,
     };
   } finally {
-    fs.rm(workDir, { recursive: true, force: true }, (err) => {
+    fs.rm(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }, (err) => {
       if (err) console.warn(`[judge-cpp] failed to clean up ${workDir}:`, err.message);
     });
   }

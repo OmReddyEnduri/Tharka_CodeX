@@ -29,7 +29,7 @@ function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS, defines = 
     fs.writeFileSync(sourcePath, sourceCode);
 
     const defineArgs = defines.map((d) => `-D${d}`);
-    const child = spawn('g++', [sourcePath, ...defineArgs, '-O2', '-o', execPath], { windowsHide: true });
+    const child = spawn('g++', [sourcePath, ...defineArgs, '-O2', '-fmax-errors=10', '-o', execPath], { windowsHide: true });
 
     let stderr = '';
     let settled = false;
@@ -53,7 +53,8 @@ function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS, defines = 
     }, timeoutMs);
 
     child.stderr.on('data', (d) => {
-      stderr += d.toString();
+      // A template-error bomb can emit tens of MB; keep only what a student can read.
+      if (stderr.length < 65536) stderr += d.toString();
     });
 
     child.on('error', (err) => fail(err.message));

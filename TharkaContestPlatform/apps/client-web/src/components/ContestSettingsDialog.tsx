@@ -45,6 +45,8 @@ interface SettingsDialogProps {
   currentCode?: string;
   /** Optional keyboard-shortcut cheatsheet, rendered at the bottom. */
   shortcuts?: ShortcutHint[];
+  /** Lets the page hand focus back to the code editor when this closes. */
+  onCloseAutoFocus?: (e: Event) => void;
 }
 
 export const SettingsDialog = ({
@@ -54,6 +56,7 @@ export const SettingsDialog = ({
   onSettingsChange,
   currentCode,
   shortcuts,
+  onCloseAutoFocus,
 }: SettingsDialogProps) => {
   // Draft copy, so editing the template in here stays discardable - it only
   // becomes the saved template when "Save template" is pressed. Re-read on
@@ -105,7 +108,16 @@ export const SettingsDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        onCloseAutoFocus={onCloseAutoFocus}
+        // Escape pressed to dismiss one of Monaco's own popups (suggest,
+        // find, parameter hints) in the template editor must not also close
+        // this dialog and throw away the unsaved template draft.
+        onEscapeKeyDown={(e) => {
+          if ((e.target as HTMLElement | null)?.closest?.(".monaco-editor")) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editor Settings</DialogTitle>
           <DialogDescription>

@@ -43,6 +43,7 @@ import { registerCustomMonacoThemes } from "@/lib/monacoThemes";
 import { registerSnippetProvider } from "@/lib/monacoSnippets";
 import { registerCustomKeybindings } from "@/lib/monacoSetup";
 import { getTemplate } from "@/lib/codeTemplate";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { getCompilerDraft, saveCompilerDraft, clearCompilerDraft } from "@/lib/codeDrafts";
 import { getEditorSettings, saveEditorSettings, type EditorSettings } from "@/lib/editorSettings";
 import {
@@ -97,6 +98,8 @@ function registerCompilerEditorExtras(monaco: any): void {
   registerCustomMonacoThemes(monaco);
   registerSnippetProvider(monaco);
 }
+
+const MAX_TERMINAL_LINES = 2000;
 
 type TerminalLine = { type: "stdout" | "stderr" | "input" | "system"; text: string };
 
@@ -159,15 +162,43 @@ export default function Compiler() {
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalInputRef = useRef<HTMLInputElement>(null);
 
+  // A program that prints in a tight loop can emit tens of thousands of
+  // chunks a second. One setState per chunk re-rendered this whole page (and
+  // copied the ever-growing line array) each time, freezing the UI. Chunks
+  // are buffered and flushed at most once per animation frame, and only the
+  // newest MAX_TERMINAL_LINES lines are kept.
+  const pendingLinesRef = useRef<TerminalLine[]>([]);
+  const flushRafRef = useRef<number | null>(null);
+  const appendTerminal = useCallback((line: TerminalLine) => {
+    pendingLinesRef.current.push(line);
+    if (flushRafRef.current !== null) return;
+    flushRafRef.current = requestAnimationFrame(() => {
+      flushRafRef.current = null;
+      const batch = pendingLinesRef.current;
+      pendingLinesRef.current = [];
+      setTerminal((t) => {
+        const next = t.concat(batch);
+        return next.length > MAX_TERMINAL_LINES ? next.slice(next.length - MAX_TERMINAL_LINES) : next;
+      });
+    });
+  }, []);
+  const resetTerminal = (lines: TerminalLine[]) => {
+    pendingLinesRef.current = [];
+    setTerminal(lines);
+  };
+  useEffect(() => () => {
+    if (flushRafRef.current !== null) cancelAnimationFrame(flushRafRef.current);
+  }, []);
+
   useEffect(() => {
     const contestAPI = (window as any).contestAPI;
 
     if (contestAPI?.onInteractiveStdout) {
-      const offStdout = contestAPI.onInteractiveStdout((chunk: string) => setTerminal((t) => [...t, { type: "stdout", text: chunk }]));
-      const offStderr = contestAPI.onInteractiveStderr((chunk: string) => setTerminal((t) => [...t, { type: "stderr", text: chunk }]));
+      const offStdout = contestAPI.onInteractiveStdout((chunk: string) => appendTerminal({ type: "stdout", text: chunk }));
+      const offStderr = contestAPI.onInteractiveStderr((chunk: string) => appendTerminal({ type: "stderr", text: chunk }));
       const offExit = contestAPI.onInteractiveExit((info: any) => {
         setTerminalRunning(false);
-        setTerminal((t) => [...t, { type: "system", text: exitLabel(info) }]);
+        appendTerminal({ type: "system", text: exitLabel(info) });
       });
       return () => {
         offStdout?.();
@@ -178,11 +209,11 @@ export default function Compiler() {
 
     const socket = io(`${getServerUrl()}/compiler`, { transports: ["websocket", "polling"] });
     socketRef.current = socket;
-    socket.on("stdout", (chunk: string) => setTerminal((t) => [...t, { type: "stdout", text: chunk }]));
-    socket.on("stderr", (chunk: string) => setTerminal((t) => [...t, { type: "stderr", text: chunk }]));
+    socket.on("stdout", (chunk: string) => appendTerminal({ type: "stdout", text: chunk }));
+    socket.on("stderr", (chunk: string) => appendTerminal({ type: "stderr", text: chunk }));
     socket.on("exit", (info: any) => {
       setTerminalRunning(false);
-      setTerminal((t) => [...t, { type: "system", text: exitLabel(info) }]);
+      appendTerminal({ type: "system", text: exitLabel(info) });
     });
     return () => {
       socket.disconnect();
@@ -190,11 +221,11 @@ export default function Compiler() {
   }, []);
 
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    terminalEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [terminal]);
 
   const runInteractive = () => {
-    setTerminal([{ type: "system", text: "Running..." }]);
+    resetTerminal([{ type: "system", text: "Running..." }]);
     setTerminalRunning(true);
     const contestAPI = (window as any).contestAPI;
     if (contestAPI?.startInteractive) {
@@ -212,7 +243,7 @@ export default function Compiler() {
       socketRef.current?.emit("stop");
     }
     setTerminalRunning(false);
-    setTerminal((t) => [...t, { type: "system", text: "Stopped." }]);
+    appendTerminal({ type: "system", text: "Stopped." });
   };
 
   const sendInputLine = () => {
@@ -223,7 +254,7 @@ export default function Compiler() {
     } else {
       socketRef.current?.emit("input", inputLine + "\n");
     }
-    setTerminal((t) => [...t, { type: "input", text: inputLine }]);
+    appendTerminal({ type: "input", text: inputLine });
     setInputLine("");
   };
 
@@ -463,9 +494,15 @@ export default function Compiler() {
   // file over" rather than "open a different, unsaved file." Also clears the
   // draft autosave - otherwise the 500ms debounce would silently re-persist
   // the discarded code and the reset would appear to "undo itself" on reload.
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const handleResetToTemplate = () => {
-    if (!window.confirm("Discard the current code and start again from your template?")) return;
+    setConfirmResetOpen(false);
     clearCompilerDraft();
+    // Detach from the file on disk: otherwise the code now differs from it,
+    // isDirty flips on, and the 5s autosave silently overwrites the
+    // student's real file with the template.
+    setCurrentFile(null);
+    setLastSavedCode(null);
     setCode(getTemplate());
     toast.success("Editor reset to your template.");
   };
@@ -525,7 +562,7 @@ export default function Compiler() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (!e.ctrlKey || isSettingsOpen) return;
+      if (!e.ctrlKey || isSettingsOpen || confirmResetOpen) return;
       const { running, handleRun, activeTab, terminalRunning, handleSave, handleOpen, stopInteractive } = shortcutStateRef.current;
       const key = e.key.toLowerCase();
       if (key === "b") {
@@ -544,7 +581,7 @@ export default function Compiler() {
     };
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [isSettingsOpen]);
+  }, [isSettingsOpen, confirmResetOpen]);
 
   // Renders one folder's children (files + subfolders), recursing into any
   // subfolder that's expanded, plus the inline "new file/folder" name input
@@ -927,7 +964,7 @@ export default function Compiler() {
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={handleNewFile} title="Start a new file from your template">
                     <FilePlus2 className="h-3.5 w-3.5" /> New
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={handleResetToTemplate} title="Reset current code to your template">
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setConfirmResetOpen(true)} title="Reset current code to your template">
                     <RotateCcw className="h-3.5 w-3.5" /> Reset
                   </Button>
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={handleOpen} title="Open a file (Ctrl+O)">
@@ -1039,6 +1076,18 @@ export default function Compiler() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+      <ConfirmDialog
+        open={confirmResetOpen}
+        title="Reset to template?"
+        description="Discard the current code and start again from your template."
+        confirmLabel="Reset"
+        onConfirm={handleResetToTemplate}
+        onCancel={() => setConfirmResetOpen(false)}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editorRef.current?.focus();
+        }}
+      />
       <SettingsDialog
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -1046,6 +1095,10 @@ export default function Compiler() {
         onSettingsChange={handleEditorSettingsChange}
         currentCode={code}
         shortcuts={SHORTCUTS}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editorRef.current?.focus();
+        }}
       />
     </div>
   );

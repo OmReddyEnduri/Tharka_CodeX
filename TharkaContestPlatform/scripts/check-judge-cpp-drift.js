@@ -12,7 +12,7 @@ const path = require("path");
 
 const SOURCE_DIR = path.join(__dirname, "..", "packages", "judge-cpp");
 const MIRROR_DIR = path.join(__dirname, "..", "apps", "client-electron", "judge-cpp");
-const FILES = ["compile.js", "execute.js", "index.js", "interactive.js", "staticCheck.js"];
+const FILES = ["compile.js", "execute.js", "index.js", "interactive.js", "memory.js", "jobrun.c", "jobrun.exe", "staticCheck.js"];
 
 let drifted = false;
 for (const file of FILES) {
@@ -25,9 +25,9 @@ for (const file of FILES) {
     continue;
   }
 
-  const source = fs.readFileSync(sourcePath, "utf8");
-  const mirror = fs.readFileSync(mirrorPath, "utf8");
-  if (source !== mirror) {
+  const source = fs.readFileSync(sourcePath);
+  const mirror = fs.readFileSync(mirrorPath);
+  if (!source.equals(mirror)) {
     console.error(`✗ ${file}: apps/client-electron/judge-cpp/${file} differs from packages/judge-cpp/${file}`);
     drifted = true;
   }

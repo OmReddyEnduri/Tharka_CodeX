@@ -1,13 +1,17 @@
 const { spawn } = require('child_process');
+const os = require('os');
+const path = require('path');
 const treeKill = require('tree-kill');
-const pidusage = require('pidusage');
+const fs = require('fs');
+const { getMemoryBytes, getJobRunner, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
 
-// pidusage's Windows backend shells out to wmic.exe per call, which
-// routinely takes longer than 50ms in practice - at that interval,
-// overlapping wmic subprocesses stack up per judged run (worse under a
-// submission rush). 500ms is still frequent enough to catch a runaway
-// allocation well before it matters, and matches interactive.js's interval.
-const MEMORY_POLL_INTERVAL_MS = 500;
+// Each memory sample spawns a tasklist.exe (see memory.js), which can take a
+// few hundred ms on a loaded machine. Polls never overlap (see the in-flight
+// guard below), so this is a minimum spacing, not a guaranteed rate.
+const MEMORY_POLL_INTERVAL_MS = 250;
+// Consecutive failed samples on a still-running program before we give up on
+// monitoring and kill it: running with no memory limit can freeze the PC.
+const MAX_MEMORY_POLL_FAILURES = 8;
 const DEFAULT_MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB default - well beyond any legitimate judge-problem output; guards a print-flood loop
 
 // Strips trailing whitespace/newlines only. Keeps leading whitespace, which
@@ -24,7 +28,17 @@ function trimTrailing(s) {
 // admin-configurable (see JudgeSettings) - defaults to 1MB.
 function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES }) {
   return new Promise((resolve) => {
-    const child = spawn(execPath, [], { windowsHide: true });
+    // cwd = the run's own temp dir, so relative-path file writes land in a folder that is deleted afterwards (not the app dir).
+    // On Windows the program runs inside jobrun.exe's Job Object (hard OS memory cap, 1 process, dies with
+    // the launcher) - no polling needed. Without it, fall back to sampling memory below.
+    const runner = getJobRunner();
+    const peakFile = runner ? path.join(path.dirname(execPath), 'peak.kb') : null;
+    const child = runner
+      ? spawn(runner, [String(Math.floor(memoryLimitMb * 1024 * 1024)), peakFile, execPath], { windowsHide: true, cwd: path.dirname(execPath) })
+      : spawn(execPath, [], { windowsHide: true, cwd: path.dirname(execPath) });
+    // A CPU-bound student program gets a full core for its whole run; at below-normal
+    // priority the UI and the rest of the OS stay responsive while it spins.
+    try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* best effort */ }
 
     let stdout = '';
     let stderr = '';
@@ -59,10 +73,18 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
       treeKill(child.pid, 'SIGKILL');
     }, timeLimitMs);
 
-    const memoryTimer = setInterval(async () => {
+    let polling = false;
+    let pollFailures = 0;
+    const memoryTimer = runner ? null : setInterval(async () => {
+      if (polling || settled) return;
+      polling = true;
       try {
-        const stats = await pidusage(child.pid);
-        const kb = stats.memory / 1024;
+        const memBytes = await getMemoryBytes(child.pid);
+        // The run may have ended while we awaited; its pid could even have
+        // been reused, so never act on a stale sample.
+        if (settled) return;
+        pollFailures = 0;
+        const kb = memBytes / 1024;
         if (kb > memoryPeakKb) memoryPeakKb = kb;
         if (kb > memoryLimitMb * 1024) {
           finish('Memory Limit Exceeded');
@@ -70,16 +92,22 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
         }
       } catch (err) {
         // The common case is the process already exited between the
-        // interval firing and pidusage reading it - nothing to do, the
-        // 'close' handler will settle this. But if Node still thinks the
-        // child is running (no exit code yet) and pidusage still failed,
-        // that's a different, worth-knowing-about failure - most likely
-        // pidusage's Windows backend (wmic.exe) itself is broken/missing,
-        // which would otherwise silently disable memory-limit enforcement
-        // entirely with zero visibility.
-        if (child.exitCode === null && !child.killed) {
-          console.warn(`[judge-cpp] pidusage failed for still-running pid ${child.pid}:`, err.message);
+        // interval firing and the sample landing - the 'close' handler
+        // settles that. But if Node still thinks the child is running and
+        // sampling keeps failing, the memory limit is silently off, so
+        // fail closed rather than let a runaway allocation freeze the PC.
+        if (!settled && child.exitCode === null && !child.killed) {
+          pollFailures++;
+          if (pollFailures === 1) {
+            console.warn(`[judge-cpp] memory sample failed for still-running pid ${child.pid}:`, err.message);
+          }
+          if (pollFailures >= MAX_MEMORY_POLL_FAILURES) {
+            finish('Runtime Error', { stderr: 'Memory monitor unavailable - run aborted for safety.' });
+            treeKill(child.pid, 'SIGKILL');
+          }
         }
+      } finally {
+        polling = false;
       }
     }, MEMORY_POLL_INTERVAL_MS);
 
@@ -124,6 +152,13 @@ function execute(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes =
 
     child.on('close', (code) => {
       if (settled) return;
+      if (runner) {
+        try { memoryPeakKb = parseInt(fs.readFileSync(peakFile, 'utf8'), 10) || 0; } catch { /* no stats written */ }
+        // jobrun saw the cap hit, or the program died on a refused allocation (std::bad_alloc), which a
+        // single oversized request can do without tripping the job's limit notification.
+        if (code === JOBRUN_EXIT_MLE || /bad_alloc/.test(stderr)) return finish('Memory Limit Exceeded');
+        if (code === JOBRUN_EXIT_HELPER) return finish('Runtime Error', { stderr: stderr || 'Could not start the program.' });
+      }
       finish(code === 0 ? 'Ran' : 'Runtime Error');
     });
   });

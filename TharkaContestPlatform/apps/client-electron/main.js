@@ -722,14 +722,21 @@ let interactiveSession = null;
 
 ipcMain.handle("interactive-start", async (event, { code, defineLocal } = {}) => {
   if (interactiveSession) interactiveSession.stop();
-  interactiveSession = new InteractiveSession();
+  // Callbacks are tied to THIS session object. A stopped older session still
+  // fires its own late 'exit'/output events; without the identity check that
+  // late exit nulled out the NEW session (orphaning a running program that
+  // Stop/input could no longer reach) and flipped the UI to "not running".
+  const session = new InteractiveSession();
+  interactiveSession = session;
+  const isCurrent = () => interactiveSession === session;
   const judgeSettings = db.getJudgeSettings() || {};
-  await interactiveSession.start(
+  await session.start(
     code,
     {
-      onStdout: (chunk) => mainWindow?.webContents.send("interactive-stdout", chunk),
-      onStderr: (chunk) => mainWindow?.webContents.send("interactive-stderr", chunk),
+      onStdout: (chunk) => isCurrent() && mainWindow?.webContents.send("interactive-stdout", chunk),
+      onStderr: (chunk) => isCurrent() && mainWindow?.webContents.send("interactive-stderr", chunk),
       onExit: (info) => {
+        if (!isCurrent()) return;
         mainWindow?.webContents.send("interactive-exit", info);
         interactiveSession = null;
       },
@@ -758,6 +765,18 @@ ipcMain.handle("interactive-stop", () => {
 // a later Ctrl+S overwrites the file the student opened instead of prompting
 // again. The renderer never gets `fs` - it only round-trips the opaque path
 // string we gave it. See apps/client-web/src/lib/fileIO.ts for the caller.
+// Source files are small. Reading is synchronous on the main process, so a
+// huge file picked via the "All files" filter (a video, a log) would freeze
+// every window and eat RAM - refuse anything over 2MB instead.
+const MAX_SOURCE_FILE_BYTES = 2 * 1024 * 1024;
+function readSourceFile(filePath) {
+  const { size } = fs.statSync(filePath);
+  if (size > MAX_SOURCE_FILE_BYTES) {
+    throw new Error(`That file is too large to open in the editor (${(size / 1024 / 1024).toFixed(1)} MB, limit 2 MB).`);
+  }
+  return fs.readFileSync(filePath, "utf8");
+}
+
 const SOURCE_FILE_FILTERS = [
   { name: "C++ source", extensions: ["cpp", "cc", "cxx", "c", "h", "hpp"] },
   { name: "Text", extensions: ["txt"] },
@@ -787,7 +806,7 @@ ipcMain.handle("open-file", async () => {
       canceled: false,
       path: filePath,
       name: path.basename(filePath),
-      content: fs.readFileSync(filePath, "utf8"),
+      content: readSourceFile(filePath),
     };
   } catch (err) {
     return { error: err.message };
@@ -868,7 +887,7 @@ ipcMain.handle("list-workspace-entries", (event, relDir) => {
 ipcMain.handle("open-workspace-file", (event, relPath) => {
   try {
     const filePath = resolveInWorkspace(relPath);
-    return { path: filePath, name: path.basename(filePath), content: fs.readFileSync(filePath, "utf8") };
+    return { path: filePath, name: path.basename(filePath), content: readSourceFile(filePath) };
   } catch (err) {
     return { error: err.message };
   }

@@ -4,14 +4,17 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const treeKill = require('tree-kill');
-const pidusage = require('pidusage');
+const { getMemoryBytes, getJobRunner, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
 
 const { compile } = require('./compile');
 const { staticCheck } = require('./staticCheck');
 
 const DEFAULT_MAX_SESSION_MS = 5 * 60 * 1000; // hard cap - runaway/malicious programs get killed, not left running
 const DEFAULT_MEMORY_LIMIT_MB = 256;
-const MEMORY_POLL_MS = 500;
+const MEMORY_POLL_MS = 250;
+// Consecutive failed memory samples on a still-running program before it is
+// killed: running with no memory limit can freeze the PC.
+const MAX_MEMORY_POLL_FAILURES = 8;
 const DEFAULT_MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB - guards against a print-flood loop filling memory over a long session
 
 // A live, interactive run: unlike run()/runOnce() (which supply one fixed
@@ -87,7 +90,15 @@ class InteractiveSession {
       return;
     }
 
-    this.child = spawn(execPath, [], { windowsHide: true });
+    // Windows: run inside jobrun.exe's Job Object (hard OS memory cap, 1 process) - see memory.js. Else poll.
+    const runner = getJobRunner();
+    const child = (this.child = runner
+      ? spawn(runner, [String(Math.floor(memoryLimitMb * 1024 * 1024)), '-', execPath], { windowsHide: true, cwd: this.workDir })
+      : spawn(execPath, [], { windowsHide: true, cwd: this.workDir }));
+    let sawBadAlloc = false;
+    // A CPU-bound student program gets a full core for its whole run; at below-normal
+    // priority the UI and the rest of the OS stay responsive while it spins.
+    try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* best effort */ }
 
     // A program that exits while the student is mid-keystroke (or right
     // after it stops reading input) closes its stdin pipe out from under
@@ -104,24 +115,38 @@ class InteractiveSession {
       this._kill();
     }, maxSessionMs);
 
-    this._memoryTimer = setInterval(async () => {
-      if (!this.child) return;
+    let polling = false;
+    let pollFailures = 0;
+    this._memoryTimer = runner ? null : setInterval(async () => {
+      // Polls never overlap: each sample spawns tasklist.exe, which can be slower than the interval.
+      if (!this.child || polling) return;
+      const child = this.child;
+      polling = true;
       try {
-        const stats = await pidusage(this.child.pid);
-        if (stats.memory / 1024 / 1024 > memoryLimitMb) {
+        const memBytes = await getMemoryBytes(child.pid);
+        // Ended/stopped while awaiting (pid may be reused) - drop the sample.
+        if (this.child !== child || this._settled) return;
+        pollFailures = 0;
+        if (memBytes / 1024 / 1024 > memoryLimitMb) {
           settle({ status: 'Memory Limit Exceeded' });
           this._kill();
         }
       } catch (err) {
         // Usually the process already exited - the 'close' handler below
-        // settles it. But if Node still thinks it's running and pidusage
-        // still failed, that's worth knowing about: most likely pidusage's
-        // Windows backend (wmic.exe) itself is broken/missing, which would
-        // otherwise silently disable memory-limit enforcement with zero
-        // visibility.
-        if (this.child && this.child.exitCode === null && !this.child.killed) {
-          console.warn(`[judge-cpp] pidusage failed for still-running pid ${this.child.pid}:`, err.message);
+        // settles it. But if it is still running and sampling keeps failing,
+        // the memory limit is silently off, so fail closed.
+        if (this.child === child && !this._settled && child.exitCode === null && !child.killed) {
+          pollFailures++;
+          if (pollFailures === 1) {
+            console.warn(`[judge-cpp] memory sample failed for still-running pid ${child.pid}:`, err.message);
+          }
+          if (pollFailures >= MAX_MEMORY_POLL_FAILURES) {
+            settle({ status: 'Error', message: 'Memory monitor unavailable - run aborted for safety.' });
+            this._kill();
+          }
         }
+      } finally {
+        polling = false;
       }
     }, MEMORY_POLL_MS);
 
@@ -142,6 +167,7 @@ class InteractiveSession {
     });
     this.child.stderr.on('data', (d) => {
       if (trackOutput(d)) return;
+      if (runner && !sawBadAlloc && d.includes('bad_alloc')) sawBadAlloc = true;
       onStderr(d.toString());
     });
     this.child.on('error', (err) => {
@@ -151,7 +177,9 @@ class InteractiveSession {
     this.child.on('close', (code) => {
       clearTimeout(this._sessionTimer);
       clearInterval(this._memoryTimer);
-      settle({ status: 'Exited', code });
+      if (runner && (code === JOBRUN_EXIT_MLE || sawBadAlloc)) settle({ status: 'Memory Limit Exceeded' });
+      else if (runner && code === JOBRUN_EXIT_HELPER) settle({ status: 'Error', message: 'Could not start the program.' });
+      else settle({ status: 'Exited', code });
       this._cleanup();
     });
   }
@@ -179,7 +207,7 @@ class InteractiveSession {
     // exe, which can fail this delete - previously silent, so a workDir
     // leak from that would accumulate unnoticed over a long contest.
     if (this.workDir) {
-      fs.rm(this.workDir, { recursive: true, force: true }, (err) => {
+      fs.rm(this.workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }, (err) => {
         if (err) console.warn(`[judge-cpp] failed to clean up ${this.workDir}:`, err.message);
       });
     }

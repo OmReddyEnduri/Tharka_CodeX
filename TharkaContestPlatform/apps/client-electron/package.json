@@ -37,7 +37,8 @@
       "node_modules/**"
     ],
     "asarUnpack": [
-      "relauncher.ps1"
+      "relauncher.ps1",
+      "judge-cpp/jobrun.exe"
     ],
     "extraResources": [
       {

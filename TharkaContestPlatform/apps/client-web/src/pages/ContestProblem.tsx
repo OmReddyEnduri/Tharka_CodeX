@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { SettingsDialog, type ShortcutHint } from "@/components/ContestSettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
@@ -105,6 +106,10 @@ const ContestProblem = () => {
   const [viewCodeSub, setViewCodeSub] = useState<LocalSubmission | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Live Monaco instance, so closing a dialog can hand keyboard focus back to
+  // the editor (Radix would otherwise restore it to a non-focusable icon and
+  // typing would go nowhere until the student clicks into the editor).
+  const editorRef = useRef<any>(null);
   const [editorSettings, setEditorSettings] = useState<EditorSettings>(getEditorSettings);
 
   const handleEditorSettingsChange = (next: EditorSettings) => {
@@ -179,8 +184,9 @@ const ContestProblem = () => {
     };
   }, []);
 
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const handleResetCode = () => {
-    if (!window.confirm("Discard your code for this problem and start again from your template?")) return;
+    setConfirmResetOpen(false);
     if (contestId && problemId && identity) clearDraft(contestId, problemId, identity.rollNumber);
     setCode(getTemplate());
     toast.success("Editor reset to your template.");
@@ -291,7 +297,7 @@ const ContestProblem = () => {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const { running, submitting, handleRun, handleSubmit } = shortcutStateRef.current;
-      if (!e.ctrlKey || isSettingsOpen || running || submitting) return;
+      if (!e.ctrlKey || isSettingsOpen || confirmResetOpen || running || submitting) return;
       if (e.key === "'") {
         e.preventDefault();
         handleRun();
@@ -302,7 +308,7 @@ const ContestProblem = () => {
     };
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [isSettingsOpen]);
+  }, [isSettingsOpen, confirmResetOpen]);
 
   if (isLoading) {
     return (
@@ -589,7 +595,7 @@ const ContestProblem = () => {
                     <span title="Reset to your template" className="flex">
                       <RotateCcw
                         className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground"
-                        onClick={handleResetCode}
+                        onClick={() => setConfirmResetOpen(true)}
                       />
                     </span>
                     <Settings
@@ -615,7 +621,10 @@ const ContestProblem = () => {
                     defaultLanguage="cpp"
                     theme={editorSettings.theme}
                     beforeMount={registerProblemEditorExtras}
-                    onMount={registerCustomKeybindings}
+                    onMount={(editor, monacoNs) => {
+                      editorRef.current = editor;
+                      registerCustomKeybindings(editor, monacoNs);
+                    }}
                     value={code}
                     onChange={(value) => setCode(value || "")}
                     options={{
@@ -785,6 +794,18 @@ const ContestProblem = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+      <ConfirmDialog
+        open={confirmResetOpen}
+        title="Reset to template?"
+        description="Discard your code for this problem and start again from your template."
+        confirmLabel="Reset"
+        onConfirm={handleResetCode}
+        onCancel={() => setConfirmResetOpen(false)}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editorRef.current?.focus();
+        }}
+      />
       <SettingsDialog
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -792,6 +813,10 @@ const ContestProblem = () => {
         onSettingsChange={handleEditorSettingsChange}
         currentCode={code}
         shortcuts={SHORTCUTS}
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editorRef.current?.focus();
+        }}
       />
     </div>
   );
