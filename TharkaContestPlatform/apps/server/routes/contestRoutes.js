@@ -11,6 +11,7 @@ const { getJudgeSettings } = require("../lib/judgeSettings");
 const { isAdminRequest, requireAdmin } = require("../lib/adminAuth");
 const { requireDeletePassword } = require("../lib/deletePassword");
 const { stripHiddenTestCaseIO } = require("../lib/hiddenTestCases");
+const { canAccessContest, visibleContestFilter, isProblemInOtherPrivateContest, bumpSyncVersion } = require("../lib/privateContests");
 
 // `checker` picks how a problem's output is compared - "token"
 // (whitespace-insensitive, the default), "exact" (line/spacing-sensitive,
@@ -93,7 +94,7 @@ async function addProblemToContest(contest, data) {
 // @desc    List all contests
 router.get("/", async (req, res) => {
   try {
-    const contests = await Contest.find().sort({ startTime: -1 });
+    const contests = await Contest.find(visibleContestFilter(req)).sort({ startTime: -1 });
     res.json(contests);
   } catch (error) {
     console.error(error.message);
@@ -113,9 +114,17 @@ router.get("/live-status", async (req, res) => {
   try {
     const now = new Date();
     const liveContests = await Contest.find({ startTime: { $lte: now }, endTime: { $gte: now } }).select(
-      "name startTime endTime"
+      "name startTime endTime isPrivate"
     );
-    res.json({ anyLive: liveContests.length > 0, liveContests });
+    // A running private contest still counts as "live" (deploys/updates must hold off), but its
+    // name and times are only listed for the admin - nobody else learns it exists.
+    const admin = isAdminRequest(req);
+    res.json({
+      anyLive: liveContests.length > 0,
+      liveContests: liveContests
+        .filter((c) => admin || !c.isPrivate)
+        .map((c) => ({ _id: c._id, name: c.name, startTime: c.startTime, endTime: c.endTime })),
+    });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ msg: "Server Error" });
@@ -126,7 +135,7 @@ router.get("/live-status", async (req, res) => {
 router.get("/:contestId", async (req, res) => {
   try {
     const contest = await Contest.findById(req.params.contestId).populate("problems");
-    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+    if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const now = new Date();
     if (contest.startTime > now && !isAdminRequest(req)) {
@@ -147,7 +156,7 @@ router.get("/:contestId", async (req, res) => {
 router.get("/:contestId/problems/:problemId", async (req, res) => {
   try {
     const contest = await Contest.findById(req.params.contestId);
-    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+    if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const now = new Date();
     if (contest.startTime > now && !isAdminRequest(req)) {
@@ -156,6 +165,9 @@ router.get("/:contestId/problems/:problemId", async (req, res) => {
 
     const contestProblem = await ContestProblem.findOne({ id: req.params.problemId });
     if (!contestProblem) return res.status(404).json({ msg: "Contest problem not found" });
+    if (!isAdminRequest(req) && (await isProblemInOtherPrivateContest(contestProblem.id, contest._id))) {
+      return res.status(404).json({ msg: "Contest problem not found" });
+    }
 
     res.json(stripHiddenTestCaseIO(contestProblem, contest, req));
   } catch (error) {
@@ -180,7 +192,7 @@ router.post("/:contestId/join", async (req, res) => {
     }
 
     const contest = await Contest.findById(req.params.contestId);
-    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+    if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const existing = contest.participants.find((p) => p.studentRollNumber === studentRollNumber);
     if (existing) {
@@ -202,7 +214,7 @@ router.post("/:contestId/join", async (req, res) => {
 // @desc    Create a new contest
 router.post("/", requireAdmin, async (req, res) => {
   try {
-    const { name, startTime, endTime, description, problemIds, settings } = req.body;
+    const { name, startTime, endTime, description, problemIds, settings, isPrivate } = req.body;
     let { id } = req.body;
 
     if (!id) id = crypto.randomBytes(4).toString("hex");
@@ -215,6 +227,7 @@ router.post("/", requireAdmin, async (req, res) => {
       description,
       problemIds: problemIds || [],
       settings,
+      isPrivate: isPrivate === true,
     });
 
     await newContest.save();
@@ -241,7 +254,7 @@ router.post("/bulk", requireAdmin, async (req, res) => {
 
     const results = [];
     for (const c of contests || []) {
-      const { name, startTime, endTime, description, problems } = c || {};
+      const { name, startTime, endTime, description, problems, isPrivate } = c || {};
       const id = (c && c.id) || crypto.randomBytes(4).toString("hex");
 
       if (!name || !startTime || !endTime) {
@@ -254,7 +267,7 @@ router.post("/bulk", requireAdmin, async (req, res) => {
         continue;
       }
 
-      const contest = new Contest({ id, name, startTime, endTime, description, problems: [], problemIds: [] });
+      const contest = new Contest({ id, name, startTime, endTime, description, problems: [], problemIds: [], isPrivate: isPrivate === true });
 
       const problemResults = [];
       if (Array.isArray(problems)) {
@@ -284,10 +297,13 @@ router.post("/bulk", requireAdmin, async (req, res) => {
 // so removing it closes a latent bug without changing any real behavior.)
 router.put("/:contestId", requireAdmin, async (req, res) => {
   try {
-    const { name, startTime, endTime, description, settings } = req.body;
+    const { name, startTime, endTime, description, settings, isPrivate } = req.body;
 
     const contest = await Contest.findById(req.params.contestId);
     if (!contest) return res.status(404).json({ msg: "Contest not found" });
+
+    const privacyChanged = typeof isPrivate === "boolean" && isPrivate !== !!contest.isPrivate;
+    if (typeof isPrivate === "boolean") contest.isPrivate = isPrivate;
 
     contest.name = name ?? contest.name;
     contest.startTime = startTime ?? contest.startTime;
@@ -296,6 +312,7 @@ router.put("/:contestId", requireAdmin, async (req, res) => {
     if (settings) contest.settings = { ...contest.settings?.toObject?.() ?? contest.settings, ...settings };
 
     await contest.save();
+    if (privacyChanged) await bumpSyncVersion();
     res.json(contest);
   } catch (error) {
     console.error(error.message);
@@ -750,7 +767,7 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
 
   try {
     const contest = await Contest.findById(contestId);
-    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+    if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const now = new Date();
     if (contest.startTime > now && !isAdminRequest(req)) {
@@ -766,6 +783,9 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
 
     const problem = await ContestProblem.findOne({ id: problemId });
     if (!problem) return res.status(404).json({ msg: "Problem not found" });
+    if (!isAdminRequest(req) && (await isProblemInOtherPrivateContest(problem.id, contest._id))) {
+      return res.status(404).json({ msg: "Problem not found" });
+    }
 
     if (mode !== "run") {
       const alreadyAccepted = await ContestSubmission.findOne({
@@ -867,7 +887,7 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
     }
 
     const contest = await Contest.findById(contestId);
-    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+    if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const judgeSettings = await getJudgeSettings();
     const results = [];
@@ -952,6 +972,9 @@ router.get("/:contestId/problems/:problemId/submissions", async (req, res) => {
     const { rollNumber } = req.query;
     if (!rollNumber) return res.status(400).json({ msg: "rollNumber query param is required" });
 
+    const owner = await Contest.findById(contestId).select("isPrivate").catch(() => null);
+    if (!owner || !canAccessContest(owner, req)) return res.status(404).json({ msg: "Contest not found" });
+
     const submissions = await ContestSubmission.find({
       contest: contestId,
       contestProblemId: problemId,
@@ -972,7 +995,7 @@ router.get("/:contestId/results", async (req, res) => {
     const { contestId } = req.params;
 
     const contest = await Contest.findById(contestId).populate("problems");
-    if (!contest) return res.status(404).json({ msg: "Contest not found" });
+    if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const allSubmissions = await ContestSubmission.find({ contest: contestId }).sort({ submittedAt: "asc" });
     const { problems, leaderboard } = computeLeaderboard(contest, allSubmissions);

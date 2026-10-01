@@ -18,6 +18,7 @@ const contestSchema = z.object({
   startTime: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid start time"),
   endTime: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid end time"),
   hideHiddenTestCasesWhileLive: z.boolean(),
+  isPrivate: z.boolean(),
 });
 
 type ContestFormData = z.infer<typeof contestSchema>;
@@ -36,7 +37,7 @@ export default function CreateContest() {
 
   const form = useForm<ContestFormData>({
     resolver: zodResolver(contestSchema),
-    defaultValues: { hideHiddenTestCasesWhileLive: true },
+    defaultValues: { hideHiddenTestCasesWhileLive: true, isPrivate: false },
   });
 
   const { data: existing } = useQuery({
@@ -61,13 +62,14 @@ export default function CreateContest() {
         startTime: toLocalInputValue(existing.startTime),
         endTime: toLocalInputValue(existing.endTime),
         hideHiddenTestCasesWhileLive: existing.settings?.hideHiddenTestCasesWhileLive ?? true,
+        isPrivate: existing.isPrivate ?? false,
       });
     }
   }, [existing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveMutation = useMutation({
     mutationFn: ({ hideHiddenTestCasesWhileLive, ...data }: ContestFormData) => {
-      const payload = { ...data, settings: { hideHiddenTestCasesWhileLive } };
+      const payload = { ...data, settings: { hideHiddenTestCasesWhileLive } }; // data carries isPrivate
       return isEditMode ? apiClient.updateContest(contestId!, payload) : apiClient.createContest(payload);
     },
     onSuccess: (contest) => {
@@ -108,6 +110,20 @@ export default function CreateContest() {
               {form.formState.errors.endTime && (
                 <p className="text-red-500 text-sm">{form.formState.errors.endTime.message}</p>
               )}
+            </div>
+          </div>
+          <div className="flex items-start gap-2 rounded-md border border-amber-500/40 p-3">
+            <input id="isPrivate" type="checkbox" className="mt-1" {...form.register("isPrivate")} />
+            <div className="space-y-1">
+              <Label htmlFor="isPrivate" className="cursor-pointer">
+                Private contest (admin site only)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                When ON, only this admin site can see the contest. Students and the lab laptops cannot list it, open
+                it, join it, submit to it or see its leaderboard or answers, and it is never copied to the lab
+                laptops. Turning this on for an existing contest removes it from every connected laptop right away.
+                Use it for contests whose leaderboard and answers must stay on the server.
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-2 rounded-md border p-3">

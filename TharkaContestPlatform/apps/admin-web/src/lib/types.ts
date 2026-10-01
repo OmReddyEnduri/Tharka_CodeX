@@ -45,6 +45,9 @@ export interface Contest {
   problems: ContestProblem[];
   problemIds: number[];
   settings?: ContestSettings;
+  // Private contests are visible only on this admin site: students and the
+  // Electron lab clients can't see them, their leaderboard, or their answers.
+  isPrivate?: boolean;
 }
 
 export interface LeaderboardEntry {

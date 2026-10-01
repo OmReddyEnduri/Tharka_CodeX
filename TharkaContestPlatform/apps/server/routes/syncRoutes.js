@@ -63,7 +63,9 @@ router.get("/version", async (req, res) => {
 router.get("/full", requireSyncDevice, async (req, res) => {
   try {
     const state = await getOrCreateSyncState();
-    const contests = await Contest.find().populate("problems").sort({ startTime: 1 });
+    // Private contests (admin-site only) are never mirrored to lab laptops - their
+    // leaderboards, problems and hidden testcases stay on this server.
+    const contests = await Contest.find({ isPrivate: { $ne: true } }).populate("problems").sort({ startTime: 1 });
 
     const contestsWithResults = await Promise.all(
       contests.map(async (contest) => {

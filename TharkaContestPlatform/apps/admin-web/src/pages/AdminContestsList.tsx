@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trophy, Upload, Trash2 } from "lucide-react";
+import { Plus, Trophy, Upload, Trash2, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,14 @@ export default function AdminContestsList() {
                     <Trophy className="h-4 w-4 text-primary" />
                     {contest.name}
                   </CardTitle>
-                  <Badge className={status.className}>{status.label}</Badge>
+                  <div className="flex items-center gap-2">
+                    {contest.isPrivate && (
+                      <Badge variant="outline" className="gap-1 border-amber-500/60 text-amber-600" title="Only visible on this admin site">
+                        <Lock className="h-3 w-3" /> Private
+                      </Badge>
+                    )}
+                    <Badge className={status.className}>{status.label}</Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   {new Date(contest.startTime).toLocaleString()} &rarr; {new Date(contest.endTime).toLocaleString()}

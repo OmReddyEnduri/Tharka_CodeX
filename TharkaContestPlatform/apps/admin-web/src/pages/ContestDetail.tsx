@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2, BarChart3, FileCode, Upload, GripVertical } from "lucide-react";
+import { Pencil, Plus, Trash2, BarChart3, FileCode, Upload, GripVertical, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -123,7 +123,14 @@ export default function ContestDetail() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{contest.name}</h1>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            {contest.name}
+            {contest.isPrivate && (
+              <Badge variant="outline" className="gap-1 border-amber-500/60 text-amber-600" title="Students and lab laptops cannot see this contest">
+                <Lock className="h-3 w-3" /> Private - admin only
+              </Badge>
+            )}
+          </h1>
           <p className="text-muted-foreground">{contest.description}</p>
           <p className="text-sm text-muted-foreground mt-1">
             {new Date(contest.startTime).toLocaleString()} &rarr; {new Date(contest.endTime).toLocaleString()}

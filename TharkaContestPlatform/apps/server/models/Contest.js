@@ -8,6 +8,12 @@ const contestSchema = new mongoose.Schema({
   startTime: { type: Date, required: true },
   endTime: { type: Date, required: true },
   description: { type: String },
+  // Private contests are visible ONLY to the admin site (requests carrying the
+  // admin token). Students/Electron clients can't list, open, join, submit to
+  // or see the leaderboard of one, and it is left out of the sync snapshot -
+  // for contests whose leaderboard/answers must stay on the server. See
+  // lib/privateContests.js.
+  isPrivate: { type: Boolean, default: false },
   // Disqualified-but-not-deleted: their submissions stay in the DB (for
   // audit) but the leaderboard route sorts them to the bottom and flags
   // them, rather than counting their score. Keyed by roll number since

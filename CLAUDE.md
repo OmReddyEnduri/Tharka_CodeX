@@ -87,6 +87,16 @@ Full original design plan (phasing, rationale for each architecture decision) is
   submission history. The server still records the same submission for the
   leaderboard/admin view, but the "Submissions" tab on the student page reads local
   storage only.
+- **Private contests (`contest.isPrivate`) exist only for the admin site.** Students
+  and the Electron lab clients can't list, open, join, submit to or see the
+  leaderboard of one - every such route returns the same 404 an unknown id gets, and
+  `/api/sync/full` leaves them out entirely, so their leaderboard/answers never reach
+  a lab laptop. "Admin site" = any request carrying the admin token
+  (`lib/privateContests.js`, `isAdminRequest`). Problem routes also refuse a private
+  contest's problem requested through a *public* contest URL. Flipping the flag bumps
+  the sync version and broadcasts, so a newly-private contest disappears from
+  connected laptops immediately. A running private contest still counts toward
+  `/live-status`'s `anyLive` (deploys/updates must wait) but is never named there.
 - **Hidden test case I/O is redacted while a contest is still running** — a Wrong
   Answer/TLE/etc. result only shows the verdict + which test number, not the actual
   input/expected/got values, until `contest.endTime` has passed (see
