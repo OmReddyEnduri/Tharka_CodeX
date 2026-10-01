@@ -18,6 +18,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
+import {
+  CHECKERS,
+  CHECKER_CODE_TEMPLATE,
+  CHECKER_IDS,
+  CUSTOM_DEFAULTS,
+  DEFAULT_CHECKER,
+  asCheckerConfig,
+  asCheckerId,
+} from "@/lib/checkers";
 import type { ContestProblem } from "@/lib/types";
 import { TestCaseFileUpload } from "@/components/TestCaseFileUpload";
 
@@ -30,7 +39,27 @@ const contestProblemSchema = z.object({
   timeLimit: z.coerce.number().min(100),
   memoryLimit: z.coerce.number().min(1),
   points: z.coerce.number().min(1),
-  checker: z.enum(["token", "exact", "om"]),
+  checker: z.enum(CHECKER_IDS),
+  // Only meaningful when checker === "custom" (see lib/checkers.ts). Kept on
+  // the form unconditionally so switching the dropdown back and forth doesn't
+  // lose what was typed.
+  checkerConfig: z.object({
+    compareAs: z.enum(["lines", "tokens"]),
+    ignoreWhitespace: z.boolean(),
+    ignoreBlankLines: z.boolean(),
+    ignoreCase: z.boolean(),
+    ignoreChars: z.string().max(64, "At most 64 characters"),
+    // Held as text so it can be left blank, which means "compare as exact
+    // text". Converted to a number (or null) on submit.
+    numberTolerance: z
+      .string()
+      .refine((v) => v.trim() === "" || (Number.isFinite(Number(v)) && Number(v) > 0), {
+        message: "Enter a positive number such as 0.000001, or leave blank",
+      }),
+  }),
+  // Only meaningful when checker === "code". Same keep-it-on-the-form rule as
+  // checkerConfig above.
+  checkerCode: z.string(),
   inputFormat: z.string().optional(),
   outputFormat: z.string().optional(),
   constraints: z.string().optional(),
@@ -49,7 +78,16 @@ const defaultValues = (): ContestProblemFormData => ({
   timeLimit: 1000,
   memoryLimit: 256,
   points: 100,
-  checker: "token",
+  checker: DEFAULT_CHECKER,
+  checkerConfig: {
+    compareAs: CUSTOM_DEFAULTS.compareAs,
+    ignoreWhitespace: CUSTOM_DEFAULTS.ignoreWhitespace,
+    ignoreBlankLines: CUSTOM_DEFAULTS.ignoreBlankLines,
+    ignoreCase: CUSTOM_DEFAULTS.ignoreCase,
+    ignoreChars: CUSTOM_DEFAULTS.ignoreChars,
+    numberTolerance: "",
+  },
+  checkerCode: CHECKER_CODE_TEMPLATE,
   inputFormat: "Standard Input",
   outputFormat: "Standard Output",
   constraints: "",
@@ -73,6 +111,19 @@ export function ContestProblemEditorSheet({
   const isEditMode = !!editingProblem;
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("details");
+  // Result of the last "Check code" press for a "code" checker.
+  const [checkerCheck, setCheckerCheck] = useState<{ state: "idle" | "checking" | "ok" | "error"; message?: string }>({
+    state: "idle",
+  });
+  const runCheckerCheck = async () => {
+    setCheckerCheck({ state: "checking" });
+    try {
+      const r = await apiClient.validateCheckerCode(form.getValues("checkerCode"));
+      setCheckerCheck(r.ok ? { state: "ok" } : { state: "error", message: r.error });
+    } catch (err: any) {
+      setCheckerCheck({ state: "error", message: err?.message || "Could not reach the server" });
+    }
+  };
 
   // Resizable width: drag the handle on the left edge (the sheet is anchored
   // to the right, so width = distance from the mouse to the right edge of
@@ -140,8 +191,20 @@ export function ContestProblemEditorSheet({
   });
 
   const onSubmit = (data: ContestProblemFormData) => {
-    if (isEditMode) updateProblemMutation.mutate(data);
-    else addProblemMutation.mutate(data);
+    // The form holds the numeric tolerance as text so it can be left blank;
+    // the server and the judge expect a number or null. Sent as part of every
+    // save (not only for "custom" problems) so switching the dropdown later
+    // doesn't start from nothing.
+    const payload = {
+      ...data,
+      checkerConfig: {
+        ...data.checkerConfig,
+        numberTolerance:
+          data.checkerConfig.numberTolerance.trim() === "" ? null : Number(data.checkerConfig.numberTolerance),
+      },
+    };
+    if (isEditMode) updateProblemMutation.mutate(payload);
+    else addProblemMutation.mutate(payload);
   };
 
   useEffect(() => {
@@ -151,14 +214,18 @@ export function ContestProblemEditorSheet({
       // (see judge-cpp's run()'s default), so the form must show "Token"
       // here rather than leaving the picker on whatever its first <option>
       // happens to be.
+      const existingConfig = asCheckerConfig(editingProblem?.checkerConfig);
       form.reset(
         isEditMode && editingProblem
           ? {
               ...(editingProblem as ContestProblemFormData),
-              checker:
-                editingProblem.checker === "exact" || editingProblem.checker === "om"
-                  ? editingProblem.checker
-                  : "token",
+              checker: asCheckerId(editingProblem.checker),
+              checkerConfig: {
+                ...existingConfig,
+                // blank in the form === "no numeric tolerance"
+                numberTolerance: existingConfig.numberTolerance == null ? "" : String(existingConfig.numberTolerance),
+              },
+              checkerCode: editingProblem.checkerCode || CHECKER_CODE_TEMPLATE,
             }
           : defaultValues()
       );
@@ -269,17 +336,125 @@ export function ContestProblemEditorSheet({
                   {...form.register("checker")}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                 >
-                  <option value="token">Token</option>
-                  <option value="exact">Exact</option>
-                  <option value="om">Om (line-by-line)</option>
+                  {CHECKERS.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  {form.watch("checker") === "exact"
-                    ? "Line structure and meaningful spaces are preserved. Only harmless trailing whitespace and line-ending differences are ignored. Use for pattern-printing and formatting-sensitive problems."
-                    : form.watch("checker") === "om"
-                    ? "Compared line by line - line count and order matter, but spaces/tabs within each line are ignored. Use when an answer has multiple meaningful lines but spacing within a line is just formatting."
-                    : "Whitespace between tokens and line breaks are ignored. Use for normal competitive-programming problems."}
+                  {CHECKERS.find((c) => c.id === form.watch("checker"))?.hint ?? CHECKERS[0].hint}
                 </p>
+
+                {form.watch("checker") === "code" && (
+                  <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+                    <Label htmlFor="checker-code" className="text-sm">
+                      Checker code (C++)
+                    </Label>
+                    <Textarea
+                      id="checker-code"
+                      spellCheck={false}
+                      rows={14}
+                      className="font-mono text-xs leading-5"
+                      {...form.register("checkerCode", { onChange: () => setCheckerCheck({ state: "idle" }) })}
+                      onKeyDown={(e) => {
+                        // Tab indents instead of leaving the box.
+                        if (e.key !== "Tab") return;
+                        e.preventDefault();
+                        const el = e.currentTarget;
+                        const { selectionStart: s, selectionEnd: t, value } = el;
+                        const next = value.slice(0, s) + "    " + value.slice(t);
+                        form.setValue("checkerCode", next, { shouldDirty: true });
+                        requestAnimationFrame(() => el.setSelectionRange(s + 4, s + 4));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Define <code>bool checker(string expected, string user)</code> and return <code>true</code> when the
+                      student's output is correct. <code>&lt;bits/stdc++.h&gt;</code> and <code>using namespace std;</code>{" "}
+                      are already included. It runs for every test case, on the server and on every lab laptop, with a 5
+                      second limit. Students never see this code.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={runCheckerCheck} disabled={checkerCheck.state === "checking"}>
+                        {checkerCheck.state === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Check code
+                      </Button>
+                      {checkerCheck.state === "ok" && <span className="text-xs text-green-600">Compiles OK</span>}
+                    </div>
+                    {checkerCheck.state === "error" && (
+                      <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded bg-destructive/10 p-2 text-xs text-destructive">
+                        {checkerCheck.message}
+                      </pre>
+                    )}
+                  </div>
+                )}
+
+                {form.watch("checker") === "custom" && (
+                  <div className="space-y-3 rounded-md border bg-muted/30 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label htmlFor="custom-compare-as" className="text-sm">
+                        Compare as
+                      </Label>
+                      <select
+                        id="custom-compare-as"
+                        {...form.register("checkerConfig.compareAs")}
+                        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                      >
+                        <option value="lines">Lines (line count and order matter)</option>
+                        <option value="tokens">Tokens (line breaks ignored)</option>
+                      </select>
+                    </div>
+
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="h-4 w-4" {...form.register("checkerConfig.ignoreWhitespace")} />
+                      Ignore spaces and tabs inside each line
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="h-4 w-4" {...form.register("checkerConfig.ignoreBlankLines")} />
+                      Ignore blank lines
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="h-4 w-4" {...form.register("checkerConfig.ignoreCase")} />
+                      Ignore letter case (YES = yes)
+                    </label>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="custom-ignore-chars" className="text-sm">
+                        Delete these characters
+                      </Label>
+                      <Input
+                        id="custom-ignore-chars"
+                        placeholder="e.g. , or -()"
+                        maxLength={64}
+                        {...form.register("checkerConfig.ignoreChars")}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Removed from both sides first - useful for thousands separators or bracketed answers. Usually
+                        left blank.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="custom-tolerance" className="text-sm">
+                        Number tolerance (tokens only)
+                      </Label>
+                      <Input
+                        id="custom-tolerance"
+                        placeholder="blank = exact text"
+                        {...form.register("checkerConfig.numberTolerance")}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Filled in, numbers only need to match this closely (0.000001 ≈ 6 significant digits). Ignored
+                        unless Compare as is set to Tokens.
+                      </p>
+                    </div>
+                    {form.formState.errors.checkerConfig?.numberTolerance && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.checkerConfig.numberTolerance.message}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

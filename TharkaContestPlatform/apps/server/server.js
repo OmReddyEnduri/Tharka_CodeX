@@ -12,7 +12,6 @@ const contestRoutes = require("./routes/contestRoutes");
 const syncRoutes = require("./routes/syncRoutes");
 const compileRoutes = require("./routes/compileRoutes");
 const judgeSettingsRoutes = require("./routes/judgeSettingsRoutes");
-const appUpdateRoutes = require("./routes/appUpdateRoutes");
 const { initSyncSocket } = require("./sockets/syncSocket");
 const { initCompilerSocket } = require("./sockets/compilerSocket");
 
@@ -57,13 +56,6 @@ app.use("/api/contests", contestRoutes);
 app.use("/api/sync", syncRoutes);
 app.use("/api/compile", compileRoutes);
 app.use("/api/judge-settings", judgeSettingsRoutes);
-app.use("/api/app-update", appUpdateRoutes);
-
-// Public, unauthenticated static feed for the currently-published Electron
-// build (latest.yml + installer) - electron-updater's generic provider reads
-// this directly, and downloading the current build isn't sensitive on a
-// trusted LAN (same reasoning as the rest of this app's no-auth reads).
-app.use("/updates", express.static(path.join(__dirname, "updates")));
 
 // Startup check: local judging (and this interim server-side judging path)
 // both need g++ on PATH.

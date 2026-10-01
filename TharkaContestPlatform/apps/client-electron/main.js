@@ -1,9 +1,9 @@
 const path = require("path");
 const fs = require("fs");
 const http = require("http");
-const { app, BrowserWindow, dialog, ipcMain, Menu, Notification, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu } = require("electron");
 
-// A second, plain-text copy of anything update- or crash-related, written
+// A second, plain-text copy of anything crash-related, written
 // straight to the Downloads folder - somewhere a student/admin will actually
 // look, unlike the normal electron-log file buried in AppData\Roaming. Uses
 // a synchronous append (not electron-log's async file transport) so a line
@@ -16,7 +16,7 @@ const { app, BrowserWindow, dialog, ipcMain, Menu, Notification, shell } = requi
 // set up, so a require-time failure in any of them (a missing native dep, a
 // packaging issue) was completely invisible.
 // Full diagnostic log (hangs, crashes, freezes, slow operations) in
-// DocumentsTharkaCodexLogsdiagnostics.log - see diaglog.js. Loaded inside a
+// Documents\TharkaCodexLogs\diagnostics.log - see diaglog.js. Loaded inside a
 // try so a problem in the logger itself can never stop the app from starting.
 let diag = { init() {}, start() {}, shutdown() {}, info() {}, warn() {}, error() {}, installIpcTiming() {}, installConsoleMirror() {}, watchWindow() {} };
 try {
@@ -28,21 +28,21 @@ try {
   console.error("diaglog failed to load:", err?.message);
 }
 
-const UPDATE_LOG_PATH = path.join(app.getPath("downloads"), "TharkaCodexUpdate.log");
-function logToDownloads(line) {
+const CRASH_LOG_PATH = path.join(app.getPath("downloads"), "TharkaCodex.log");
+function logToFile(line) {
   try {
-    fs.appendFileSync(UPDATE_LOG_PATH, `[${new Date().toISOString()}] ${line}\n`);
+    fs.appendFileSync(CRASH_LOG_PATH, `[${new Date().toISOString()}] ${line}\n`);
   } catch {
     // Downloads folder missing/unwritable on this machine - nothing more we
     // can do; this is already the last-resort log target.
   }
 }
 process.on("uncaughtException", (err) => {
-  logToDownloads(`FATAL uncaughtException: ${err?.stack || err}`);
+  logToFile(`FATAL uncaughtException: ${err?.stack || err}`);
   diag.error(`FATAL uncaughtException: ${err?.stack || err}`);
 });
 process.on("unhandledRejection", (reason) => {
-  logToDownloads(`FATAL unhandledRejection: ${reason?.stack || reason}`);
+  logToFile(`FATAL unhandledRejection: ${reason?.stack || reason}`);
   diag.error(`FATAL unhandledRejection: ${reason?.stack || reason}`);
 });
 
@@ -56,10 +56,10 @@ try {
   ({ InteractiveSession } = require("./judge-cpp/interactive"));
   db = require("./db");
 } catch (err) {
-  logToDownloads(`FATAL: a required module failed to load at startup - the app cannot continue. ${err?.stack || err}`);
+  logToFile(`FATAL: a required module failed to load at startup - the app cannot continue. ${err?.stack || err}`);
   dialog.showErrorBox(
     "Tharka Codex failed to start",
-    `A required file is missing or broken:\n\n${err.message}\n\nSee ${UPDATE_LOG_PATH} for details.`
+    `A required file is missing or broken:\n\n${err.message}\n\nSee ${CRASH_LOG_PATH} for details.`
   );
   app.quit();
   process.exit(1);
@@ -91,6 +91,35 @@ const SYNC_DEVICE_TOKEN = "388f9ae71491781926fc53ae7e6b3786321b6d6875645b40";
 
 let mainWindow = null;
 let socket = null;
+
+// Only one copy of this app may run per laptop.
+//
+// Without this lock every double-click of the shortcut / taskbar pin starts a
+// whole new instance - its own window, its own sync socket, its own local
+// judge - and the common case that produces is a student double-clicking a
+// second time (because the first window hadn't painted yet, or is hidden
+// behind the browser) and getting a *stack of identical windows* with no way
+// to tell which is "the app". With the lock, a second launch does not spawn a
+// window at all: Windows hands the event to the copy that is already running,
+// which restores/shows/focuses its existing window instead. So the second
+// double-click always lands on the same single window rather than an
+// invisible duplicate.
+const gotTheSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotTheSingleInstanceLock) {
+  // A copy is already running; that copy's "second-instance" handler (below)
+  // surfaces its window. This process has nothing left to do.
+  logToFile("Second launch detected - handing focus to the running instance and exiting.");
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    logToFile("second-instance: surfacing the existing window");
+    diag.info("second-instance: surfacing the existing window");
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    if (!mainWindow.isVisible()) mainWindow.show();
+    mainWindow.focus();
+  });
+}
 
 function getServerUrl() {
   return db.getSetting("server_url", DEFAULT_SERVER_URL);
@@ -190,6 +219,18 @@ async function createWindow() {
     },
   });
 
+  // Bring the window up and in front as soon as it has something to paint.
+  // A window opened off a double-click can otherwise start behind whatever is
+  // already maximized (browser, editor) and read as "the app didn't open" -
+  // which is exactly what makes someone double-click the icon a second time.
+  // Paired with the single-instance lock above: first click opens it in front,
+  // any repeat click just re-focuses this same window.
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.show();
+    mainWindow.focus();
+    logToFile("window ready-to-show - shown and focused");
+  });
+
   if (!app.isPackaged) {
     // Dev: point at the running Vite dev server for fast iteration.
     mainWindow.loadURL("http://localhost:5173");
@@ -263,7 +304,9 @@ async function checkStaleAndSync(logPrefix) {
   }
 }
 
-// Persisted to app.getPath("userData")/logs/main.log by default.
+// electron-log writes app.getPath("userData")/logs/main.log by default - this
+// app is packaged with devTools disabled and no visible console, so that file
+// is the only record a crash leaves behind.
 log.transports.file.level = "info";
 
 function connectSyncSocket() {
@@ -321,6 +364,11 @@ async function localJudge(problemId, code, mode) {
     memoryLimit: problem.memoryLimit,
     judgeSettings: db.getJudgeSettings(),
     checker: problem.checker,
+    // Travels down with the problem in the sync snapshot, so a "custom"
+    // problem is graded by exactly the same rule offline on a laptop as it
+    // is on the server. Only the "custom" checker reads it.
+    checkerConfig: problem.checkerConfig,
+    checkerCode: problem.checkerCode,
   });
   const took = Date.now() - startedAt;
   const line = `judge ${mode} problem=${problemId} verdict=${result.status} passed=${result.testCasesPassed}/${result.totalTestCases} took=${took}ms`;
@@ -415,12 +463,16 @@ ipcMain.handle("set-server-url", (event, url) => {
 // unless the admin turned contest.settings.hideHiddenTestCasesWhileLive off.
 function redactContestForRenderer(contest) {
   if (!contest) return contest;
-  if (contest.settings?.hideHiddenTestCasesWhileLive === false) return contest;
+  const keepHidden = contest.settings?.hideHiddenTestCasesWhileLive === false;
   return {
     ...contest,
-    problems: (contest.problems || []).map((p) =>
-      p && typeof p === "object" ? { ...p, hiddenTestCases: (p.hiddenTestCases || []).map(() => ({})) } : p
-    ),
+    problems: (contest.problems || []).map((p) => {
+      if (!p || typeof p !== "object") return p;
+      // A "code" checker's source can embed the answer logic - the local judge
+      // reads it from the store, the renderer never gets it.
+      const { checkerCode, ...rest } = p;
+      return keepHidden ? rest : { ...rest, hiddenTestCases: (rest.hiddenTestCases || []).map(() => ({})) };
+    }),
   };
 }
 
@@ -440,7 +492,35 @@ ipcMain.handle("get-results", (event, contestId) => db.getContestById(contestId)
 
 ipcMain.handle("run-code", (event, { problemId, code }) => localJudge(problemId, code, "run"));
 
+// One submission every 3 seconds per student - the same rule the server
+// enforces (apps/server/lib/submitRateLimit.js), applied here as well because
+// this is where submissions actually originate in the lab. The Submit button
+// is disabled while a submit is in flight, but nothing stopped a student
+// re-submitting the instant the previous verdict came back, and each one is a
+// full compile plus a run of every hidden test case, plus a queued push to the
+// server. Checked before judging so a throttled press costs no CPU at all, and
+// enforced on the client so the cap still holds while offline.
+//
+// Run is deliberately NOT throttled locally: rapidly re-running the sample
+// tests is the entire point of that button, it is cheap (sample cases only),
+// and it never touches the leaderboard.
+const SUBMIT_COOLDOWN_MS = 3000;
+const lastSubmitAtByStudent = new Map();
+
 ipcMain.handle("submit-code", async (event, { contestId, problemId, code, studentName, studentRollNumber, localId }) => {
+  const now = Date.now();
+  const submitKey = studentRollNumber || "unknown";
+  const elapsed = now - (lastSubmitAtByStudent.get(submitKey) || 0);
+  if (elapsed < SUBMIT_COOLDOWN_MS) {
+    const waitSeconds = Math.ceil((SUBMIT_COOLDOWN_MS - elapsed) / 1000);
+    return {
+      status: "Error",
+      message: `You're submitting too quickly. Please wait ${waitSeconds} second(s) and try again.`,
+      retryAfterSeconds: waitSeconds,
+    };
+  }
+  lastSubmitAtByStudent.set(submitKey, now);
+
   // Intentionally NOT gated on endTime - students can keep submitting after
   // the contest ends (practice/review). The server's leaderboard route
   // filters every submission by `submittedAt <= contest.endTime`
@@ -729,8 +809,13 @@ ipcMain.handle("get-sync-state", () => ({ ...db.getLocalVersion(), online: !!soc
 // --- App lifecycle ------------------------------------------------------
 
 app.whenReady().then(() => {
+  // A duplicate launch (the lock wasn't granted above) is already on its way
+  // out - it must not build a second window, sync socket or judge.
+  if (!gotTheSingleInstanceLock) return;
   console.log("[app] ready, userData =", app.getPath("userData"), "server url =", getServerUrl());
-  logToDownloads(`App started - version ${app.getVersion()}, packaged=${app.isPackaged}`);
+  // A plain "this launch got far enough to reach app-ready" marker - its
+  // absence is what pins a failure to startup rather than to something later.
+  logToFile(`App started - version ${app.getVersion()}, packaged=${app.isPackaged}`);
   diag.start({ version: app.getVersion(), serverUrl: getServerUrl() });
   createWindow();
   connectSyncSocket();
@@ -750,12 +835,12 @@ app.on("window-all-closed", () => {
 // unexpectedly - neither is an uncaughtException in *this* process, so
 // neither would otherwise leave any trace at all.
 app.on("render-process-gone", (event, webContents, details) => {
-  logToDownloads(`Renderer process gone: reason=${details.reason} exitCode=${details.exitCode}`);
+  logToFile(`Renderer process gone: reason=${details.reason} exitCode=${details.exitCode}`);
   diag.error(`app render-process-gone: reason=${details.reason} exitCode=${details.exitCode}`);
   log.error("[fatal] render-process-gone:", details);
 });
 app.on("child-process-gone", (event, details) => {
-  logToDownloads(`Child process gone: type=${details.type} reason=${details.reason}`);
+  logToFile(`Child process gone: type=${details.type} reason=${details.reason}`);
   diag.error(`child-process-gone: type=${details.type} name=${details.name || ""} reason=${details.reason} exitCode=${details.exitCode}`);
   log.error("[fatal] child-process-gone:", details);
 });

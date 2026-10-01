@@ -189,6 +189,12 @@ export const apiClient = {
     }),
 
   getJudgeSettings: () => apiFetch<JudgeSettings>("/api/judge-settings"),
+  // Compiles a "code" checker on the server without saving anything.
+  validateCheckerCode: (checkerCode: string) =>
+    apiFetch<{ ok: boolean; error?: string }>("/api/contests/checker-code/validate", {
+      method: "POST",
+      body: JSON.stringify({ checkerCode }),
+    }),
   updateJudgeSettings: (data: Partial<JudgeSettings>) =>
     apiFetch<JudgeSettings>("/api/judge-settings", { method: "PUT", body: JSON.stringify(data) }),
 };

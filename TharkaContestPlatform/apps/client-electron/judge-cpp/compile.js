@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 const treeKill = require('tree-kill');
 
 const DEFAULT_TIMEOUT_MS = 10000;
+const MAX_COMPILE_STDERR_CHARS = 64 * 1024;
 
 // Compiles a C++ source file in workDir. Returns { execPath } on success,
 // or throws an Error carrying `.stderr` (compiler diagnostics) on failure.
@@ -29,6 +30,8 @@ function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS, defines = 
     fs.writeFileSync(sourcePath, sourceCode);
 
     const defineArgs = defines.map((d) => `-D${d}`);
+    // -fmax-errors=10: one typo in template-heavy code can otherwise produce
+    // thousands of lines nobody reads (and that the UI then has to render).
     const child = spawn('g++', [sourcePath, ...defineArgs, '-O2', '-fmax-errors=10', '-o', execPath], { windowsHide: true });
 
     let stderr = '';
@@ -54,7 +57,7 @@ function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS, defines = 
 
     child.stderr.on('data', (d) => {
       // A template-error bomb can emit tens of MB; keep only what a student can read.
-      if (stderr.length < 65536) stderr += d.toString();
+      if (stderr.length < MAX_COMPILE_STDERR_CHARS) stderr += d.toString();
     });
 
     child.on('error', (err) => fail(err.message));
@@ -74,4 +77,33 @@ function compile(sourceCode, workDir, timeoutMs = DEFAULT_TIMEOUT_MS, defines = 
   });
 }
 
-module.exports = { compile };
+// Reclaims a judge work dir, retrying briefly.
+//
+// This races the kill that a TLE/MLE just issued. treeKill shells out to
+// taskkill, which takes a moment to actually terminate the process, and
+// Windows keeps a lock on a running executable - so the first attempt to
+// unlink sub.exe fails with EPERM almost every time a run is ended by a
+// limit. A single fire-and-forget fs.rm therefore leaked that whole folder
+// (sub.cpp and sub.exe, 1-2MB) into the temp directory on every timed-out or
+// over-limit run, for the life of the machine.
+//
+// Both index.js (batch judging) and interactive.js (the live console) build
+// their work dir through this module, so the retry lives here rather than
+// being written out twice.
+const CLEANUP_RETRY_DELAYS_MS = [100, 250, 500, 1000, 2000];
+
+function cleanupWorkDir(workDir, attempt = 0) {
+  if (!workDir) return;
+  // maxRetries/retryDelay let fs.rm itself ride out the short EBUSY/EPERM
+  // window first; the outer retry schedule covers a slower taskkill.
+  fs.rm(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }, (err) => {
+    if (!err) return;
+    if (attempt < CLEANUP_RETRY_DELAYS_MS.length) {
+      setTimeout(() => cleanupWorkDir(workDir, attempt + 1), CLEANUP_RETRY_DELAYS_MS[attempt]);
+      return;
+    }
+    console.warn(`[judge-cpp] failed to clean up ${workDir} after ${attempt + 1} attempts:`, err.message);
+  });
+}
+
+module.exports = { compile, cleanupWorkDir };

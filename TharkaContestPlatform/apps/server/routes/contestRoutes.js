@@ -12,23 +12,37 @@ const { isAdminRequest, requireAdmin } = require("../lib/adminAuth");
 const { requireDeletePassword } = require("../lib/deletePassword");
 const { stripHiddenTestCaseIO } = require("../lib/hiddenTestCases");
 const { canAccessContest, visibleContestFilter, isProblemInOtherPrivateContest, bumpSyncVersion } = require("../lib/privateContests");
+const { takeJudgeToken, takeSyncToken } = require("../lib/submitRateLimit");
 
-// `checker` picks how a problem's output is compared - "token"
-// (whitespace-insensitive, the default), "exact" (line/spacing-sensitive,
-// for pattern-printing problems), or "om" (line-by-line, spacing-insensitive
-// within a line) - see packages/judge-cpp/index.js. Used by every *creation*
-// path (single-add, bulk-add, bulk-contest-import): a missing value defaults
-// to "token", same default judge-cpp's run() and the schema itself both use
-// for a problem that already exists with no value stored. An
+// `checker` picks how a problem's output is compared - see
+// packages/judge-cpp/checkers.js for the modes themselves and
+// admin-web's lib/checkers.ts for the labels the admin picks from. The list
+// is taken from judge-cpp itself rather than repeated here, so this route can
+// never accept a value that judging would then quietly fall back to a default
+// on. Used by every *creation* path (single-add, bulk-add, bulk-contest-
+// import): a missing value defaults to the same checker judge-cpp's run()
+// falls back to for a problem that already exists with no value stored. An
 // explicitly-supplied but unrecognized value (a typo in a bulk-import file,
 // say) is a real mistake and must be rejected, not silently guessed.
-const VALID_CHECKERS = ["token", "exact", "om"];
+const { CHECKER_IDS: VALID_CHECKERS, DEFAULT_CHECKER } = judge;
 function resolveChecker(value) {
-  if (value === undefined || value === null || value === "") return { checker: "token" };
+  if (value === undefined || value === null || value === "") return { checker: DEFAULT_CHECKER };
   if (!VALID_CHECKERS.includes(value)) {
     return { error: `Invalid checker "${value}" - must be one of ${VALID_CHECKERS.map((c) => `"${c}"`).join(", ")}` };
   }
   return { checker: value };
+}
+
+// A "code" checker must come with source that actually compiles - checked here,
+// at save time, so an admin sees the compiler error immediately instead of
+// every student submission failing later. Returns an error message or null.
+async function checkCodeChecker(checker, checkerCode) {
+  if (checker !== "code") return null;
+  if (typeof checkerCode !== "string" || !checkerCode.trim()) {
+    return 'The "Code" checker needs checker code: bool checker(string expected, string user)';
+  }
+  const result = await judge.validateCheckerCode(checkerCode);
+  return result.ok ? null : `Checker code does not compile:\n${result.error}`;
 }
 
 // Used by the bulk importer when a problem entry omits `id` - single-add
@@ -53,7 +67,7 @@ async function generateUniqueProblemId() {
 async function addProblemToContest(contest, data) {
   const {
     title, description, category, difficulty, constraints,
-    inputFormat, outputFormat, timeLimit, memoryLimit, checker, points,
+    inputFormat, outputFormat, timeLimit, memoryLimit, checker, checkerConfig, checkerCode, points,
     sampleTestCases, hiddenTestCases,
   } = data || {};
 
@@ -76,9 +90,19 @@ async function addProblemToContest(contest, data) {
     if (resolvedChecker.error) {
       return { id, title, status: "skipped", reason: resolvedChecker.error };
     }
+    const codeCheckerError = await checkCodeChecker(resolvedChecker.checker, checkerCode);
+    if (codeCheckerError) {
+      return { id, title, status: "skipped", reason: codeCheckerError };
+    }
     contestProblem = new ContestProblem({
       id, title, description, category, difficulty, constraints,
       inputFormat, outputFormat, timeLimit, memoryLimit, checker: resolvedChecker.checker, points,
+      // Sanitized here rather than trusted: this value arrives from an admin
+      // form or a bulk-import JSON file, and judge-cpp is the authority on
+      // what a valid config is. An unusable field falls back to its default
+      // instead of failing the submission later.
+      checkerConfig: judge.normalizeCheckerConfig(checkerConfig),
+      checkerCode: typeof checkerCode === "string" ? checkerCode : "",
       sampleTestCases: sampleTestCases || [], hiddenTestCases: hiddenTestCases || [],
     });
     await contestProblem.save();
@@ -89,6 +113,18 @@ async function addProblemToContest(contest, data) {
   contest.problemIds.push(id);
   return { id, title: contestProblem.title, status, reason: null };
 }
+
+// @route   POST /api/contests/checker-code/validate
+// @desc    Admin "Check code" button: compiles a "code" checker without saving
+// anything. Body { checkerCode }. Responds { ok } or { ok: false, error }.
+router.post("/checker-code/validate", requireAdmin, async (req, res) => {
+  try {
+    res.json(await judge.validateCheckerCode(req.body && req.body.checkerCode));
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
 
 // @route   GET /api/contests
 // @desc    List all contests
@@ -654,7 +690,7 @@ router.post("/:contestId/problems", requireAdmin, async (req, res) => {
   try {
     const {
       id, title, description, category, difficulty, constraints,
-      inputFormat, outputFormat, timeLimit, memoryLimit, checker, points,
+      inputFormat, outputFormat, timeLimit, memoryLimit, checker, checkerConfig, checkerCode, points,
       sampleTestCases, hiddenTestCases,
     } = req.body;
 
@@ -669,9 +705,13 @@ router.post("/:contestId/problems", requireAdmin, async (req, res) => {
     if (!contestProblem) {
       const resolvedChecker = resolveChecker(checker);
       if (resolvedChecker.error) return res.status(400).json({ msg: resolvedChecker.error });
+      const codeCheckerError = await checkCodeChecker(resolvedChecker.checker, checkerCode);
+      if (codeCheckerError) return res.status(400).json({ msg: codeCheckerError });
       contestProblem = new ContestProblem({
         id, title, description, category, difficulty, constraints,
         inputFormat, outputFormat, timeLimit, memoryLimit, checker: resolvedChecker.checker, points,
+        checkerConfig: judge.normalizeCheckerConfig(checkerConfig),
+        checkerCode: typeof checkerCode === "string" ? checkerCode : "",
         sampleTestCases, hiddenTestCases,
       });
       await contestProblem.save();
@@ -720,7 +760,7 @@ router.put("/:contestId/problems/:problemId", requireAdmin, async (req, res) => 
   try {
     const {
       title, description, category, difficulty, constraints,
-      inputFormat, outputFormat, timeLimit, memoryLimit, checker, points,
+      inputFormat, outputFormat, timeLimit, memoryLimit, checker, checkerConfig, checkerCode, points,
       sampleTestCases, hiddenTestCases,
     } = req.body;
 
@@ -737,6 +777,21 @@ router.put("/:contestId/problems/:problemId", requireAdmin, async (req, res) => 
       if (resolvedChecker.error) return res.status(400).json({ msg: resolvedChecker.error });
       contestProblem.checker = resolvedChecker.checker;
     }
+
+    // Same "missing means this edit didn't touch it" rule as `checker` above -
+    // and the same sanitizing as creation, so an admin can never store a
+    // config the judge would refuse to apply.
+    if (checkerConfig !== undefined) {
+      contestProblem.checkerConfig = judge.normalizeCheckerConfig(checkerConfig);
+    }
+
+    if (checkerCode !== undefined) {
+      contestProblem.checkerCode = typeof checkerCode === "string" ? checkerCode : "";
+    }
+    // Validated against the EFFECTIVE checker/code after this edit, so turning
+    // "code" on without code, or saving code that no longer compiles, is caught.
+    const codeCheckerError = await checkCodeChecker(contestProblem.checker, contestProblem.checkerCode);
+    if (codeCheckerError) return res.status(400).json({ msg: codeCheckerError });
 
     Object.assign(contestProblem, {
       title, description, category, difficulty, constraints,
@@ -806,6 +861,23 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
       }
     }
 
+    // One judge request every 3 seconds per student (see
+    // lib/submitRateLimit.js). Deliberately placed after the "already solved"
+    // short-circuit above - that path returns without compiling anything, so
+    // re-opening a solved problem must never be throttled - and before the
+    // compile below, so a throttled request costs the server nothing at all.
+    // Submit and Run keep separate budgets, so testing with Run can't lock a
+    // student out of submitting (or the reverse).
+    const rate = takeJudgeToken(req, studentRollNumber, mode === "run" ? "run" : "submit");
+    if (!rate.ok) {
+      res.set("Retry-After", String(rate.retryAfterSeconds));
+      return res.status(429).json({
+        status: "Error",
+        message: `You're submitting too quickly. Please wait ${rate.retryAfterSeconds} second(s) and try again.`,
+        retryAfterSeconds: rate.retryAfterSeconds,
+      });
+    }
+
     const testCases = mode === "run" ? problem.sampleTestCases : problem.hiddenTestCases;
     const judgeSettings = await getJudgeSettings();
 
@@ -816,6 +888,11 @@ router.post("/:contestId/problems/:problemId/submit", async (req, res) => {
       memoryLimit: problem.memoryLimit,
       judgeSettings,
       checker: problem.checker,
+      // Only the "custom" checker reads this - a problem that predates the
+      // field simply passes undefined, which judge-cpp turns into the
+      // documented defaults.
+      checkerConfig: problem.checkerConfig,
+      checkerCode: problem.checkerCode,
     });
 
     if (result.status === "Error") {
@@ -886,12 +963,59 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
       return res.status(400).json({ msg: "submissions must be an array" });
     }
 
+    // Every entry below is compiled and run again, and this route has no
+    // token (see the comment above), so an unbounded array is an unbounded
+    // amount of compiler work any LAN device can ask for in one request. A
+    // real offline flush is a handful of entries - the Electron client only
+    // queues what it judged while disconnected - so this ceiling is far above
+    // any legitimate batch.
+    const MAX_SYNC_BATCH = 200;
+    if (submissions.length > MAX_SYNC_BATCH) {
+      return res.status(400).json({ msg: `Too many submissions in one batch (max ${MAX_SYNC_BATCH})` });
+    }
+
+    // This route re-judges every entry it carries, so the batch cap above
+    // bounds one request and this bounds how often requests can arrive - same
+    // 3-second rule as the direct submit route (lib/submitRateLimit.js). A
+    // laptop flushing an offline queue is still one allowed burst; it just
+    // can't be repeated inside the window. The client treats a 429 like any
+    // other failure and keeps the submissions queued
+    // (main.js's pushSubmission/flushPendingSubmissions), so nothing is lost -
+    // it is retried on the next reconnect or sync.
+    const syncRate = takeSyncToken(req, submissions.map((s) => s && s.studentRollNumber));
+    if (!syncRate.ok) {
+      res.set("Retry-After", String(syncRate.retryAfterSeconds));
+      return res.status(429).json({
+        msg: `Submissions are being synced too quickly. Retry in ${syncRate.retryAfterSeconds} second(s).`,
+        retryAfterSeconds: syncRate.retryAfterSeconds,
+      });
+    }
+
     const contest = await Contest.findById(contestId);
     if (!contest || !canAccessContest(contest, req)) return res.status(404).json({ msg: "Contest not found" });
 
     const judgeSettings = await getJudgeSettings();
     const results = [];
     for (const sub of submissions) {
+      // `localId` is the idempotency key every upsert below is filtered on,
+      // and it is required by the schema. Checked explicitly rather than left
+      // to Mongoose, because an undefined value is *dropped* from the filter -
+      // which turns `findOneAndUpdate({ localId: undefined }, ..., { upsert:
+      // true })` into an empty filter, and an empty filter matches an
+      // arbitrary existing document. One malformed payload could therefore
+      // overwrite some other student's submission instead of being rejected.
+      // The student fields are checked here too: they are required by the
+      // schema, so a single bad entry would otherwise throw a ValidationError
+      // and fail the entire batch with a 500 rather than skipping one row.
+      if (typeof sub.localId !== "string" || !sub.localId.trim()) {
+        results.push({ localId: sub.localId, skipped: true, reason: "Missing localId" });
+        continue;
+      }
+      if (!sub.studentName || !sub.studentRollNumber || !Number.isFinite(Number(sub.contestProblemId))) {
+        results.push({ localId: sub.localId, skipped: true, reason: "Missing student or problem identity" });
+        continue;
+      }
+
       // Trust that this submission genuinely happened and save it even if
       // its submittedAt is after the contest ended (a laptop can push its
       // local queue well after the contest window closes, or a student
@@ -928,6 +1052,8 @@ router.post("/:contestId/submissions/sync", async (req, res) => {
           memoryLimit: problem.memoryLimit,
           judgeSettings,
           checker: problem.checker,
+          checkerConfig: problem.checkerConfig,
+      checkerCode: problem.checkerCode,
         });
         verdict = judged.status;
         testCasesPassed = judged.testCasesPassed ?? 0;

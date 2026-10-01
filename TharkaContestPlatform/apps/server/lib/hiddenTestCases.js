@@ -22,9 +22,13 @@ const { isAdminRequest } = require("./adminAuth");
 // testcase couldn't actually stay hidden if the admin wanted it to.
 function stripHiddenTestCaseIO(problem, contest, req) {
   if (isAdminRequest(req)) return problem;
-  if (contest.settings?.hideHiddenTestCasesWhileLive === false) return problem;
 
   const obj = typeof problem.toObject === "function" ? problem.toObject() : { ...problem };
+  // A "code" checker's source can embed the answer logic, so a student never
+  // receives it - regardless of the hidden-testcase toggle below.
+  delete obj.checkerCode;
+  if (contest.settings?.hideHiddenTestCasesWhileLive === false) return obj;
+
   obj.hiddenTestCases = (obj.hiddenTestCases || []).map(() => ({}));
   return obj;
 }

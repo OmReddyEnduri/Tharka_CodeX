@@ -1,9 +1,31 @@
 const mongoose = require('mongoose');
+// The checker ids/types come from the judge itself - see the `checker` field
+// below for why this list is not written out a second time here.
+const { CHECKER_IDS, DEFAULT_CHECKER } = require('judge-cpp');
 
 const testCaseSchema = new mongoose.Schema({
   input: { type: String, required: false, default: "" },
   output: { type: String, required: false, default: "" }
 });
+
+// Options for the "custom" checker only - every other checker ignores them
+// (see packages/judge-cpp/checkers.js's normalizeCheckerConfig, which is the
+// authority on this shape and refuses to throw on anything malformed). Stored
+// as a real subdocument rather than Mixed so an admin can read a problem's
+// grading rule straight out of the database, but the judge still sanitizes
+// what it receives: this schema is the storage contract, not the comparison
+// logic.
+const checkerConfigSchema = new mongoose.Schema(
+  {
+    compareAs: { type: String, enum: ["lines", "tokens"], default: "lines" },
+    ignoreWhitespace: { type: Boolean, default: true },
+    ignoreBlankLines: { type: Boolean, default: true },
+    ignoreCase: { type: Boolean, default: false },
+    ignoreChars: { type: String, default: "" },
+    numberTolerance: { type: Number, default: null },
+  },
+  { _id: false }
+);
 
 const contestProblemSchema = new mongoose.Schema({
   id: { type: Number, required: true, unique: true }, // Custom ID for the problem
@@ -20,17 +42,23 @@ const contestProblemSchema = new mongoose.Schema({
   // reports it.
   timeLimit: { type: Number, required: true, default: 1000, min: 100 },
   memoryLimit: { type: Number, required: true, default: 256, min: 16 },
-  // How output is compared - "token" (whitespace-insensitive - the default,
-  // right for almost all competitive-programming problems), "exact"
-  // (line/spacing-sensitive - only needed for pattern-printing/formatting
-  // problems where leading spaces and line breaks are part of the answer),
-  // or "om" (line-by-line, spacing-insensitive within a line - line count/
-  // order matters but spacing on each line doesn't). See
-  // packages/judge-cpp/index.js's compareOutput() for the checkers
-  // themselves. Applies platform-wide to any problem, old or new - a
-  // problem saved before this field existed reads back as "token" too, same
-  // as one created today without touching this dropdown.
-  checker: { type: String, enum: ["token", "exact", "om"], default: "token" },
+  // How output is compared. The enum comes from judge-cpp's own checker
+  // registry rather than a second hand-written list here, so a value can
+  // never be storable without judging knowing how to apply it (and vice
+  // versa). See packages/judge-cpp/checkers.js for each mode's rules and
+  // admin-web's lib/checkers.ts for the labels/help text. Applies
+  // platform-wide to any problem, old or new - a problem saved before this
+  // field existed reads back as the default too, same as one created today
+  // without touching the dropdown.
+  checker: { type: String, enum: CHECKER_IDS, default: DEFAULT_CHECKER },
+  // Read only when `checker` is "custom"; harmless on every other problem.
+  checkerConfig: { type: checkerConfigSchema, default: () => ({}) },
+  // Read only when `checker` is "code": the admin's C++ source defining
+  // `bool checker(string expected, string user)` (see
+  // packages/judge-cpp/codeChecker.js). Validated (compiled) on every save,
+  // synced to lab laptops so offline judging uses the same function, and
+  // stripped from every response a student's screen receives.
+  checkerCode: { type: String, default: "" },
   // How many leaderboard points an Accepted verdict on this problem is
   // worth - not every problem has to be worth the same amount (a Hard
   // problem can outweigh three Easy ones). See lib/leaderboard.js, which

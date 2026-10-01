@@ -4,10 +4,9 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "node test-checkers.js"
+    "test": "node test-checkers.js && node test-memory-probe.js && node test-code-checker.js"
   },
   "dependencies": {
-    "pidusage": "^3.0.2",
     "tree-kill": "^1.2.2"
   }
 }

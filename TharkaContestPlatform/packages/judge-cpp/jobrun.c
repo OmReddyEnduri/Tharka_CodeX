@@ -8,7 +8,8 @@
  * stdin/stdout/stderr are inherited, so the caller's pipes talk straight to
  * the program. Exit code = the program's own, except EXIT_MLE when it hit the
  * memory cap and EXIT_HELPER on a launcher-side failure.
- * Build: gcc -Os -s -o jobrun.exe jobrun.c   (see build-jobrun.js) */
+ * Build (from this directory, then copy both files to
+ * apps/client-electron/judge-cpp/): gcc -Os -s -o jobrun.exe jobrun.c */
 #define _WIN32_WINNT 0x0602
 #include <windows.h>
 #include <stdio.h>

@@ -1,17 +1,22 @@
 const { spawn } = require('child_process');
+const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const treeKill = require('tree-kill');
-const fs = require('fs');
-const { getMemoryBytes, getJobRunner, markJobRunnerBroken, JOBRUN_EXIT_MLE, JOBRUN_EXIT_HELPER } = require('./memory');
+// Memory measurement lives in its own module now - see memoryProbe.js for why
+// the old wmic-based pidusage had to go. Short version: on current Windows
+// builds wmic.exe no longer exists, so every sample failed, the memory limit
+// was silently never enforced, and a program that allocated in a loop could
+// take the entire machine down with it.
+const { startMemoryWatch } = require('./memoryProbe');
+// jobrun.exe - the Windows Job Object launcher that makes the memory limit a
+// hard OS cap instead of a sampled one (see memory.js / jobrun.c).
+const { getJobRunner, markJobRunnerBroken, isAllocationFailure, JOBRUN_EXIT_HELPER } = require('./memory');
 
-// Each memory sample spawns a tasklist.exe (see memory.js), which can take a
-// few hundred ms on a loaded machine. Polls never overlap (see the in-flight
-// guard below), so this is a minimum spacing, not a guaranteed rate.
-const MEMORY_POLL_INTERVAL_MS = 250;
-// Consecutive failed samples on a still-running program before we give up on
-// monitoring and kill it: running with no memory limit can freeze the PC.
-const MAX_MEMORY_POLL_FAILURES = 8;
+// Only a ceiling on how often memory may be sampled - memoryProbe.js re-arms
+// its timer after each sample resolves rather than on a fixed schedule, so a
+// slow sample can never stack a second probe on top of it.
+const MEMORY_POLL_INTERVAL_MS = 500;
 const DEFAULT_MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1MB default - well beyond any legitimate judge-problem output; guards a print-flood loop
 
 // Strips trailing whitespace/newlines only. Keeps leading whitespace, which
@@ -27,49 +32,76 @@ function trimTrailing(s) {
 // never rejects - callers branch on `verdict`. `maxOutputBytes` is
 // admin-configurable (see JudgeSettings) - defaults to 1MB.
 async function execute(execPath, input, opts) {
-  const result = await executeOnce(execPath, input, opts);
-  // The launcher itself could not start (not the student's program) - disable it and run again directly.
+  const result = await executeOnce(execPath, input, opts, getJobRunner());
+  // The launcher itself could not start (not the student's program) - disable
+  // it for the rest of this process and run again directly, under memoryProbe
+  // sampling. One bad launcher must never fail a student's run.
   if (result.launcherFailed) {
     markJobRunnerBroken(result.stderr);
-    return executeOnce(execPath, input, opts);
+    return executeOnce(execPath, input, opts, null);
   }
   return result;
 }
 
-function executeOnce(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES }) {
+function executeOnce(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputBytes = DEFAULT_MAX_OUTPUT_BYTES }, runner) {
   return new Promise((resolve) => {
-    // cwd = the run's own temp dir, so relative-path file writes land in a folder that is deleted afterwards (not the app dir).
-    // On Windows the program runs inside jobrun.exe's Job Object (hard OS memory cap, 1 process, dies with
-    // the launcher) - no polling needed. Without it, fall back to sampling memory below.
-    const runner = getJobRunner();
-    const peakFile = runner ? path.join(path.dirname(execPath), 'peak.kb') : null;
-    const child = runner
-      ? spawn(runner, [String(Math.floor(memoryLimitMb * 1024 * 1024)), peakFile, execPath], { windowsHide: true, cwd: path.dirname(execPath) })
-      : spawn(execPath, [], { windowsHide: true, cwd: path.dirname(execPath) });
-    // A CPU-bound student program gets a full core for its whole run; at below-normal
-    // priority the UI and the rest of the OS stay responsive while it spins.
+    // cwd = the run's own temp work dir, so relative-path file writes land in
+    // a folder that is deleted afterwards (not the app/server directory).
+    const workDir = path.dirname(execPath);
+    // With jobrun (Windows), the program runs inside a Job Object: hard
+    // committed-memory cap, 1 process, killed if the launcher dies, below-normal
+    // priority. jobrun writes the job's peak committed memory to peakFile.
+    const peakFile = runner ? path.join(workDir, 'peak.kb') : null;
+    let child;
+    try {
+      child = runner
+        ? spawn(runner, [String(Math.floor(memoryLimitMb * 1024 * 1024)), peakFile, execPath], { windowsHide: true, cwd: workDir })
+        : spawn(execPath, [], { windowsHide: true, cwd: workDir });
+    } catch (err) {
+      // spawn() THROWS (rather than emitting 'error') for some failures - e.g.
+      // `spawn UNKNOWN` for a corrupt or antivirus-mangled exe. Uncaught, that
+      // would reject this promise-returning judge mid-run.
+      resolve({ verdict: 'Runtime Error', stdout: '', stderr: err.message, memoryPeakKb: 0, launcherFailed: !!runner });
+      return;
+    }
+    // A CPU-bound student program gets a full core for its whole run; at
+    // below-normal priority the UI and the rest of the OS stay responsive
+    // while it spins. Best effort (pid is undefined if the spawn failed).
     try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* best effort */ }
 
     let stdout = '';
     let stderr = '';
     let settled = false;
-    let memoryPeakKb = 0;
+    // Assigned below, once finish() exists. Read through the optional chain
+    // because a spawn 'error' can settle this before the watch is started.
+    let memoryWatch = null;
+    let jobPeakKb = 0;
 
     const finish = (verdict, extra = {}) => {
       if (settled) return;
       settled = true;
       clearTimeout(timeoutTimer);
-      clearInterval(memoryTimer);
+      memoryWatch?.stop();
       // Trailing-only trim, NOT a full .trim(). A full trim also ate LEADING
       // whitespace, and only from the program's actual output - the admin's
       // expected output was never leading-trimmed to match. That asymmetry
       // failed every pattern-printing problem (`  *` / ` ***` / `*****`
       // pyramids, right-aligned tables), and worse, accepted a wrong answer
       // that omitted the leading spaces entirely. Leading whitespace is now
-      // left intact on this side so index.js's checker (normalizeExactOutput
-      // or tokenizeOutput, depending on problem.checker) is the single
-      // transformation, applied identically to both sides of the compare.
-      resolve({ verdict, stdout: trimTrailing(stdout), stderr: trimTrailing(stderr), memoryPeakKb, ...extra });
+      // left intact on this side so checkers.js (whichever mode
+      // problem.checker selects) is the single transformation, applied
+      // identically to both sides of the compare.
+      resolve({
+        verdict,
+        stdout: trimTrailing(stdout),
+        stderr: trimTrailing(stderr),
+        // Peak survives the watch being stopped, so an MLE verdict still
+        // reports how far the program actually got. Under jobrun it is the
+        // job's peak committed memory (read from peak.kb on exit) - the watch
+        // never samples the launcher's pid, so its own peak stays 0.
+        memoryPeakKb: runner ? jobPeakKb : memoryWatch?.peakKb() ?? 0,
+        ...extra,
+      });
     };
 
     // Settle the verdict synchronously the instant the limit fires, then kill
@@ -77,49 +109,39 @@ function executeOnce(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputByt
     // before resolving loses a race against the child's own 'close' event
     // (which fires as soon as the kill signal lands, often before tree-kill's
     // shelled-out confirmation returns on Windows), previously misreporting
-    // TLE/MLE as "Runtime Error".
+    // TLE/MLE as "Runtime Error". Under jobrun, killing the launcher's tree
+    // takes the program with it (and KILL_ON_JOB_CLOSE backs that up).
     const timeoutTimer = setTimeout(() => {
       finish('Time Limit Exceeded');
       treeKill(child.pid, 'SIGKILL');
     }, timeLimitMs);
 
-    let polling = false;
-    let pollFailures = 0;
-    const memoryTimer = runner ? null : setInterval(async () => {
-      if (polling || settled) return;
-      polling = true;
-      try {
-        const memBytes = await getMemoryBytes(child.pid);
-        // The run may have ended while we awaited; its pid could even have
-        // been reused, so never act on a stale sample.
-        if (settled) return;
-        pollFailures = 0;
-        const kb = memBytes / 1024;
-        if (kb > memoryPeakKb) memoryPeakKb = kb;
-        if (kb > memoryLimitMb * 1024) {
-          finish('Memory Limit Exceeded');
+    // Settle-then-kill, same pattern as the time limit above. onExceeded
+    // fires at most once, and memoryProbe.js keeps only one sample in flight,
+    // so this cannot queue up probes the way the old setInterval(pidusage)
+    // did under a slow sampler.
+    //
+    // Under jobrun the OS enforces the problem's limit itself, so only the
+    // system free-memory backstop runs (processProbe: false) - child.pid is
+    // the launcher, and its working set says nothing about the program.
+    // Either way `finish` settles once, so a backstop kill and the program's
+    // own exit can never both be reported.
+    if (child.pid != null) {
+      memoryWatch = startMemoryWatch(child.pid, {
+        intervalMs: MEMORY_POLL_INTERVAL_MS,
+        limitMb: memoryLimitMb,
+        processProbe: !runner,
+        // `reason` is 'limit' (this program's own working set passed the
+        // problem's limit) or 'system' (the machine was running out of free
+        // memory and this run was eating it). Both surface to the student as
+        // the same Memory Limit Exceeded verdict - from their side the answer
+        // is the same: the program tried to use too much memory.
+        onExceeded: (peakKb, reason) => {
+          finish('Memory Limit Exceeded', reason === 'system' ? { systemMemoryKill: true } : {});
           treeKill(child.pid, 'SIGKILL');
-        }
-      } catch (err) {
-        // The common case is the process already exited between the
-        // interval firing and the sample landing - the 'close' handler
-        // settles that. But if Node still thinks the child is running and
-        // sampling keeps failing, the memory limit is silently off, so
-        // fail closed rather than let a runaway allocation freeze the PC.
-        if (!settled && child.exitCode === null && !child.killed) {
-          pollFailures++;
-          if (pollFailures === 1) {
-            console.warn(`[judge-cpp] memory sample failed for still-running pid ${child.pid}:`, err.message);
-          }
-          if (pollFailures >= MAX_MEMORY_POLL_FAILURES) {
-            finish('Runtime Error', { stderr: 'Memory monitor unavailable - run aborted for safety.' });
-            treeKill(child.pid, 'SIGKILL');
-          }
-        }
-      } finally {
-        polling = false;
-      }
-    }, MEMORY_POLL_INTERVAL_MS);
+        },
+      });
+    }
 
     // A program that exits before reading its input (or exits instantly,
     // e.g. `int main(){}`) closes its stdin pipe out from under us - writing
@@ -157,18 +179,22 @@ function executeOnce(execPath, input, { timeLimitMs, memoryLimitMb, maxOutputByt
     });
 
     child.on('error', (err) => {
+      // With a runner, a spawn error is the launcher's (missing, blocked by
+      // antivirus...), not the student's - execute() retries without it.
       finish('Runtime Error', { stderr: err.message, launcherFailed: !!runner });
     });
 
     child.on('close', (code) => {
       if (settled) return;
       if (runner) {
-        try { memoryPeakKb = parseInt(fs.readFileSync(peakFile, 'utf8'), 10) || 0; } catch { /* no stats written */ }
-        // jobrun saw the cap hit, or the program died on a refused allocation (std::bad_alloc), which a
-        // single oversized request can do without tripping the job's limit notification.
-        if (code === JOBRUN_EXIT_MLE || /bad_alloc/.test(stderr)) return finish('Memory Limit Exceeded');
-        if (code === JOBRUN_EXIT_HELPER) return finish('Runtime Error', { stderr: stderr || 'Could not start the program.', launcherFailed: true });
+        try { jobPeakKb = parseInt(fs.readFileSync(peakFile, 'utf8'), 10) || 0; } catch { /* no stats written */ }
+        if (code === JOBRUN_EXIT_HELPER) {
+          return finish('Runtime Error', { stderr: stderr || 'Could not start the program.', launcherFailed: true });
+        }
       }
+      // jobrun saw the job's memory cap hit, or the program died on a refused
+      // allocation (std::bad_alloc) - see isAllocationFailure in memory.js.
+      if (isAllocationFailure(code, stderr, !!runner)) return finish('Memory Limit Exceeded');
       finish(code === 0 ? 'Ran' : 'Runtime Error');
     });
   });

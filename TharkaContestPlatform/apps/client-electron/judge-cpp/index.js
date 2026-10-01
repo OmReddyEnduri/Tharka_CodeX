@@ -4,126 +4,23 @@ const path = require('path');
 const crypto = require('crypto');
 
 const { staticCheck } = require('./staticCheck');
-const { compile } = require('./compile');
+const { compile, cleanupWorkDir } = require('./compile');
 const { execute } = require('./execute');
+// All the output-comparison rules live in checkers.js - see that file for the
+// answer each mode gives and why. This module only wires them into a run.
+const {
+  compareOutput,
+  getChecker,
+  isValidChecker,
+  normalizeCheckerConfig,
+  CHECKER_IDS,
+  DEFAULT_CHECKER,
+  CUSTOM_DEFAULTS,
+} = require('./checkers');
+const { CHECKER_CODE_TEMPLATE, getCompiledChecker, runCodeChecker, validateCheckerCode } = require('./codeChecker');
 
 const DEFAULT_TIME_LIMIT_MS = 2000;
 const DEFAULT_MEMORY_LIMIT_MB = 256;
-
-// Two output-checking modes, selected per-problem via `problem.checker`
-// (see models/ContestProblem.js):
-//
-//   "exact" - line/spacing-sensitive. Lenient only about formatting noise a
-//   student can't see or doesn't consider meaningful:
-//     - line-ending style: Windows text-mode stdio translates every '\n' a
-//       compiled program writes to '\r\n' before it reaches our pipe, so a
-//       correct multi-line answer's raw bytes never equal an admin-typed
-//       expected output (plain '\n') without normalizing both to '\n' first.
-//     - trailing whitespace on a line: `cout << x << " ";` loop idioms and
-//       similar routinely leave one invisible trailing space students can't
-//       see on screen but that would otherwise fail a byte-exact compare.
-//     - trailing blank lines / a trailing newline (or lack of one): whether
-//       a program ends with `endl` or not is not a meaningful difference.
-//   Leading whitespace, internal spacing, and blank lines *between* content
-//   are left untouched - those are meaningful (alignment, pattern-printing
-//   problems like a `  * / *** / *****` pyramid) and a mismatch there is a
-//   real Wrong Answer. This was the platform's only checker before "token"
-//   existed, and is still the default for exactly the problems it was built
-//   for - it must never become whitespace-insensitive.
-//
-//   "token" - Codeforces-style whitespace-insensitive. Splits both outputs
-//   into whitespace-separated tokens (any run of spaces/tabs/newlines is one
-//   separator) and compares the token sequence in order - so `1 2 3`,
-//   `1   2   3`, and `1\n2\n3` are all the same answer, but `1 2 4` and
-//   `1 3 2` are not. This is the default: most competitive-programming
-//   problems don't care how an answer is laid out across whitespace, only
-//   which numbers/words appear in which order.
-//
-//   "om" - line-structure-sensitive but spacing-insensitive *within* a
-//   line: strips every space/tab out of each line, then compares line by
-//   line (so line count/order still matters, unlike "token", which also
-//   ignores newlines entirely). `5*2=10` and `5 * 2 = 10` are the same
-//   answer under "om" - only the non-space characters on each line matter,
-//   not how a student chose to space them out. Leading/trailing blank lines
-//   are ignored (same leniency as "exact"). Use this for problems whose
-//   answer genuinely has multiple lines worth keeping separate, but where
-//   spacing within a line is just a formatting choice, not part of the
-//   answer - "token" would be too lenient there (it would also accept the
-//   right numbers on the wrong lines) and "exact" too strict (it would fail
-//   over a single extra space).
-function normalizeOmOutput(s) {
-  return (s || '')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .map((line) => line.replace(/\s+/g, ''))
-    .join('\n')
-    .replace(/\n+$/, '')
-    .replace(/^\n+/, '');
-}
-
-function normalizeExactOutput(s) {
-  return (s || '')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .map((line) => line.replace(/[ \t]+$/, ''))
-    .join('\n')
-    .replace(/\n+$/, '')
-    .replace(/^\n+/, '');
-}
-
-function tokenizeOutput(s) {
-  const trimmed = (s || '').trim();
-  // ''.split(/\s+/) is [''] , not [] - an empty/whitespace-only output must
-  // tokenize to no tokens, not one fake empty-string token, or two blank
-  // outputs would wrongly compare as different-length token lists.
-  return trimmed === '' ? [] : trimmed.split(/\s+/);
-}
-
-// Token-mode's pass/fail is whitespace-blind by design (see compareOutput
-// below), but the "Your Output" / "Expected" panel still needs to look like
-// what the student actually printed - a row-printing problem's `endl`s are
-// real structure to a human reader even though the checker ignores them for
-// grading. Keeps line breaks; only collapses runs of horizontal whitespace
-// within a line and drops blank lines (same leniency tokenizeOutput already
-// grants for verdicts, just not flattened onto one line).
-function normalizeTokenDisplay(s) {
-  return (s || '')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .split('\n')
-    .map((line) => line.trim().replace(/\s+/g, ' '))
-    .filter((line) => line !== '')
-    .join('\n');
-}
-
-// Single place both judging (index.js) and anything that needs to show a
-// diff read the verdict from - returns the boolean plus the exact strings
-// that were compared, so a "Your Output" / "Expected" panel can show a
-// student precisely what the judge saw, not the raw stdout that might look
-// byte-different in ways the checker deliberately ignored.
-function compareOutput(actualRaw, expectedRaw, checkerMode) {
-  if (checkerMode === 'exact') {
-    const actual = normalizeExactOutput(actualRaw);
-    const expected = normalizeExactOutput(expectedRaw);
-    return { passed: actual === expected, actualDisplay: actual, expectedDisplay: expected };
-  }
-  if (checkerMode === 'om') {
-    const actual = normalizeOmOutput(actualRaw);
-    const expected = normalizeOmOutput(expectedRaw);
-    return { passed: actual === expected, actualDisplay: actual, expectedDisplay: expected };
-  }
-  const actualTokens = tokenizeOutput(actualRaw);
-  const expectedTokens = tokenizeOutput(expectedRaw);
-  const passed =
-    actualTokens.length === expectedTokens.length && actualTokens.every((t, i) => t === expectedTokens[i]);
-  return {
-    passed,
-    actualDisplay: normalizeTokenDisplay(actualRaw),
-    expectedDisplay: normalizeTokenDisplay(expectedRaw),
-  };
-}
 
 function makeWorkDir() {
   const workDir = path.join(os.tmpdir(), 'contest-judge', crypto.randomUUID());
@@ -135,18 +32,24 @@ function makeWorkDir() {
 // limits. Stops at the first failing test case (standard judge behavior).
 // Never throws for judging outcomes (WA/TLE/MLE/RE/CE) - only for
 // programmer errors (bad args). `checker` is the problem's own
-// `problem.checker` field ("token" | "exact" | "om"). Anything other than
-// the literal strings "exact"/"om" - including undefined, for a problem
-// saved before this field existed - defaults to "token", the platform-wide
-// default for any problem, old or new. Only pattern-printing/formatting-
-// sensitive problems need to explicitly opt into "exact"/"om" via the admin
-// problem editor.
-async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSettings, checker }) {
+// `problem.checker` field - one of checkers.js's ids, i.e. "token" (default)
+// | "om" | "exact" | "numeric" | "unordered". Anything unrecognized -
+// including undefined, for a problem saved before this field existed -
+// resolves to the default, so an old problem keeps grading exactly the way
+// it always did. Only problems that genuinely need a different rule opt into
+// one via the admin problem editor's dropdown. `checkerConfig` is read only by
+// the "custom" checker - every other mode ignores it, exactly as it ignores
+// any other config a problem happens to carry (see checkers.js's
+// normalizeCheckerConfig, which is what turns whatever was stored into a valid
+// set of options).
+// `checkerCode` is read only by the "code" checker: the admin's C++ defining
+// `bool checker(string expected, string user)` (see codeChecker.js).
+async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSettings, checker, checkerConfig, checkerCode }) {
   if (!testCases || testCases.length === 0) {
     return { status: 'Error', message: 'No test cases found for this mode.' };
   }
 
-  const checkerMode = checker === 'exact' || checker === 'om' ? checker : 'token';
+  const checkerMode = getChecker(checker).id;
 
   const check = staticCheck(sourceCode, judgeSettings?.blockedKeywords);
   if (check.blocked) {
@@ -166,6 +69,22 @@ async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSetting
       return { status: 'Compilation Error', message: compileError.stderr, errorLog: compileError.stderr };
     }
 
+    // "code" checker: compile (or reuse the cached build of) the admin's
+    // checker before running anything. A broken checker is the problem's
+    // fault, not the student's, so it is reported as a Checker Error.
+    let checkerExe = null;
+    if (checkerMode === 'code') {
+      try {
+        checkerExe = await getCompiledChecker(checkerCode);
+      } catch (err) {
+        return {
+          status: 'Checker Error',
+          message: "This problem's checker could not be compiled. Please tell the contest admin - your code was not judged.",
+          errorLog: (err && (err.stderr || err.message)) || 'checker compile failed',
+        };
+      }
+    }
+
     const results = [];
     let maxTime = 0;
     let overallVerdict = 'Accepted';
@@ -178,30 +97,70 @@ async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSetting
       if (durationMs > maxTime) maxTime = durationMs;
 
       if (outcome.verdict === 'Ran') {
-        // Report the *normalized/tokenized* forms on both sides, not the raw
-        // stdout. The "Your Output" / "Expected" panels a student reads on a
-        // Wrong Answer must show exactly what the checker actually compared -
-        // otherwise the pair looks byte-different (a stray trailing space, a
-        // Windows \r, different line breaks under the token checker) in ways
-        // the judge deliberately ignored, and the student hunts a difference
-        // that had nothing to do with the verdict.
-        const { passed, actualDisplay, expectedDisplay } = compareOutput(outcome.stdout, tc.output, checkerMode);
+        // Report both sides RAW - the student's own stdout and the admin's
+        // expected output, each untouched except for CRLF normalization. The
+        // "Your Output" / "Expected" panels exist so a student can read what
+        // their program printed and compare it against the answer themselves;
+        // rewriting either side into the checker's normalized form (collapsing
+        // runs of spaces, dropping blank lines) hides the spacing that is
+        // exactly what they need to see when the verdict is wrong. What the
+        // whitespace-blind modes forgive is forgiven inside the verdict only -
+        // see compareOutput in checkers.js.
+        const compared = compareOutput(outcome.stdout, tc.output, checkerMode, checkerConfig);
+        const { actualDisplay, expectedDisplay } = compared;
+        let { passed } = compared;
+        if (checkerExe) {
+          // The admin's function decides. compareOutput above only supplied
+          // the raw display strings.
+          const verdict = await runCodeChecker(checkerExe, tc.output, outcome.stdout, workDir);
+          if (verdict.error) {
+            results.push({
+              testCase: i + 1,
+              passed: false,
+              error: 'Checker Error',
+              message: "This problem's checker failed on this test case. Please tell the contest admin.",
+              checkerError: verdict.error,
+              userOutput: actualDisplay,
+              expectedOutput: expectedDisplay,
+              input: tc.input,
+              memoryPeakKb: outcome.memoryPeakKb,
+            });
+            overallVerdict = 'Checker Error';
+            break;
+          }
+          passed = verdict.passed;
+        }
         results.push({
           testCase: i + 1,
           passed,
           userOutput: actualDisplay,
           expectedOutput: expectedDisplay,
           input: tc.input,
+          // Surfaced rather than discarded: the memory limit is enforced from
+          // a sampled figure, and a run that reported a peak is direct
+          // evidence the sampler was working on this machine (see
+          // memoryProbe.js). Previously this was measured and thrown away.
+          memoryPeakKb: outcome.memoryPeakKb,
         });
         if (!passed) {
           overallVerdict = 'Wrong Answer';
           break;
         }
       } else {
-        // input/expectedOutput ride along so a sample "Run" that errors out (TLE, runtime error, ...)
-        // still shows the student the sample it ran on. Submit-mode callers redact results down to
-        // { testCase, passed, error } before anything reaches a student, so hidden cases stay hidden.
-        results.push({ testCase: i + 1, passed: false, error: outcome.verdict, stderr: outcome.stderr, input: tc.input, expectedOutput: tc.output });
+        // input/expectedOutput ride along so a sample "Run" that errors out
+        // (TLE, runtime error, ...) still shows the student the sample it ran
+        // on. Submit-mode callers redact results down to
+        // { testCase, passed, error } before anything reaches a student, so
+        // hidden cases stay hidden.
+        results.push({
+          testCase: i + 1,
+          passed: false,
+          error: outcome.verdict,
+          stderr: outcome.stderr,
+          input: tc.input,
+          expectedOutput: tc.output,
+          memoryPeakKb: outcome.memoryPeakKb,
+        });
         overallVerdict = outcome.verdict;
         break;
       }
@@ -215,9 +174,7 @@ async function run({ sourceCode, testCases, timeLimit, memoryLimit, judgeSetting
       timeTaken: maxTime,
     };
   } finally {
-    fs.rm(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }, (err) => {
-      if (err) console.warn(`[judge-cpp] failed to clean up ${workDir}:`, err.message);
-    });
+    cleanupWorkDir(workDir);
   }
 }
 
@@ -259,12 +216,30 @@ async function runOnce({ sourceCode, input, timeLimit, memoryLimit, judgeSetting
       stdout: outcome.stdout,
       stderr: outcome.stderr,
       timeTaken,
+      memoryPeakKb: outcome.memoryPeakKb,
     };
   } finally {
-    fs.rm(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }, (err) => {
-      if (err) console.warn(`[judge-cpp] failed to clean up ${workDir}:`, err.message);
-    });
+    cleanupWorkDir(workDir);
   }
 }
 
-module.exports = { run, runOnce, staticCheck, compareOutput, tokenizeOutput, normalizeExactOutput };
+module.exports = {
+  run,
+  runOnce,
+  // "code" checker support for the server's admin routes (validate on save,
+  // the "Check code" button, the editor's starting template).
+  validateCheckerCode,
+  CHECKER_CODE_TEMPLATE,
+  staticCheck,
+  // The checker API is re-exported rather than duplicated, so a caller that
+  // needs to validate an admin-supplied `checker` value (server routes,
+  // bulk import) uses the exact same list the judge does - it is impossible
+  // to accept a value here that judging would then fall back to a default on.
+  compareOutput,
+  getChecker,
+  isValidChecker,
+  normalizeCheckerConfig,
+  CHECKER_IDS,
+  DEFAULT_CHECKER,
+  CUSTOM_DEFAULTS,
+};

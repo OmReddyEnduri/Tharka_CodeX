@@ -1,3 +1,5 @@
+import type { CheckerConfig, CheckerId } from "./checkers";
+
 export interface TestCase {
   input: string;
   output: string;
@@ -14,11 +16,16 @@ export interface ContestProblem {
   outputFormat: string;
   timeLimit: number;
   memoryLimit: number;
-  // How output is compared - "token" (whitespace-insensitive, right for
-  // almost all problems), "exact" (line/spacing-sensitive, for
-  // pattern-printing problems), or "om" (line-by-line, spacing-insensitive
-  // within a line). See packages/judge-cpp/index.js.
-  checker: "token" | "exact" | "om";
+  // How output is compared. See lib/checkers.ts for the full list and what
+  // each one forgives; the rules themselves live in
+  // packages/judge-cpp/checkers.js.
+  checker: CheckerId;
+  // Options for the "custom" checker; read only when `checker` is "custom".
+  // Always present on a fetched problem (the schema defaults it), but optional
+  // here because a problem saved before either field existed won't have it.
+  checkerConfig?: CheckerConfig;
+  // C++ source for the "code" checker (bool checker(string expected, string user)).
+  checkerCode?: string;
   // Leaderboard points an Accepted verdict on this problem is worth - not
   // every problem has to be worth the same amount. See lib/leaderboard.js.
   points: number;
@@ -121,7 +128,12 @@ export interface BulkProblemInput {
   memoryLimit?: number;
   // Omit for "token" (the default for a new problem). An unrecognized value
   // is rejected with a validation error, not silently guessed.
-  checker?: "token" | "exact" | "om";
+  checker?: CheckerId;
+  // Only read when `checker` is "custom". Every field is optional - the server
+  // fills in the documented defaults for anything left out.
+  checkerConfig?: Partial<CheckerConfig>;
+  // Required when `checker` is "code": C++ defining bool checker(string expected, string user).
+  checkerCode?: string;
   // Omit for 100 (the default). Set higher for a harder problem that should
   // outweigh easier ones on the leaderboard.
   points?: number;

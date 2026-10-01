@@ -97,6 +97,32 @@ Full original design plan (phasing, rationale for each architecture decision) is
   the sync version and broadcasts, so a newly-private contest disappears from
   connected laptops immediately. A running private contest still counts toward
   `/live-status`'s `anyLive` (deploys/updates must wait) but is never named there.
+- **"Code" checker = admin-written C++, by explicit request.** Besides the six
+  rule-based checkers in `packages/judge-cpp/checkers.js` (which were deliberately
+  options-not-scripts), a problem can use `checker: "code"` with
+  `problem.checkerCode` defining `bool checker(string expected, string user)`. The
+  user asked for this explicitly - don't remove it. `codeChecker.js` wraps it in a
+  harness, compiles it once per distinct source (cached in
+  `%TEMP%contest-checkers`), and runs it per test case (exit 0 = correct, 1 =
+  wrong, anything else / >5s = checker error, never blamed on the student). Saving a
+  problem with code that doesn't compile is rejected with the compiler output; the
+  admin editor has a "Check code" button (`POST /api/contests/checker-code/validate`).
+  Runs identically on the server and the Electron local judge; `checkerCode` is
+  stripped from every student-facing response (server `stripHiddenTestCaseIO`,
+  Electron `redactContestForRenderer`). Admin code is trusted (not blocklisted) but
+  time-limited.
+- **Hard memory cap via `jobrun.exe` (Windows Job Object)**, on top of
+  `memoryProbe.js` sampling. Student programs are launched through
+  `packages/judge-cpp/jobrun.exe` (source `jobrun.c`, ~50KB, ~1MB RAM): committed-
+  memory limit enforced by Windows at allocation time, max 1 process (no
+  fork/`start` escapes), killed with the launcher, below-normal priority. In the
+  packaged app it lives in `app.asar.unpacked`; if it ever fails to start the
+  judge marks it broken and falls back to sampling instead of failing runs.
+- **Diagnostic log**: the Electron client writes
+  `DocumentsTharkaCodexLogsdiagnostics.log` (`apps/client-electron/diaglog.js`):
+  crashes, window unresponsive, main-process blocking, slow/stuck IPC, low memory /
+  high CPU with the top processes, judge runs, and "previous session did not exit
+  cleanly" detection. First place to look for "the app/PC hung" reports.
 - **Hidden test case I/O is redacted while a contest is still running** — a Wrong
   Answer/TLE/etc. result only shows the verdict + which test number, not the actual
   input/expected/got values, until `contest.endTime` has passed (see
@@ -275,38 +301,38 @@ runs fully local via IPC when Electron is present. And the default Electron
 File/Edit/View/Window/Help menu bar is now stripped (`Menu.setApplicationMenu(null)`
 + `autoHideMenuBar: true`) - this is a kiosk-style lab app, not a document editor.
 
-**Not built/verified yet**: `electron-builder` packaging into an actual
-installer (`.exe` via the `nsis` target already configured in
-`client-electron/package.json`) - so far only run unpackaged via `electron .`
-pointed at the Vite dev server (`app.isPackaged` is false in that mode). The
-packaged-mode code path (`loadFile` from `extraResources`) is written but
-untested. Phase 7 (real multi-laptop LAN pilot) also still not started.
+**Packaging works**: `npm run build` in `apps/client-electron` produces the
+NSIS installer at `dist/Tharka Codex.exe` (per-user, one-click, no admin
+rights), verified building and packaging the built `client-web/dist` in as
+`extraResources`. Phase 7 (real multi-laptop LAN pilot) still not started.
+The installer also creates the Downloads + Desktop/Start Menu shortcuts and
+**pins the app to the taskbar** - see `installer.nsh`'s `customInstall`, and
+its comment for why writing a `.lnk` into the shell's own "User Pinned\TaskBar"
+folder is the only approach that works (Windows gives installers no
+supported "pin to taskbar" API), and why it is unconditional rather than an
+opt-in checkbox page.
 
-**Known temporary workaround - revisit later**: the packaged app's
-auto-update no longer uses NSIS/electron-updater's own built-in
-"--force-run" relaunch (`autoUpdater.quitAndInstall(true, false)` now, not
-`(true, true)`). That built-in relaunch goes through `ExecShellAsUser`'s
-"open" verb on a shortcut, inside a separate installer process whose output
-electron-updater discards (`spawnLog()` uses `stdio:"ignore"`) - a total
-black box that gave zero diagnostic trail when the app updated but never
-came back. Root cause found on the dev machine via
-`Get-MpThreatDetection`: Windows Defender was deleting the freshly-installed,
-**unsigned** exe as `Trojan:Win32/Phonzy.A!ml` (a ML heuristic false
-positive, not a real threat) - a well-known issue for unsigned Electron
-apps. Fixed for now with a Defender exclusion
-(`Add-MpPreference -ExclusionPath ...tharka-codex, ...tharka-codex-updater`,
-needs to be applied on every lab laptop, not just this dev machine) **and**
-by replacing NSIS's relaunch with our own (`relauncher.js`, spawned detached
-before `quitAndInstall`, direct `CreateProcess` instead of a shell "open"
-verb, retries for ~40s logging every attempt/error to
-`~/Downloads/TharkaCodexUpdate.log`).
-This custom relauncher is a workaround for both the Defender false-positive
-*and* NSIS's unloggable relaunch - not a permanent design decision. Once the
-app is either (a) code-signed (removes the Defender false-positive class
-entirely) or (b) confirmed stable across a real multi-laptop pilot, revisit
-whether the custom relauncher is still needed or whether reverting to
-electron-updater's own `--force-run` (simpler, one less file to maintain) is
-fine again.
+**App auto-update was removed entirely** - `electron-updater`, `relauncher.ps1`,
+`diagnose-update.ps1`/`.bat`, `scripts/stamp-version.js`, `main.js`'s update
+pipeline and its `TharkaCodexUpdate.log`, the `update-status` IPC broadcast and
+`preload.js`'s `onUpdateStatus`/`checkForUpdate`/`openUpdateLog`/`getAppVersion`,
+client-web's `UpdateStatusIndicator` and the Settings "Check for Updates" card,
+admin-web's `PushUpdateCard`, and the whole server side
+(`routes/appUpdateRoutes.js`, `models/AppUpdateState.js`, the `/api/app-update`
+mount, the static `/updates` feed, `broadcastAppUpdate`, `apps/server/updates/`).
+New builds are distributed by hand: build, then copy the installer to each
+laptop. `main.js` still writes `~/Downloads/TharkaCodex.log` for crashes
+(`logToFile`) - that survives the removal on purpose, since a packaged build
+with devTools disabled has nowhere else to leave a trace.
+Why it went: it was never reliable on this hardware. Windows Defender
+repeatedly deleted the freshly-installed, **unsigned** exe as
+`Trojan:Win32/Phonzy.A!ml` (an ML heuristic false positive - a well-known
+unsigned-Electron problem), NSIS's own `--force-run` relaunch is unloggable
+(`spawnLog()` uses `stdio:"ignore"`), and the custom `relauncher.ps1` built to
+work around both was itself a recurring source of silent failures. If updates
+ever come back, the real preconditions are (a) code-signing the build, which
+removes the Defender false-positive class outright, and (b) a real
+multi-laptop pilot - not another relauncher.
 
 ## Editor persistence, code template, and file save/open (client-web)
 
@@ -342,16 +368,80 @@ whitespace from the program's actual output while the admin's expected output
 was never leading-trimmed to match. That asymmetry failed every correct
 pattern-printing solution (the `  *` / ` ***` / `*****` pyramid contests 6-9)
 and, worse, *accepted* a wrong answer that omitted the leading spaces. All
-output leniency now lives in exactly one place, `index.js`'s `normalizeOutput`,
-applied identically to both sides: CRLF→LF, per-line trailing whitespace, and
-leading/trailing blank lines are ignored; leading spaces and internal spacing
-are significant. `results[].userOutput` is reported in that same normalized
-form so the "Your Output" vs "Expected" panels show exactly the two strings
-that were compared. Also fixed earlier: a race between `tree-kill`'s
+output comparison now lives in exactly one place, `checkers.js` (extracted out
+of `index.js` since), applied identically to both sides. That module is the
+single source of truth for the six modes - `token` (default), `om`, `exact`,
+`numeric`, `unordered`, `custom` - each a small object exposing
+`normalize(raw, config) -> { key, display }` plus an optional
+`equals(aKey, bKey, config)`. The verdict is made from `key` alone, through
+`equals`; the server's `VALID_CHECKERS` (`contestRoutes.js`), the Mongoose
+enum (`models/ContestProblem.js`) and the admin dropdown all read the id list
+from that registry rather than repeating it.
+
+Two rules there are load-bearing and shouldn't be undone. **Trailing noise is
+stripped from both sides, for every mode, before its own rules run**
+(`stripTrailingNoise` in `compareOutput`) - a final `endl`, trailing spaces,
+trailing blank lines can never be why a correct answer failed, and no new mode
+can forget to. Leading whitespace is deliberately *not* stripped: it is the
+answer for `exact`, and the other modes handle it in their own rule.
+**`custom` is options, not a script** (`problem.checkerConfig`, a small flat
+object: `compareAs` lines|tokens, `ignoreWhitespace`, `ignoreBlankLines`,
+`ignoreCase`, `ignoreChars`, `numberTolerance`). Deliberate: the comparison
+rule has to be something an admin can read and audit, and neither the server
+nor the Electron client (which judges offline on a student's laptop) should be
+executing admin-authored code to decide a verdict. `normalizeCheckerConfig`
+coerces anything stored into a valid config instead of throwing, so a bad or
+old config degrades to a sane comparison rather than failing every submission,
+and the routes sanitize through it on both create and edit. **The displayed output is the raw output** (`results[].userOutput`/`expectedOutput` come from `displayRaw` in
+`compareOutput`, not from `display`): the "Your Output" vs "Expected" panels show
+each side exactly as it came out of the programs - spaces, tabs, blank lines and
+line breaks included - with CRLF→LF as the only change, since Windows stdio
+silently rewrites every `\n`. Normalizing the panels too (the old behaviour)
+hid the spacing that is the whole point of reading a Wrong Answer, i.e. it
+disagreed with the student's own terminal. Forgiveness lives in `key` only.
+Under `exact`, CRLF→LF, per-line
+trailing whitespace, and leading/trailing blank lines are ignored, while
+leading spaces and internal spacing stay significant. Also fixed earlier: a race between `tree-kill`'s
 completion callback and a killed child process's own `close` event, which caused
 TLE/MLE to be misreported as "Runtime Error" (fixed in both `execute.js` and
 `interactive.js` by settling the verdict synchronously before killing, guarded by a
 `settled`/`_settled` flag so the later `close` event is a no-op).
+
+**The memory limit is enforced by `memoryProbe.js`, not `pidusage`.** This was the
+cause of the "the whole laptop freezes and has to be rebooted" reports. Enforcement
+used to be sampled by `pidusage`, whose Windows backend shells out to `wmic.exe` —
+deprecated, and *absent* on the lab machine — so every sample failed, the failure
+was swallowed, and **the memory limit was silently never enforced at all**: a
+program that allocated in a loop ran until Windows ran out of RAM. (The packaged
+Electron app's `pidusage@4` didn't fail, but fell back to spawning PowerShell + a
+WMI query per sample — ~1s and tens of MB each — polled every 500ms from a
+`setInterval(async …)` with no overlap guard, so a long console session kept several
+alive at once.) `memoryProbe.js` measures the child directly (`tasklist` on Windows,
+`/proc/<pid>/status` on Linux, `ps` elsewhere) and never overlaps its own samples.
+It enforces two things: the problem's own `memoryLimit`, and a system backstop that
+kills a run once free memory drops below 512MB having fallen 256MB+ since that run
+started. The backstop matters because the per-process figure is a *working set*,
+which Windows trims under pressure — so it can stop seeing a program at exactly the
+moment that program is driving the machine into swap. `pidusage` is no longer a
+dependency of `judge-cpp` or `client-electron`. Regression tests:
+`npm test --workspace=judge-cpp` (checkers + `test-memory-probe.js`).
+`memoryProbe.js` is now one of the files `scripts/check-judge-cpp-drift.js` mirrors
+into `apps/client-electron/judge-cpp/` (7 files).
+
+**Judge requests are rate-limited to one per 3 seconds per student**
+(`apps/server/lib/submitRateLimit.js`, mirrored in `apps/client-electron/main.js`'s
+`submit-code` handler). Every submit/run is a full g++ compile plus supervised
+child runs - the most expensive thing this server does - and nothing previously
+bounded how fast one student could ask for them. `submit` and `run` have
+separate budgets so testing with Run can't lock a student out of submitting
+(and vice versa); the direct-submit route is checked after the "already solved"
+short-circuit so re-opening a solved problem is never throttled, and before the
+compile so a rejected request costs nothing. `POST /submissions/sync` has the
+same 3-second rule plus a 200-entry batch cap - a 429 there is treated by the
+client exactly like any other failure, so queued submissions stay queued and are
+retried (nothing is dropped). Admin decision: keep the `staticCheck` blocked-word
+list exactly as shipped - `std::remove` and friends are not used by these
+students, so the false-positive risk was accepted rather than loosened.
 
 ## Running it locally (dev)
 
